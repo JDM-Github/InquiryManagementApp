@@ -1,0 +1,39 @@
+@model InquiryManagementApp.Models.Inquiry
+
+<h2>Edit Inquiry</h2>
+
+<form asp-action="Edit">
+    <input type="hidden" asp-for="InquiryId" />
+    <div class="form-group">
+        <label asp-for="StudentName"></label>
+        <input asp-for="StudentName" class="form-control" />
+        <span asp-validation-for="StudentName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="GuardianName"></label>
+        <input asp-for="GuardianName" class="form-control" />
+        <span asp-validation-for="GuardianName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="ContactNumber"></label>
+        <input asp-for="ContactNumber" class="form-control" />
+        <span asp-validation-for="ContactNumber" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="EmailAddress"></label>
+        <input asp-for="EmailAddress" class="form-control" />
+        <span asp-validation-for="EmailAddress" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="SourceOfInformation"></label>
+        <input asp-for="SourceOfInformation" class="form-control" />
+        <span asp-validation-for="SourceOfInformation" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Notes"></label>
+        <textarea asp-for="Notes" class="form-control"></textarea>
+        <span asp-validation-for="Notes" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a class="btn btn-secondary" asp-action="Index">Back to List</a>
+</form>

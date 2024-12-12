@@ -1,0 +1,245 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid mt-4" style="margin-top: 65px !important; margin-bottom: 10px;">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 bg-light shadow-lg rounded-3 py-4">
+            <h3 class="text-center text-primary mb-4 fw-bold">ADMIN PANEL</h3>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item border-0">
+                    <a href="@Url.Action("index", "Admin")"
+                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                        <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="list-group-item border-0">
+                    <a href="@Url.Action("ManageAccounts", "Admin")"
+                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                        <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                        <span>Manage Accounts</span>
+                    </a>
+                </li>
+                <li class="list-group-item border-0">
+                    <a href="@Url.Action("ManageEnrolled", "Admin")"
+                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                        <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                        <span>Manage Enrolled</span>
+                    </a>
+                </li>
+                <li class="list-group-item border-0">
+                    <a href="@Url.Action("ManageEnrollees", "Admin")"
+                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                        <i class="bi bi-list-check me-3 text-success" style="font-size: 1.2rem;"></i>
+                        <span>Enrollees</span>
+                    </a>
+                </li>
+                <li class="list-group-item border-0">
+                    <a href="@Url.Action("ManageInquiries", "Admin")"
+                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                        <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
+                        <span>Inquiries</span>
+                    </a>
+                </li>
+                <li class="list-group-item border-0">
+                    <a href="@Url.Action("ManageTransactions", "Admin")"
+                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                        <i class="bi bi-receipt me-3 text-warning" style="font-size: 1.2rem;"></i>
+                        <span>Transactions</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Analytics Cards -->
+            <div class="row text-center g-4">
+                <div class="col-md-3">
+                    <div class="card shadow-lg border-0"
+                        style="background-color: #FFFFFF; color: #0D206A; min-height: 120px; max-height: 120px; display: flex; flex-direction: column;">
+                        <div class="card-header"
+                            style="background-color: #FFD700; color: white; height: 30%; display: flex; align-items: center; justify-content: center;">
+                            <h5 class="card-title fw-bold" style="font-size: 1.4rem; margin-bottom: 0;">Total Inquiries
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text small">Inquiries we have received this month</p>
+                            <h2 class="fw-bold">@Model.TotalInquiries</h2>
+                            <i class="bi bi-arrow-up-circle-fill" style="font-size: 1.5rem; color: #0D206A;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-lg border-0"
+                        style="background-color: #FFFFFF; color: #0D206A; min-height: 120px; max-height: 120px; display: flex; flex-direction: column;">
+                        <div class="card-header"
+                            style="background-color: #FFD700; color: white; height: 30%; display: flex; align-items: center; justify-content: center;">
+                            <h5 class="card-title fw-bold" style="font-size: 1.4rem; margin-bottom: 0;">Total Enrolles
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text small">Total number of students enrolles</p>
+                            <h2 class="fw-bold">@Model.TotalEnrolled</h2>
+                            <i class="bi bi-arrow-up-circle-fill" style="font-size: 1.5rem; color: #0D206A;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-lg border-0"
+                        style="background-color: #FFFFFF; color: #0D206A; min-height: 120px; max-height: 120px; display: flex; flex-direction: column;">
+                        <div class="card-header"
+                            style="background-color: #FFD700; color: white; height: 30%; display: flex; align-items: center; justify-content: center;">
+                            <h5 class="card-title fw-bold" style="font-size: 1.4rem; margin-bottom: 0;">Total Approved
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text small">Number of approved enrollments</p>
+                            <h2 class="fw-bold">@Model.TotalApproved</h2>
+                            <i class="bi bi-arrow-up-circle-fill" style="font-size: 1.5rem; color: #0D206A;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-lg border-0"
+                        style="background-color: #FFFFFF; color: #0D206A; min-height: 120px; max-height: 120px; display: flex; flex-direction: column;">
+                        <div class="card-header"
+                            style="background-color: #FFD700; color: white; height: 30%; display: flex; align-items: center; justify-content: center;">
+                            <h5 class="card-title fw-bold" style="font-size: 1.4rem; margin-bottom: 0;">Total Revenue
+                            </h5>
+                        </div>
+
+                        <div class="card-body"
+                            style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                            <p class="card-text small">Total revenue generated from enrollments</p>
+                            <h2 class="fw-bold">₱@Model.TotalRevenue.ToString("N2")</h2>
+                            <i class="bi bi-arrow-up-circle-fill" style="font-size: 1.5rem; color: #0D206A;"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header fw-bold" style="background-color: #FFD700; color:#0D206A">
+                            Enrollment Trends
+                            <button class="btn btn-dark btn-sm float-end" data-bs-toggle="modal"
+                                data-bs-target="#enrollmentScheduleModal">
+                                Set Enrollment Schedule
+                            </button>
+                            <form action="@Url.Action("ClearEnrollment", "Admin")" method="post" class="float-end me-2">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    Clear Enrollment
+                                </button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="enrollmentChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="enrollmentScheduleModal" tabindex="-1"
+                aria-labelledby="enrollmentScheduleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="enrollmentScheduleModalLabel">Set Enrollment Schedule</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="POST" asp-action="SetEnrollmentSchedule">
+                                <div class="mb-3">
+                                    <label for="startDate" class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="startDate" name="StartDate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="endDate" class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="endDate" name="EndDate" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Set Schedule</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-8">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header fw-bold" style="background-color: #FFD700; color:#0D206A">
+                            Recent Activities
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                <li class="list-group-item">New inquiry received from John Doe</li>
+                                <li class="list-group-item">Enrollee Mary Smith was approved</li>
+                                <li class="list-group-item">Transaction ID #12345 was completed</li>
+                                <li class="list-group-item">Revenue updated: ₱5000.00</li>
+                                <li class="list-group-item">Inquiry from Jane Roe was processed</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="col-md-4">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header fw-bold" style="background-color: #FFD700; color:#0D206A">
+                            Quick Actions
+                        </div>
+                        <div class="card-body d-grid gap-3">
+                            <a href="@Url.Action("ManageAccounts", "Admin")" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-people-fill"></i> Manage Accounts
+                            </a>
+                            <a href="@Url.Action("ManageEnrollees", "Admin")" class="btn btn-outline-success w-100">
+                                <i class="bi bi-list-check"></i> Enrollees
+                            </a>
+                            <a href="@Url.Action("ManageInquiries", "Admin")" class="btn btn-outline-info w-100">
+                                <i class="bi bi-question-circle-fill"></i> Inquiries
+                            </a>
+                            <a href="@Url.Action("ManageTransactions", "Admin")" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-receipt"></i> Transactions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Chart.js script
+        const ctx = document.getElementById('enrollmentChart').getContext('2d');
+        const enrollmentChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['January', 'February', 'March', 'April', 'May'], // Example months
+                datasets: [{
+                    label: 'Enrollments',
+                    data: [12, 19, 3, 5, 2], // Example data
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    tension: 0.3,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                }
+            }
+        });
+    </script>
+}

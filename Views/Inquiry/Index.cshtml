@@ -1,0 +1,33 @@
+@model IEnumerable<InquiryManagementApp.Models.Inquiry>
+
+<h2>Inquiries</h2>
+<a class="btn btn-primary mb-3" asp-action="Create">Create New Inquiry</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Student Name</th>
+            <th>Guardian Name</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var inquiry in Model)
+        {
+            <tr>
+                <td>@inquiry.InquiryId</td>
+                <td>@inquiry.StudentName</td>
+                <td>@inquiry.GuardianName</td>
+                <td>@inquiry.ContactNumber</td>
+                <td>@inquiry.EmailAddress</td>
+                <td>
+                    <a class="btn btn-info btn-sm" asp-action="Details" asp-route-id="@inquiry.InquiryId">Details</a>
+                    <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@inquiry.InquiryId">Edit</a>
+                    <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@inquiry.InquiryId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

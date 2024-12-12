@@ -1,0 +1,149 @@
+@model IEnumerable<InquiryManagementApp.Models.Account>
+
+@{
+    ViewData["Title"] = "Enrolled Students";
+}
+
+<div class="container-fluid mt-4 d-flex" style="margin-top: 65px !important; margin-bottom: 10px;">
+    <!-- Sidebar -->
+    <div class="col-md-3 bg-light shadow-lg rounded-3 py-4" style="height: 100vh;">
+        <h3 class="text-center text-primary mb-4 fw-bold">ADMIN PANEL</h3>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("index", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageAccounts", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                    <span>Manage Accounts</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageEnrolled", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                    <span>Manage Enrolled</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageEnrollees", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-list-check me-3 text-success" style="font-size: 1.2rem;"></i>
+                    <span>Enrollees</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageInquiries", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
+                    <span>Inquiries</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageTransactions", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-receipt me-3 text-warning" style="font-size: 1.2rem;"></i>
+                    <span>Transactions</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="col-md-9" style="padding-left: 0px;">
+        <div class="container mt-3" style="min-height: 80vh;">
+
+
+            <!-- Filter Section -->
+            <div class="d-flex justify-content-between mb-3" style="margin-top: 20px; border-radius: 10px;">
+                <input type="text" class="form-control w-25" id="search-input"
+                    placeholder="Search by Username or Email" />
+                <div class="d-flex w-25">
+                    <select class="form-control" id="role-filter">
+                        <option value="">All Roles</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Student">Student</option>
+                    </select>
+                    <div class="form-control">
+                        <a href="@Url.Action("Create", "Admin")" class="btn btn-primary">Add Account</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive" style="min-height: 80vh;">
+                <table class="table table-striped table-bordered" style="margin: 0 auto; border-radius: 10px;">
+                    <thead class="thead-dark" style="background-color: #ffff00; color: #0D206A;">
+                        <tr>
+                            <th>#</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Admin Role</th>
+                            <th>Marketing Role</th>
+                            <th>Student Role</th>
+                            <th>Enrollment ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="account-table-body">
+                        @foreach (var account in Model)
+                        {
+                            <tr
+                                data-role="@((account.IsAdmin ? "Admin" : account.IsMarketing ? "Marketing" : account.IsStudent ? "Student" : "None"))">
+                                <td>@account.AccountId</td>
+                                <td>@account.Username</td>
+                                <td>@account.Email</td>
+                                <td>@(account.IsAdmin ? "Yes" : "No")</td>
+                                <td>@(account.IsMarketing ? "Yes" : "No")</td>
+                                <td>@(account.IsStudent ? "Yes" : "No")</td>
+                                <td>@(account.EnrollmentId.HasValue ? account.EnrollmentId.Value.ToString() : "N/A")</td>
+                                <td>
+                                    <a class="btn btn-info btn-sm" asp-action="Details"
+                                        asp-route-id="@account.AccountId">Details</a>
+                                    <a class="btn btn-warning btn-sm" asp-action="Edit"
+                                        asp-route-id="@account.AccountId">Edit</a>
+                                    <a class="btn btn-danger btn-sm" asp-action="Delete"
+                                        asp-route-id="@account.AccountId">Delete</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('role-filter').addEventListener('change', function () {
+        const selectedRole = this.value;
+        const rows = document.querySelectorAll('#account-table-body tr');
+
+        rows.forEach(row => {
+            const role = row.getAttribute('data-role');
+            if (!selectedRole || role === selectedRole) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    document.getElementById('search-input').addEventListener('input', function () {
+        const query = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#account-table-body tr');
+
+        rows.forEach(row => {
+            const username = row.children[1].textContent.toLowerCase();
+            const email = row.children[2].textContent.toLowerCase();
+            if (username.includes(query) || email.includes(query)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>

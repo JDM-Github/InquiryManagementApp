@@ -1,0 +1,114 @@
+@model InquiryManagementApp.Models.Inquiry
+
+<div class="container mt-5 py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3>Student Inquiry Form</h3>
+                    <p class="mb-0">Please fill out the form below with accurate information.</p>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" class="needs-validation" novalidate>
+                        <div class="mb-4">
+                            <label asp-for="StudentName" class="form-label fw-bold">Student Name</label>
+                            <input asp-for="StudentName" class="form-control rounded-3 border border-primary"
+                                placeholder="Enter your full name" required />
+                            <span asp-validation-for="StudentName" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Guardian Name -->
+                        <div class="mb-4">
+                            <label asp-for="GuardianName" class="form-label fw-bold">Guardian Name</label>
+                            <input asp-for="GuardianName" class="form-control rounded-3 border border-primary"
+                                placeholder="Enter your guardian's full name" required />
+                            <span asp-validation-for="GuardianName" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Contact Number -->
+                        <div class="mb-4">
+                            <label asp-for="ContactNumber" class="form-label fw-bold">Contact Number</label>
+                            <input asp-for="ContactNumber" type="tel"
+                                class="form-control rounded-3 border border-primary"
+                                placeholder="Enter your contact number" required />
+                            <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Email Address -->
+                        <div class="mb-4">
+                            <label asp-for="EmailAddress" class="form-label fw-bold">Email Address</label>
+                            <input asp-for="EmailAddress" type="email"
+                                class="form-control rounded-3 border border-primary"
+                                placeholder="Enter your email address" required />
+                            <span asp-validation-for="EmailAddress" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Source of Information -->
+                        <div class="mb-4">
+                            <label asp-for="SourceOfInformation" class="form-label fw-bold">How did you hear about
+                                us?</label>
+                            <select asp-for="SourceOfInformation" class="form-select rounded-3 border border-primary"
+                                required>
+                                <option value="">Select an option</option>
+                                <option value="Friend/Family">Friend/Family</option>
+                                <option value="Social Media">Social Media</option>
+                                <option value="Website">Website</option>
+                                <option value="Advertisement">Advertisement</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span asp-validation-for="SourceOfInformation" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-4">
+                            <label asp-for="Notes" class="form-label fw-bold">Additional Notes</label>
+                            <textarea asp-for="Notes" class="form-control rounded-3 border border-primary" rows="4"
+                                placeholder="Enter any additional notes or comments (optional)"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary rounded-3 px-5">Submit</button>
+                            @* <a asp-action="Index" class="btn btn-outline-secondary rounded-3 px-5">Back to List</a> *@
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>
+            toastr.options = {
+                "positionClass": "toast-center-center",
+                "closeButton": true,
+                "progressBar": true,
+                "timeOut": "5000",
+                "extendedTimeOut": "1000"
+            };
+            toastr.success('@TempData["SuccessMessage"]');
+
+            $("input, textarea, select").val("");
+        </script>
+    }
+    @TempData.Remove("SuccessMessage");
+
+}
+
+<style>
+    .toast-success {
+        background-color: #007bff !important;
+        color: white !important;
+        opacity: 1 !important;
+    }
+
+    .toast-center-center {
+        top: 20px !important;
+        left: 20px !important;
+    }
+</style>

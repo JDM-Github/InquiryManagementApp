@@ -1,0 +1,368 @@
+@model InquiryManagementApp.Models.Enrollment
+
+<div class="container my-5 py-5 min-vh-100">
+    <div class="modal fade" id="enrollmentStepsModal" tabindex="-1" aria-labelledby="enrollmentStepsLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="enrollmentStepsLabel">Enrollment Steps</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ol class="list-group list-group-numbered">
+                        <li class="list-group-item">Click the <b>Enroll Now</b> button.</li>
+                        <li class="list-group-item">Complete the form with the required information.</li>
+                        <li class="list-group-item">
+                            Update the necessary documents:
+                            <ul>
+                                <li>Form 10 (Original Class Card)</li>
+                                <li>Form 9 (Original Transcript of Records)</li>
+                                <li>PSA (2 Photocopies)</li>
+                                <li>Good Moral Certificate</li>
+
+
+                            </ul>
+                        </li>
+                        <li class="list-group-item">After uploading documents, a message will indicate that your
+                            application is awaiting approval from the registrar. Please allow some time for this
+                            process.</li>
+                        <li class="list-group-item">
+                            An auto-generated temporary account will be created:
+                            <ul>
+
+                                <li><b>Username:</b> temp_[enrollee_number][school_year][surname]</li>
+
+                                <li><b>Password:</b> [first name][enrollee_number][school_year][surname]</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item">Once the registrar approves your documents, proceed with online
+                            payment by logging into your temporary account and clicking <b>Proceed Payment</b>.</li>
+                        <li class="list-group-item">After payment, a certificate confirming your enrollment will be
+                            displayed. Take a screenshot for your records.</li>
+                        <li class="list-group-item">
+                            After completing the enrollment process, your permanent student account will be created:
+                            <ul>
+                                <li><b>Username:</b> student_[enrollee_number][school_year][surname]</li>
+                            </ul>
+                            You can then view your subjects and finalize your enrollment.
+                        </li>
+                        <li class="list-group-item">Hardcopy documents will need to be submitted at the school.</li>
+                    </ol>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment Form Section -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3>Enrollment Form</h3>
+                </div>
+                <div class="card-body">
+                    <form id="enrollmentForm" asp-action="Create" enctype="multipart/form-data" novalidate>
+
+                        <div id="step1" class="step-section">
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <label asp-for="Surname" class="form-label fw-bold">Surname</label>
+                                    <input asp-for="Surname" class="form-control" placeholder="Enter your surname"
+                                        required />
+                                    <span asp-validation-for="Surname" class="text-danger"></span>
+                                </div>
+                                <div class="col-4">
+                                    <label asp-for="Firstname" class="form-label fw-bold">First Name</label>
+                                    <input asp-for="Firstname" class="form-control" placeholder="Enter your first name"
+                                        required />
+                                    <span asp-validation-for="Firstname" class="text-danger"></span>
+                                </div>
+                                <div class="col-4">
+                                    <label asp-for="Middlename" class="form-label fw-bold">Middle Name</label>
+                                    <input asp-for="Middlename" class="form-control"
+                                        placeholder="Enter your middle name" />
+                                    <span asp-validation-for="Middlename" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Gender</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" asp-for="Gender" value="Male" />
+                                    <label class="form-check-label">Male</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" asp-for="Gender" value="Female" />
+                                    <label class="form-check-label">Female</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="GradeLevel" class="form-label fw-bold">Grade Level</label>
+                                <select asp-for="GradeLevel" class="form-control" required>
+                                    <option value="NURSERY">NURSERY</option>
+                                    <option value="KINDER">KINDER</option>
+                                    <option value="ELEMENTARY">ELEMENTARY</option>
+                                    <option value="JUNIOR HIGH SCHOOL">JUNIOR HIGH SCHOOL</option>
+                                    <option value="SENIOR HIGH SCHOOL - ABM">SENIOR HIGH SCHOOL (ABM)</option>
+                                    <option value="SENIOR HIGH SCHOOL - HUMSS">SENIOR HIGH SCHOOL (HUMSS)</option>
+                                </select>
+                                <span asp-validation-for="GradeLevel" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="Subject" class="form-label fw-bold">Subject (Tuition Fee)</label>
+                                <div class="subject-dropdown-container">
+                                    <div id="Subject" class="form-control subject-dropdown">
+                                        <span class="dropdown-placeholder">Select Subjects</span>
+                                        <span class="dropdown-selected-subjects"></span>
+                                    </div>
+                                    <div class="subject-dropdown-list">
+                                    </div>
+                                    <div class="subject-tuition-fee">
+                                        Tuition Fee:
+                                    </div>
+                                </div>
+                                <input type="hidden" id="SelectedSubjects" name="SelectedSubjects" value="" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="DateOfBirth" class="form-label fw-bold">Date of Birth</label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" required />
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Age" class="form-label fw-bold">Age</label>
+                                <input asp-for="Age" type="number" class="form-control" placeholder="Enter your age"
+                                    required />
+                                <span asp-validation-for="Age" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Address" class="form-label fw-bold">Address</label>
+                                <textarea asp-for="Address" class="form-control" placeholder="Enter your address"
+                                    rows="3" required></textarea>
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="LRN" class="form-label fw-bold">LRN (Learner Reference Number)</label>
+                                <input asp-for="LRN" class="form-control" placeholder="Enter your LRN" required />
+                                <span asp-validation-for="LRN" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Document Uploads -->
+                        <div id="step2" class="step-section" style="display:none;">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Upload Required Documents</label>
+                                <div class="mb-4">
+                                    <input type="file" name="Form10" class="form-control" required />
+                                    <small class="text-muted">Form 10 (Original Class Card)</small>
+                                </div>
+                                <div class="mb-4">
+                                    <input type="file" name="Form9" class="form-control" required />
+                                    <small class="text-muted">Form 9 (Original Transcript of Records)</small>
+                                </div>
+                                <div class="mb-4">
+                                    <input type="file" name="PSA" class="form-control" required />
+                                    <small class="text-muted">PSA (2 Photocopies)</small>
+                                </div>
+                                <div class="mb-4">
+                                    <input type="file" name="GoodMoralCertificate" class="form-control" required />
+                                    <small class="text-muted">Good Moral Certificate</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Parent Information -->
+                        <div id="step3" class="step-section" style="display:none;">
+                            <div class="mb-3">
+                                <label asp-for="FatherLastName" class="form-label fw-bold">Father's Last
+                                    Name</label>
+                                <input asp-for="FatherLastName" class="form-control"
+                                    placeholder="Enter Father's Last Name" required />
+                                <span asp-validation-for="FatherLastName" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="FatherFirstName" class="form-label fw-bold">Father's First
+                                    Name</label>
+                                <input asp-for="FatherFirstName" class="form-control"
+                                    placeholder="Enter Father's First Name" required />
+                                <span asp-validation-for="FatherFirstName" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="FatherOccupation" class="form-label fw-bold">Father's
+                                    Occupation</label>
+                                <input asp-for="FatherOccupation" class="form-control"
+                                    placeholder="Enter Father's Occupation" required />
+                                <span asp-validation-for="FatherOccupation" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div id="step4" class="step-section" style="display:none;">
+                            <div class="mb-3">
+                                <label asp-for="MotherLastName" class="form-label fw-bold">Mother's Last
+                                    Name</label>
+                                <input asp-for="MotherLastName" class="form-control"
+                                    placeholder="Enter Mother's Last Name" required />
+                                <span asp-validation-for="MotherLastName" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="MotherFirstName" class="form-label fw-bold">Mother's First
+                                    Name</label>
+                                <input asp-for="MotherFirstName" class="form-control"
+                                    placeholder="Enter Mother's First Name" required />
+                                <span asp-validation-for="MotherFirstName" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="MotherOccupation" class="form-label fw-bold">Mother's
+                                    Occupation</label>
+                                <input asp-for="MotherOccupation" class="form-control"
+                                    placeholder="Enter Mother's Occupation" required />
+                                <span asp-validation-for="MotherOccupation" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="MotherMaidenName" class="form-label fw-bold">Mother's Maiden
+                                    Name</label>
+                                <input asp-for="MotherMaidenName" class="form-control"
+                                    placeholder="Enter Mother's Maiden Name" />
+                                <span asp-validation-for="MotherMaidenName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" id="prevBtn">Previous</button>
+                            <button type="button" class="btn btn-primary" id="nextBtn">Next</button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none;">
+                                Enroll Now</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+    let currentStep = 1;
+
+    function showStep(step) {
+        const allSteps = document.querySelectorAll('.step-section');
+        allSteps.forEach((stepElement, index) => {
+            stepElement.style.display = index === step - 1 ? 'block' : 'none';
+        });
+
+        document.getElementById('prevBtn').disabled = step === 1;
+        document.getElementById('nextBtn').style.display = step === allSteps.length ? 'none' : 'inline-block';
+        document.getElementById('submitBtn').style.display = step === allSteps.length ? 'inline-block' : 'none';
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        if (currentStep < 4) {
+            currentStep++;
+            showStep(currentStep);
+        }
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+        if (currentStep > 1) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+    showStep(currentStep);
+</script>
+
+<script>
+    window.addEventListener('load', () => {
+        const enrollmentModal = new bootstrap.Modal(document.getElementById('enrollmentStepsModal'));
+        enrollmentModal.show();
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const subjects = {
+            'NURSERY': ['Play', 'Arts & Crafts', 'Story Time'],
+            'KINDER': ['Reading', 'Math', 'Science'],
+            'ELEMENTARY': ['Math', 'Science', 'English', 'History'],
+            'JUNIOR HIGH SCHOOL': ['Math', 'English', 'Science', 'History', 'PE'],
+            'SENIOR HIGH SCHOOL - ABM': ['Accountancy', 'Business', 'Management', 'Economics'],
+            'SENIOR HIGH SCHOOL - HUMSS': ['Sociology', 'Psychology', 'Philosophy', 'English Literature']
+        };
+
+        const allTuition = {
+            'NURSERY': 2000,
+            'KINDER': 5000,
+            'ELEMENTARY': 4000,
+            'JUNIOR HIGH SCHOOL': 6000,
+            'SENIOR HIGH SCHOOL - ABM': 7000,
+            'SENIOR HIGH SCHOOL - HUMSS': 8000
+        };
+
+        const gradeLevelSelect = document.getElementById('GradeLevel');
+        const subjectDropdown = document.getElementById('Subject');
+        const subjectDropdownList = document.querySelector('.subject-dropdown-list');
+        const subjecTuitionFee = document.querySelector('.subject-tuition-fee');
+        const selectedSubjectsInput = document.getElementById('SelectedSubjects');
+        const selectedSubjectsContainer = subjectDropdown.querySelector('.dropdown-selected-subjects');
+        let selectedSubjects = [];
+
+        gradeLevelSelect.addEventListener('change', function () {
+            const gradeLevel = this.value;
+            const subjectsList = subjects[gradeLevel] || [];
+            subjecTuitionFee.innerHTML = 'Tuition Fee: ' + allTuition[gradeLevel];
+            subjectDropdownList.innerHTML = '';
+            selectedSubjects = [];
+            selectedSubjectsContainer.innerHTML = '';
+
+            subjectsList.forEach(subject => {
+                const subjectItem = document.createElement('label');
+                subjectItem.classList.add('subject-item');
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = subject;
+                checkbox.addEventListener('change', function () {
+                    toggleSubjectSelection(subject, this.checked);
+                });
+
+                const labelText = document.createTextNode(subject);
+                subjectItem.appendChild(checkbox);
+                subjectItem.appendChild(labelText);
+
+                subjectDropdownList.appendChild(subjectItem);
+            });
+
+            subjectDropdownList.style.display = subjectsList.length > 0 ? 'block' : 'none';
+            subjectDropdown.classList.add('selected');
+        });
+
+        subjectDropdown.addEventListener('click', function () {
+            subjectDropdownList.style.display = subjectDropdownList.style.display === 'block' ? 'none' : 'block';
+        });
+
+        function toggleSubjectSelection(subject, isSelected) {
+            if (isSelected) {
+                selectedSubjects.push(subject);
+            } else {
+                selectedSubjects = selectedSubjects.filter(s => s !== subject);
+            }
+            updateSelectedSubjects();
+        }
+
+        function updateSelectedSubjects() {
+            selectedSubjectsContainer.innerHTML = selectedSubjects.join(', ');
+            selectedSubjectsInput.value = selectedSubjects.join(',');
+        }
+
+        gradeLevelSelect.dispatchEvent(new Event('change'));
+    });
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

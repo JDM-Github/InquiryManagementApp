@@ -1,0 +1,111 @@
+/* Base Styles */
+body {
+	font-family: "Arial", sans-serif;
+	margin: 0;
+	padding: 0;
+	background-color: #f4f7fc;
+}
+
+/* Navbar Styles */
+.navbar {
+	background-color: #1c3d72; /* Blue background */
+	padding: 15px 30px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.navbar .logo h1 {
+	color: #f0ad4e; /* Yellow logo */
+	font-size: 1.8em;
+	margin: 0;
+}
+
+.navbar nav ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+}
+
+.navbar nav ul li {
+	margin-left: 20px;
+}
+
+.navbar nav ul li a {
+	color: #fff;
+	text-decoration: none;
+	font-size: 1.1em;
+}
+
+.navbar nav ul li a:hover {
+	color: #f0ad4e; /* Yellow hover effect */
+}
+
+/* Landing Section */
+.landing-section {
+	background-color: #f0ad4e; /* Yellow background */
+	padding: 80px 20px;
+	color: #fff;
+	text-align: center;
+}
+
+.landing-section .container {
+	max-width: 900px;
+	margin: 0 auto;
+}
+
+.landing-section h2 {
+	font-size: 2.5em;
+	margin-bottom: 20px;
+}
+
+.landing-section p {
+	font-size: 1.2em;
+	margin-bottom: 30px;
+}
+
+.cta-buttons {
+	display: flex;
+	justify-content: center;
+	gap: 20px;
+}
+
+.cta-buttons .btn {
+	padding: 15px 30px;
+	font-size: 1.2em;
+	text-decoration: none;
+	border-radius: 5px;
+	transition: background-color 0.3s ease;
+}
+
+.cta-buttons .btn-primary {
+	background-color: #1c3d72; /* Blue button */
+	color: #fff;
+}
+
+.cta-buttons .btn-primary:hover {
+	background-color: #155a8a; /* Darker blue on hover */
+}
+
+.cta-buttons .btn-secondary {
+	background-color: #f0ad4e; /* Yellow button */
+	color: #fff;
+}
+
+.cta-buttons .btn-secondary:hover {
+	background-color: #e08e26; /* Darker yellow on hover */
+}
+
+/* Footer */
+footer {
+	background-color: #1c3d72; /* Blue footer */
+	color: #fff;
+	text-align: center;
+	padding: 20px;
+	margin-top: 50px;
+}
+
+footer p {
+	margin: 0;
+}

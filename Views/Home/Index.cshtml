@@ -1,0 +1,265 @@
+﻿@inject InquiryManagementApp.Service.EnrollmentScheduleService EnrollmentController
+@{
+    var isEnrollmentActive = EnrollmentController.IsEnrollmentOpen();
+    ViewData["Title"] = "Dashboard";
+}
+@{
+    var toastMessage = Context.Session.GetString("ToastMessage");
+    if (!string.IsNullOrEmpty(toastMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @toastMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        Context.Session.Remove("ToastMessage");
+    }
+}
+
+<section class="hero-section text-center py-5 position-relative"
+    style="background-color: #006BFF; color: white; min-height: 300px;">
+
+    <div class="d-flex justify-content-center gap-3 position-absolute"
+        style="bottom: 20px; left: 50%; transform: translateX(-50%);">
+        <a href="@Url.Action("Create", "Inquiry")" class="fw-bold btn btn-lg btn-primary shadow-lg"
+            style="background-color: #006BFF; color: #FFF100; border: 2px solid white; padding: 12px 30px;">Inquire
+            Now</a>
+        <a href="@Url.Action("Create", "Enrollment")"
+            class="fw-bold btn btn-lg btn-primary shadow-lg @(isEnrollmentActive ? "" : "disabled")"
+            style="background-color: #006BFF; color: #FFF100; border: 2px solid white; padding: 12px 30px;">
+            Enroll Now
+        </a>
+    </div>
+</section>
+
+
+<section class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <img src="~/src/inquire.jpg" class="card-img-top" alt="Inquiry Management">
+                <div class="card-body">
+                    <h5 class="card-title">Efficient Inquiry Management</h5>
+                    <p class="card-text">Our platform ensures inquiries are managed with precision and efficiency. Never
+                        miss out on a prospect.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("Create", "Inquiry")" class="btn btn-primary">Create Inquiry</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <img src="~/src/enroll.jpg" class="card-img-top" alt="Secure Enrollment">
+                <div class="card-body">
+                    <h5 class="card-title">Secure Enrollment</h5>
+                    <p class="card-text">Enroll students easily and securely through our platform, with end-to-end
+                        protection and privacy.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("Create", "Enrollment")"
+                        class="btn @(!isEnrollmentActive ? "btn-secondary disabled" : "btn-primary")"
+                        style="background-color: @(!isEnrollmentActive ? "#ccc" : "#006BFF"); color: @(!isEnrollmentActive ? "#666" : "#FFF100"); border: 2px solid white;">
+                        Enroll Now
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <img src="~/src/whyus.jpg" class="card-img-top" alt="24/7 Support">
+                <div class="card-body">
+                    <h5 class="card-title">24/7 Support</h5>
+                    <p class="card-text">Get support whenever you need it. Our dedicated team is always available to
+                        assist you with any issues.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("Login", "Account")" class="btn btn-primary">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container pb-5">
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 rounded h-100">
+                <div class="card-body p-0">
+                    <h5 class="card-title text-center text-white bg-primary py-3">Our Location</h5>
+                    <div class="embed-responsive embed-responsive-1by1 mb-4" style="height: 300px;">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!3m2!1sen!2sph!4v1733444428662!5m2!1sen!2sph!6m8!1m7!1sCLS9u7d1H6UYwx24jVyRNQ!2m2!1d14.39074475594881!2d120.8540558349879!3f350.4490573688343!4f-10.495324325233383!5f0.7820865974627469"
+                            class="embed-responsive-item" style="width: 100%; height: 100%;" allowfullscreen=""
+                            loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 rounded h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-center text-white bg-primary py-3">Programs We Offer</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item list-group-item-light">
+                            <strong class="h6">NURSERY</strong>
+                            <ul class="list-group list-group-flush ml-3">
+                                <li class="list-group-item">Early Childhood Education</li>
+                            </ul>
+                            <div class="mt-4">
+                                <button class="btn btn-secondary btn-sm" data-bs-toggle="collapse" href="#nurseryFAQ"
+                                    role="button" aria-expanded="false" aria-controls="nurseryFAQ">
+                                    Frequently Asked Questions
+                                </button>
+                                <button class="btn btn-primary btn-sm float-end" data-bs-toggle="modal"
+                                    data-bs-target="#programOverviewModal"
+                                    onclick="openProgramOverview('Nursery Program Overview', 'Grade Levels: Pre-K<br>Duration: 2 years<br>Curriculum: Early Childhood Education<br>Goals: Foundational learning in a nurturing environment<br>Enrollment Process: Online application followed by document submission.')">
+                                    View Overview
+                                </button>
+                                <div class="collapse" id="nurseryFAQ">
+                                    <ul class="list-group mt-2">
+                                        <li class="list-group-item">What are the requirements for enrollment? - Birth
+                                            certificate, recent photo, and completed health check-up form.</li>
+                                        <li class="list-group-item">What are the common fees? - Registration fee,
+                                            monthly tuition fee, and additional activity fees.</li>
+                                        <li class="list-group-item">Is there an age requirement? - Children must be at
+                                            least 3 years old by the start of the school year.</li>
+                                        <li class="list-group-item">What skills are taught in nursery? - Basic literacy,
+                                            numeracy, motor skills, and social skills.</li>
+                                        <li class="list-group-item">What are the goals of the nursery program? - To
+                                            develop foundational skills for further education and foster social and
+                                            emotional growth.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li class="list-group-item list-group-item-light">
+                            <strong class="h6">KINDER</strong>
+                            <ul class="list-group list-group-flush ml-3">
+                                <li class="list-group-item">Foundations for Lifelong Learning</li>
+                            </ul>
+
+                            <div class="mt-4">
+                                <button class="btn btn-secondary btn-sm" data-bs-toggle="collapse" href="#kinderFAQ"
+                                    role="button" aria-expanded="false" aria-controls="kinderFAQ">
+                                    Frequently Asked Questions
+                                </button>
+                                <button class="btn btn-primary btn-sm float-end" data-bs-toggle="modal"
+                                    data-bs-target="#programOverviewModal"
+                                    onclick="openProgramOverview('Kinder Program Overview', 'Grade Levels: Kindergarten<br>Duration: 1 year<br>Curriculum: Early Childhood Education focusing on pre-literacy and numeracy<br>Goals: Preparing children for elementary school<br>Enrollment Process: Online application followed by document submission.')">
+                                    View Overview
+                                </button>
+                                <div class="collapse" id="kinderFAQ">
+                                    <ul class="list-group mt-2">
+                                        <li class="list-group-item">What are the requirements for enrollment? - Birth
+                                            certificate, health check-up, and completed application form.</li>
+                                        <li class="list-group-item">What are the common fees? - Registration fee,
+                                            monthly tuition, and activity fees.</li>
+                                        <li class="list-group-item">Is there an age requirement? - Children must be at
+                                            least 4 years old by the start of the school year.</li>
+                                        <li class="list-group-item">What skills are taught in Kinder? - Pre-reading,
+                                            basic math, social skills, and physical coordination.</li>
+                                        <li class="list-group-item">What are the goals of the Kinder program? - To
+                                            develop readiness for elementary school and foster socialization skills.
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li class="list-group-item list-group-item-light">
+                            <strong class="h6">ELEMENTARY</strong>
+                            <ul class="list-group list-group-flush ml-3">
+                                <li class="list-group-item">Comprehensive Education</li>
+                            </ul>
+                            <button class="btn btn-primary btn-sm float-end mt-2" data-bs-toggle="modal"
+                                data-bs-target="#programOverviewModal"
+                                onclick="openProgramOverview('Elementary Program Overview', 'Grade Levels: K-6<br>Duration: 6 years<br>Curriculum: Comprehensive Education<br>Goals: Holistic development of children<br>Enrollment Process: Online application followed by document submission.')">
+                                View Overview
+                            </button>
+                        </li>
+
+                        <!-- Junior High School Section -->
+                        <li class="list-group-item list-group-item-light">
+                            <strong class="h6">JUNIOR HIGH SCHOOL</strong>
+                            <ul class="list-group list-group-flush ml-3">
+                                <li class="list-group-item">Grade 7-10 Curriculum</li>
+                            </ul>
+                            <!-- Button to open modal -->
+                            <button class="btn btn-primary btn-sm float-end mt-2" data-bs-toggle="modal"
+                                data-bs-target="#programOverviewModal"
+                                onclick="openProgramOverview('Junior High Program Overview', 'Grade Levels: 7-10<br>Duration: 4 years<br>Curriculum: Core Subjects + Electives<br>Goals: Preparing students for senior high school or college<br>Enrollment Process: Online application followed by document submission.')">
+                                View Overview
+                            </button>
+                        </li>
+
+                        <!-- Senior High School Section -->
+                        <li class="list-group-item list-group-item-light">
+                            <strong class="h6">SENIOR HIGH SCHOOL (Public School Completers)</strong>
+                            <ul class="list-group list-group-flush ml-3">
+                                <li class="list-group-item">ABM - Accountancy, Business & Management</li>
+                                <li class="list-group-item">HUMSS - Humanities & Social Sciences</li>
+                            </ul>
+                            <!-- Button to open modal -->
+                            <button class="btn btn-primary btn-sm float-end mt-2" data-bs-toggle="modal"
+                                data-bs-target="#programOverviewModal"
+                                onclick="openProgramOverview('Senior High Program Overview', 'Curriculum: <ul><li>ABM: Accountancy, Business, and Management</li><li>HUMSS: Humanities and Social Sciences</li></ul> Goals: Specialization in chosen tracks, preparing for tertiary education or entrepreneurship<br>Enrollment Process: Online application followed by document submission.')">
+                                View Overview
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- Modal for Program Overview -->
+        <div class="modal fade" id="programOverviewModal" tabindex="-1" aria-labelledby="programOverviewModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="programOverviewModalLabel">Program Overview</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="programOverviewContent">
+                        <!-- Dynamic content will be injected here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* 
+
+        <div class="modal fade" id="programOverviewModal" tabindex="-1" aria-labelledby="programOverviewModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="programOverviewModalLabel">Program Overview</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="programOverviewContent">
+                        <!-- Dynamic content will be injected here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div> *@
+
+
+    </div>
+</section>
+
+<script>
+    function openProgramOverview(title, content) {
+        document.getElementById('programOverviewModalLabel').innerHTML = title;
+
+        document.getElementById('programOverviewContent').innerHTML = content;
+    }
+
+</script>

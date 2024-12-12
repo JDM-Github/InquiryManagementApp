@@ -1,0 +1,274 @@
+﻿@inject InquiryManagementApp.Service.EnrollmentScheduleService EnrollmentController
+@{
+    var isEnrollmentActive = EnrollmentController.IsEnrollmentOpen();
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
+
+    <style>
+        @* * {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif !important;
+        } *@
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #F4F6F9;
+        @* background: linear-gradient(to right, yellow, blue, blue) !important; *@
+        }
+
+        .navbar {
+            background-color: #006BFF;
+        }
+
+        .navbar a {
+            color: #FFFFFF !important;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.6rem;
+        }
+
+        .navbar-nav .nav-link {
+            font-size: 1rem;
+        }
+
+        .hero-section {
+            margin-top: 50px;
+            background-image: url('src/background.jpg');
+            background-size: cover;
+            background-position: center;
+            color: #FFFFFF;
+            padding: 80px 0;
+            min-height: 80vh;
+            position: relative;
+
+            box-shadow: inset 0 -200px 150px rgba(0, 0, 0, 0.4);
+        }
+
+
+        .hero-section h2 {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .hero-section p {
+            font-size: 1.25rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cta-buttons .btn {
+            font-size: 1.2rem;
+            padding: 12px 30px;
+            margin: 10px;
+            border-radius: 30px;
+        }
+
+        .cta-buttons .btn-primary {
+            background-color: #006BFF;
+            border-color: #006BFF;
+        }
+
+        .cta-buttons .btn-primary:hover {
+            background-color: #08C2FF;
+            border-color: #08C2FF;
+        }
+
+        .cta-buttons .btn-secondary {
+            background-color: #FFF100;
+            border-color: #FFF100;
+            color: #006BFF;
+        }
+
+        .cta-buttons .btn-secondary:hover {
+            background-color: #08C2FF;
+            border-color: #08C2FF;
+            color: #FFFFFF;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(-3px);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .programs {
+            background-color: #F9F9F9;
+            padding: 50px 0;
+        }
+
+        .programs h3 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .programs .list-group-item {
+            font-size: 1.1rem;
+            border: none;
+            padding: 10px 15px;
+            background-color: #FFFFFF;
+        }
+
+        .programs .list-group-item:hover {
+            background-color: #F1F1F1;
+        }
+
+        .card-deck .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            color: #006BFF;
+        }
+
+        .card-body p {
+            color: #555555;
+        }
+
+        .card-footer {
+            text-align: center;
+            background-color: #F9F9F9;
+        }
+
+        footer {
+            background-color: #006BFF;
+            color: #FFF100;
+            padding: 20px 0;
+        }
+
+        footer p {
+            font-size: 1rem;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Header Navbar -->
+    <header class="navbar navbar-expand-lg fixed-top" style="background-color: #105FE9FF; color: white;">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-white" href="@Url.Action("Index", "Home")">
+                <img src="~/src/logo.png" alt="Logo"
+                    style="border-radius: 50%; width: 40px; height: 40px; margin-right: 10px;">
+                DE ROMAN MONTESSORI SCHOOL
+            </a>
+            <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="@Url.Action("Index", "Home")">
+                            <i class="fas fa-home me-2"></i>Home
+                        </a>
+                    </li>
+                    @if (Context.Session.GetString("isAdmin") == "1")
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="@Url.Action("ManageAccounts", "Admin")">
+                                <i class="fas fa-users me-2"></i>Accounts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="@Url.Action("ManageEnrollees", "Admin")">
+                                <i class="fas fa-users-cog me-2"></i>Enrollees
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="@Url.Action("ManageInquiries", "Admin")">
+                                <i class="fas fa-comments me-2"></i>Inquiries
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="@Url.Action("Transactions", "Admin")">
+                                <i class="fas fa-file-invoice me-2"></i>Transactions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="@Url.Action("Logout", "Admin")">
+                                <i class="fas fa-file-invoice me-2"></i>Logout
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="@Url.Action("Login", "Account")">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="@Url.Action("Create", "Inquiry")">
+                                <i class="fas fa-question-circle me-2"></i>Create Inquiry
+                            </a>
+                        </li>
+                        if (isEnrollmentActive)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="@Url.Action("Create", "Enrollment")">
+                                    <i class="fas fa-user-plus me-2"></i>Enroll
+                                </a>
+                            </li>
+                        }
+                    }
+
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    @RenderBody()
+
+    <footer class="text-center bg-primary text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <h5 style="color:#FFF100"><strong>DE ROMAN MONTESSORI SCHOOL</strong></h5>
+                    <p>&copy; 2024 All rights reserved.</p>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <h5 style="color:#FFF100"><strong>Contact Information</strong></h5>
+                    <p><strong>Location:</strong> Tanza, Philippines</p>
+                    <p><strong>Phone:</strong> <a href="tel:+639274044188" class="text-white">0927 404 4188</a></p>
+                    <p><strong>Email:</strong> <a href="mailto:depedcavite.deromanmontessori@gmail.com"
+                            class="text-white">depedcavite.deromanmontessori@gmail.com</a></p>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <h5 style="color:#FFF100"><strong>Follow Us</strong></h5>
+                    <a href="https://www.facebook.com/drmscavite/" target="_blank" class="text-white me-3">
+                        <i class="fab fa-facebook-f"></i> Facebook
+                    </a>
+                    <br>
+                    <strong>Opening Hours:</strong> 9:00 AM - 5:00 PM
+                </div>
+            </div>
+
+            <hr class="my-3" style="border-top: 2px solid #FFF100;">
+            <p class="small mb-0">Designed with care by the DE ROMAN MONTESSORI SCHOOL Team</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+
+</html>
