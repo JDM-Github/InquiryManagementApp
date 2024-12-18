@@ -39,35 +39,72 @@ namespace InquiryManagementApp.Controllers
         // }
 
         [HttpPost]
-        public async Task<IActionResult> Admin(string username, string password, string lrn, string surname)
+        public async Task<IActionResult> Admin(string username, string password)
         {
             if (username == "admin" && password == "admin")
             {
                 HttpContext.Session.SetString("isAdmin", "1");
                 return RedirectToAction("Index", "Admin");
             }
+
             var enrollment = await _context.Students
-                .FirstOrDefaultAsync(s => s.LRN == lrn);
+                .Where(s => s.TemporaryUsername == username)
+                .FirstOrDefaultAsync();
 
-            if (enrollment != null && enrollment.Username == username && enrollment.Password == password)
+            if (enrollment == null)
             {
-                HttpContext.Session.SetString("isAdmin", "0");
-                HttpContext.Session.SetString("TempUsername", enrollment.TemporaryUsername);
-                HttpContext.Session.SetString("TempPassword", enrollment.TemporaryPassword);
+                enrollment = await _context.Students
+                    .Where(s => s.Username == username)
+                    .FirstOrDefaultAsync();
+            }
 
-                HttpContext.Session.SetInt32("EnrollmentId", enrollment.EnrollmentId);
-                HttpContext.Session.SetString("Surname", enrollment.Surname);
-                HttpContext.Session.SetString("Firstname", enrollment.Firstname);
-                HttpContext.Session.SetString("Middlename", enrollment.Middlename);
-                HttpContext.Session.SetString("Gender", enrollment.Gender);
-                HttpContext.Session.SetString("GradeLevel", enrollment.GradeLevel);
-                HttpContext.Session.SetString("Address", enrollment.Address);
-                HttpContext.Session.SetString("LRN", enrollment.LRN);
-
-                return RedirectToAction("EnrollSuccess", "Account");
+            if (enrollment != null)
+            {
+                if (enrollment.TemporaryPassword == password)
+                {
+                    HttpContext.Session.SetString("isAdmin", "2");
+                    SetSessionVariables(enrollment);
+                    return RedirectToAction("Account", "Home");
+                }
+                else
+                {
+                    if (enrollment.Password == password && enrollment.IsApproved)
+                    {
+                        HttpContext.Session.SetString("isAdmin", "2");
+                        SetSessionVariables(enrollment);
+                        return RedirectToAction("Account", "Home");
+                    }
+                    else
+                    {
+                        if (enrollment.IsRejected)
+                            ViewBag.ErrorMessage = "Your account has been rejected";
+                        else
+                            ViewBag.ErrorMessage = "Your account is still not approved.";
+                    }
+                }
             }
             ViewBag.ErrorMessage = "Invalid username or password.";
-            return RedirectToAction("Index", "Admin");
+            return View();
+        }
+
+        private void SetSessionVariables(Enrollment enrollment)
+        {
+            HttpContext.Session.SetString("TempUsername", enrollment.TemporaryUsername);
+            HttpContext.Session.SetString("TempPassword", enrollment.TemporaryPassword);
+            HttpContext.Session.SetInt32("EnrollmentId", enrollment.EnrollmentId);
+            HttpContext.Session.SetString("Surname", enrollment.Surname);
+            HttpContext.Session.SetString("Email", enrollment.Email);
+            HttpContext.Session.SetString("Firstname", enrollment.Firstname);
+            HttpContext.Session.SetString("Middlename", enrollment.Middlename);
+            HttpContext.Session.SetString("Gender", enrollment.Gender);
+            HttpContext.Session.SetString("GradeLevel", enrollment.GradeLevel);
+            HttpContext.Session.SetString("Address", enrollment.Address);
+            HttpContext.Session.SetString("LRN", enrollment.LRN);
+            HttpContext.Session.SetString("DateOfBirth", enrollment.DateOfBirth.ToString());
+            HttpContext.Session.SetString("Mother", enrollment.MotherFirstName + " " + enrollment.MotherLastName);
+            HttpContext.Session.SetString("Father", enrollment.FatherFirstName + " " + enrollment.FatherLastName);
+            HttpContext.Session.SetString("IsApproved", enrollment.IsApproved ? "Approved" : "Not Approved");
+
         }
 
         // [HttpPost]

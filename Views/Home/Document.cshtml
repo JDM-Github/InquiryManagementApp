@@ -1,0 +1,131 @@
+@model InquiryManagementApp.Models.Enrollment
+
+@{
+    ViewData["Title"] = "Uploaded Documents";
+    var uploadedDocuments = Model.UploadedFiles;
+    var gradeLevelRequirements = new Dictionary<string, List<string>>
+{
+{ "NURSERY", new List<string> { "PSA" } },
+{ "KINDER", new List<string> { "PSA" } },
+{ "ELEMENTARY", new List<string> { "PSA", "Form 9", "Form 10" } },
+{ "JUNIOR HIGH SCHOOL", new List<string> { "PSA", "Form 9", "Form 10", "Good Moral" } },
+{ "SENIOR HIGH SCHOOL - ABM", new List<string> { "PSA", "Form 9", "Form 10", "Good Moral", "Certificate of Completion" }
+},
+{ "SENIOR HIGH SCHOOL - HUMSS", new List<string> { "PSA", "Form 9", "Form 10", "Good Moral", "Certificate of Completion"
+} }
+};
+
+    var gradeLevel = Model.GradeLevel.ToUpper();
+    var requiredDocuments = gradeLevelRequirements.ContainsKey(gradeLevel)
+    ? gradeLevelRequirements[gradeLevel]
+    : new List<string>();
+
+    var remainingDocuments = requiredDocuments.Except(uploadedDocuments ?? new List<string>()).ToList();
+}
+
+<div class="container mt-5" style="min-height: 100vh !important;">
+    <h2 class="text-center">Uploaded Documents</h2>
+    <hr />
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4>Student Information</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Name:</strong> @Model.Firstname @Model.Surname</p>
+            <p><strong>Grade Level:</strong> @Model.GradeLevel</p>
+            <p><strong>LRN:</strong> @Model.LRN</p>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h4>Required Documents</h4>
+        @if (remainingDocuments.Count > 0)
+        {
+            <ul class="list-group">
+                @foreach (var document in remainingDocuments)
+                {
+                    <li class="list-group-item">@document</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="alert alert-success">All required documents have been uploaded.</div>
+        }
+    </div>
+
+    <div class="mt-4">
+        <h4>Uploaded Documents</h4>
+        @if (uploadedDocuments != null && uploadedDocuments.Count > 0)
+        {
+            <ul class="list-group">
+                @foreach (var document in uploadedDocuments)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>@document</span>
+                        <div>
+                            <a href="/uploads/@document" class="btn btn-sm btn-primary me-2" target="_blank">View</a>
+                            <a asp-controller="Home" asp-action="DownloadDocument" asp-route-filename="@document"
+                                class="btn btn-sm btn-success me-2">Download</a>
+                            <button class="btn btn-sm btn-danger delete-document" data-filename="@document">Delete</button>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="alert alert-warning">No documents uploaded yet.</div>
+        }
+    </div>
+
+    <div class="mt-4">
+        <h4>Upload Documents</h4>
+        <form id="uploadForm" asp-controller="Home" asp-action="UploadDocument" method="post"
+            enctype="multipart/form-data">
+            <div class="mb-3">
+                <input type="file" name="files" id="fileInput" class="form-control" multiple />
+            </div>
+            <button type="submit" class="btn btn-primary" id="uploadButton" disabled>Upload</button>
+            <small class="text-muted d-block mt-2">Maximum 6 files can be uploaded.</small>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const maxFiles = 6;
+
+        document.getElementById('fileInput').addEventListener('change', function () {
+            const fileCount = this.files.length;
+            const uploadButton = document.getElementById('uploadButton');
+
+            if (fileCount > maxFiles) {
+                alert(`You can only upload a maximum of ${maxFiles} files.`);
+                this.value = '';
+                uploadButton.disabled = true;
+            } else {
+                uploadButton.disabled = fileCount === 0;
+            }
+        });
+
+        document.querySelectorAll('.delete-document').forEach(button => {
+            button.addEventListener('click', function () {
+                const filename = this.getAttribute('data-filename');
+                if (confirm(`Are you sure you want to delete ${filename}?`)) {
+                    fetch(`/Home/DeleteDocument?filename=${filename}`, {
+                        method: 'POST'
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                location.reload();
+                            } else {
+                                alert('Failed to delete the document.');
+                            }
+                        });
+                }
+            });
+        });
+    </script>
+}

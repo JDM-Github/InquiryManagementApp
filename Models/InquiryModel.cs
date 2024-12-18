@@ -33,5 +33,6 @@ namespace InquiryManagementApp.Models
         // Optional field for future use
         [StringLength(500, ErrorMessage = "Notes cannot exceed 500 characters.")]
         public string? Notes { get; set; }
+        public string? Reason { get; set; } = null;
     }
 }

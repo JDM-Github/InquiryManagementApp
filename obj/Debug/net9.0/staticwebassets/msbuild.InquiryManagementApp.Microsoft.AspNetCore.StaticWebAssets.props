@@ -1272,8 +1272,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>wm6kiis1mz</Fingerprint>
-      <Integrity>aMd+ihC8gC2xbOBKihMWi0kMJJuhJBUVY3Ko+0PdHVQ=</Integrity>
+      <Fingerprint>spfhnxwf3u</Fingerprint>
+      <Integrity>0MTrDVQUJiJzKG2VKvtibifGTaYTl1ZhN/FqXbUTerw=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\src\enroll.jpg'))</OriginalItemSpec>

@@ -43,6 +43,14 @@
                         <span>Inquiries</span>
                     </a>
                 </li>
+
+                <li class="list-group-item border-0">
+                    <a href="@Url.Action("ManageFees", "Admin")"
+                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                        <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
+                        <span>Manage Fees</span>
+                    </a>
+                </li>
                 <li class="list-group-item border-0">
                     <a href="@Url.Action("ManageTransactions", "Admin")"
                         class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
@@ -73,6 +81,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="container mt-4">
+                    <h4>Analytics: Reasons for Not Proceeding</h4>
+                    <hr />
+                    <div class="chart-container" style="position: relative; height: 400px;">
+                        <canvas id="reasonsChart"></canvas>
+                    </div>
+                </div>
+
                 <div class="col-md-3">
                     <div class="card shadow-lg border-0"
                         style="background-color: #FFFFFF; color: #0D206A; min-height: 120px; max-height: 120px; display: flex; flex-direction: column;">
@@ -197,11 +213,16 @@
                             <a href="@Url.Action("ManageAccounts", "Admin")" class="btn btn-outline-primary w-100">
                                 <i class="bi bi-people-fill"></i> Manage Accounts
                             </a>
+
                             <a href="@Url.Action("ManageEnrollees", "Admin")" class="btn btn-outline-success w-100">
                                 <i class="bi bi-list-check"></i> Enrollees
                             </a>
                             <a href="@Url.Action("ManageInquiries", "Admin")" class="btn btn-outline-info w-100">
                                 <i class="bi bi-question-circle-fill"></i> Inquiries
+                            </a>
+
+                            <a href="@Url.Action("ManageFees", "Admin")" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-people-fill"></i> Manage Fees
                             </a>
                             <a href="@Url.Action("ManageTransactions", "Admin")" class="btn btn-outline-warning w-100">
                                 <i class="bi bi-receipt"></i> Transactions
@@ -216,16 +237,48 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Chart.js script
+        document.addEventListener('DOMContentLoaded', function () {
+            const labels = Object.keys(reasonsData);
+            const dataCounts = Object.values(reasonsData);
+            const ctx = document.getElementById('reasonsChart').getContext('2d');
+            const reasonsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Number of Students',
+                        data: dataCounts,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+    <script>
         const ctx = document.getElementById('enrollmentChart').getContext('2d');
         const enrollmentChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['January', 'February', 'March', 'April', 'May'], // Example months
+                labels: ['2020', '2021', '2022', '2023', '2024'],
                 datasets: [{
                     label: 'Enrollments',
-                    data: [12, 19, 3, 5, 2], // Example data
+                    data: [122, 139, 123, 135, 142],
                     borderColor: 'rgba(54, 162, 235, 1)',
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
                     tension: 0.3,

@@ -54,10 +54,8 @@
         </ul>
     </div>
 
-    <!-- Main Content (Inquiry Table) -->
     <div class="col-md-9" style="padding-left: 0px;">
         <div class="container mt-3" style="min-height: 80vh;">
-            <!-- Filter Section -->
             <div class="d-flex justify-content-between mb-3" style="margin-top: 20px; border-radius: 10px;">
                 <input type="text" class="form-control w-25" id="search-input" placeholder="Search by Name or ID" />
 
@@ -70,7 +68,6 @@
                 </div>
             </div>
 
-            <!-- Table Section -->
             <div class="table-responsive" style="min-height: 80vh;">
                 <table class="table table-striped table-bordered" style="margin: 0 auto; border-radius: 10px;">
                     <thead class="thead-dark" style="background-color: #ffff00; color: #0D206A;">
@@ -82,7 +79,6 @@
                             <th>Email Address</th>
                             <th>Source of Information</th>
                             <th>Date Created</th>
-                            @* <th>Status</th> *@
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -97,9 +93,8 @@
                                 <td>@inquiry.EmailAddress</td>
                                 <td>@inquiry.SourceOfInformation</td>
                                 <td>@inquiry.DateCreated.ToString("MMMM dd, yyyy")</td>
-                                @* <td>@(inquiry.Status)</td> *@
                                 <td>
-                                    <a class="btn btn-info btn-sm" asp-action="Details"
+                                    <a class="btn btn-info btn-sm" asp-controller="Inquiry" asp-action="Details"
                                         asp-route-id="@inquiry.InquiryId">Details</a>
                                     <a class="btn btn-warning btn-sm" asp-action="Edit"
                                         asp-route-id="@inquiry.InquiryId">Reply</a>

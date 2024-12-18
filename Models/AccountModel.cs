@@ -27,12 +27,5 @@ namespace InquiryManagementApp.Models
 
         [Required]
         public bool IsMarketing { get; set; } = false;
-
-        [Required]
-        public bool IsStudent { get; set; } = false;
-
-        public int? EnrollmentId { get; set; }
-
-        public virtual Enrollment Enrollment { get; set; }
     }
 }

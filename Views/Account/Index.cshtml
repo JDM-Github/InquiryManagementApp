@@ -77,3 +77,21 @@
         </div>
     </div>
 </div>
+
+
+@* @{
+    var isAdmin = Context.Session.GetString("isAdmin");
+    var firstName = Context.Session.GetString("Firstname");
+    var lastName = Context.Session.GetString("Surname");
+}
+
+<h2>Welcome, @firstName @lastName</h2>
+
+@if (isAdmin == "1")
+{
+    <p>You are logged in as Admin.</p>
+}
+else
+{
+    <p>You are logged in as a Student.</p>
+} *@

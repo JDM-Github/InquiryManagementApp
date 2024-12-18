@@ -12,6 +12,24 @@ namespace InquiryManagementApp.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Accounts",
+                columns: table => new
+                {
+                    AccountId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ConfirmPassword = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    IsAdmin = table.Column<bool>(type: "bit", nullable: false),
+                    IsMarketing = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Accounts", x => x.AccountId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "EnrollmentSchedules",
                 columns: table => new
                 {
@@ -37,11 +55,43 @@ namespace InquiryManagementApp.Migrations
                     EmailAddress = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     SourceOfInformation = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Inquiries", x => x.InquiryId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Payments",
+                columns: table => new
+                {
+                    PaymentId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Amount = table.Column<int>(type: "int", nullable: false),
+                    EnrollmentId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payments", x => x.PaymentId);
                 });
 
             migrationBuilder.CreateTable(
@@ -55,6 +105,7 @@ namespace InquiryManagementApp.Migrations
                     Middlename = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GradeLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Age = table.Column<int>(type: "int", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -72,7 +123,14 @@ namespace InquiryManagementApp.Migrations
                     GoodMoralCertificate = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SubmissionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsApproved = table.Column<bool>(type: "bit", nullable: false),
-                    FeePaid = table.Column<int>(type: "int", nullable: false)
+                    IsRejected = table.Column<bool>(type: "bit", nullable: false),
+                    FeePaid = table.Column<int>(type: "int", nullable: false),
+                    TemporaryUsername = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TemporaryPassword = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UploadedFiles = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PaymentHistories = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -84,10 +142,19 @@ namespace InquiryManagementApp.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Accounts");
+
+            migrationBuilder.DropTable(
                 name: "EnrollmentSchedules");
 
             migrationBuilder.DropTable(
                 name: "Inquiries");
+
+            migrationBuilder.DropTable(
+                name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "Students");

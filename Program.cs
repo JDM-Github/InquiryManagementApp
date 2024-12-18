@@ -40,8 +40,11 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddControllersWithViews().AddControllersAsServices();
 
 builder.Services.AddScoped<EnrollmentScheduleService>();
+builder.Services.AddScoped<EmailService>();
+
 builder.Services.AddTransient<EnrollmentScheduleService>();
 builder.Services.AddTransient<FileUploadService>();
+builder.Services.AddTransient<EmailService>();
 
 
 var app = builder.Build();

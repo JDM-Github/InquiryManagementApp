@@ -20,38 +20,39 @@ namespace InquiryManagementApp.Controllers
             return View(await _context.Inquiries.ToListAsync());
         }
 
-        // GET: Inquiry/Details/5
-        // public IActionResult Details(int id)
-        // {
-        //     var inquiry = _inquiries.FirstOrDefault(i => i.InquiryId == id);
-        //     if (inquiry == null)
-        //         return NotFound();
-
-        //     return View(inquiry);
-        // }
-
         // GET: Inquiry/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Inquiry/Create
-        // [HttpPost]
-        // [ValidateAntiForgeryToken]
-        // public IActionResult Create(Inquiry inquiry)
-        // {
-        //     if (ModelState.IsValid)
-        //     {
-        //         inquiry.InquiryId = _inquiries.Count + 1; // Simulate auto-increment ID
-        //         _inquiries.Add(inquiry);
-        //         return RedirectToAction(nameof(Index));
-        //     }
+        [HttpPost]
+        public IActionResult UpdateReason(int inquiryId, string reason)
+        {
+            var inquiry = _context.Inquiries.FirstOrDefault(i => i.InquiryId == inquiryId);
 
-        //     return View(inquiry);
-        // }
+            if (inquiry != null)
+            {
+                inquiry.Reason = reason;
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Reason saved successfully!";
+                return RedirectToAction("Details", new { id = inquiryId });
+            }
+            TempData["ErrorMessage"] = "Unable to find the inquiry.";
+            return RedirectToAction("Index", "Admin");
+        }
 
-        // POST: Inquiry/Create
+        public IActionResult Details(int id)
+        {
+            var inquiry = _context.Inquiries.FirstOrDefault(i => i.InquiryId == id);
+            if (inquiry == null)
+            {
+                return NotFound();
+            }
+
+            return View(inquiry);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("StudentName,GuardianName,ContactNumber,EmailAddress,SourceOfInformation,Notes")] Inquiry inquiry)

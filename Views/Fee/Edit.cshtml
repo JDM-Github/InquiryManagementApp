@@ -1,0 +1,19 @@
+@model InquiryManagementApp.Models.FeeModel
+
+<div class="container mt-4">
+    <h4>Edit Tuition Fee for @Model.Level</h4>
+    <hr />
+
+    <form asp-action="Edit" method="post">
+        <div class="form-group">
+            <label class="form-label" for="Fee">Tuition Fee</label>
+            <input type="number" class="form-control" id="Fee" name="Fee" value="@Model.Fee" />
+        </div>
+
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+
+    <a class="btn btn-secondary mt-3" asp-controller="Fee" asp-action="Index">Back to List</a>
+</div>

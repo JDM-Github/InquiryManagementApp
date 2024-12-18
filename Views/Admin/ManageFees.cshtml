@@ -1,0 +1,36 @@
+@model InquiryManagementApp.Models.FeeListModel
+
+<div class="container mt-4">
+    <h4>Tuition Fees per Level</h4>
+    <hr />
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Level</th>
+                <th>Tuition Fee</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var fee in Model.Fees)
+            {
+                <tr>
+                    <td>@fee.Level</td>
+                    <td>
+                        <input type="number" class="form-control" name="fee" value="@fee.Fee" />
+                    </td>
+                    <td>
+                        <a asp-controller="Fee" asp-action="Edit" asp-route-level="@fee.Level"
+                            class="btn btn-warning btn-sm">Edit</a>
+
+                        <a asp-controller="Fee" asp-action="Delete" asp-route-level="@fee.Level"
+                            class="btn btn-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a asp-controller="Fee" asp-action="Add" class="btn btn-primary">Add New Fee</a>
+</div>

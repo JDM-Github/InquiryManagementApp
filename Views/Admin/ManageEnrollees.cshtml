@@ -52,11 +52,8 @@
             </li>
         </ul>
     </div>
-
-    <!-- Main Content (Tabulator Table) -->
     <div class="col-md-9" style="padding-left: 0px;">
         <div class="container mt-3" style="min-height: 80vh;">
-            <!-- Filter Section -->
             <div class="d-flex justify-content-between mb-3" style="margin-top: 20px; border-radius: 10px;">
                 <input type="text" class="form-control w-25" id="search-input" placeholder="Search by Name or ID" />
 
@@ -108,15 +105,20 @@
                                 <td>
                                     <a class="btn btn-info btn-sm" asp-action="Details"
                                         asp-route-id="@enrollment.EnrollmentId">Details</a>
-                                    @* <a class="btn btn-warning btn-sm" asp-action="Edit"
-                                        asp-route-id="@enrollment.EnrollmentId">Approve</a> *@
-                                    <form asp-asp-controller="Admin" asp-action="Approve" method="post"
-                                        style="display:inline;">
-                                        <input type="hidden" name="id" value="@enrollment.EnrollmentId" />
-                                        <button type="submit" class="btn btn-warning btn-sm">Approve</button>
-                                    </form>
-                                    <a class="btn btn-danger btn-sm" asp-action="Delete"
-                                        asp-route-id="@enrollment.EnrollmentId">Delete</a>
+
+                                    @if (!enrollment.IsApproved)
+                                    {
+                                        <form asp-controller="Admin" asp-action="Approve" method="post" style="display:inline;">
+                                            <input type="hidden" name="id" value="@enrollment.EnrollmentId" />
+                                            <button type="submit" class="btn btn-warning btn-sm">Approve</button>
+                                        </form>
+                                        <form asp-controller="Admin" asp-action="Reject" method="post" style="display:inline;">
+                                            <input type="hidden" name="id" value="@enrollment.EnrollmentId" />
+                                            <button type="submit" class="btn btn-warning btn-sm">Reject</button>
+                                        </form>
+                                    }
+                                    @* <a class="btn btn-danger btn-sm" asp-action="Delete"
+                                        asp-route-id="@enrollment.EnrollmentId">Delete</a> *@
                                 </td>
                             </tr>
                         }

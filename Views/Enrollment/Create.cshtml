@@ -118,12 +118,13 @@
                                 <label for="Subject" class="form-label fw-bold">Subject (Tuition Fee)</label>
                                 <div class="subject-dropdown-container">
                                     <div id="Subject" class="form-control subject-dropdown">
-                                        <span class="dropdown-placeholder">Select Subjects</span>
+                                        <span class="dropdown-placeholder">Subjects</span>
                                         <span class="dropdown-selected-subjects"></span>
                                     </div>
-                                    <div class="subject-dropdown-list">
+                                    <div class="subject-dropdown-list"
+                                        style="display: none; border: 1px solid #ccc; padding: 10px; max-height: 200px; overflow-y: auto;">
                                     </div>
-                                    <div class="subject-tuition-fee">
+                                    <div class="subject-tuition-fee fw-bold mt-2">
                                         Tuition Fee:
                                     </div>
                                 </div>
@@ -131,17 +132,26 @@
                             </div>
 
                             <div class="mb-3">
+                                <label asp-for="Email" class="form-label fw-bold">Email</label>
+                                <input asp-for="Email" type="email" class="form-control" id="email"
+                                    placeholder="Enter your email" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
                                 <label asp-for="DateOfBirth" class="form-label fw-bold">Date of Birth</label>
-                                <input asp-for="DateOfBirth" type="date" class="form-control" required />
+                                <input asp-for="DateOfBirth" type="date" class="form-control" id="dateOfBirth"
+                                    required />
                                 <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="Age" class="form-label fw-bold">Age</label>
-                                <input asp-for="Age" type="number" class="form-control" placeholder="Enter your age"
-                                    required />
+                                <input asp-for="Age" type="number" class="form-control" id="age"
+                                    placeholder="Enter your age" readonly />
                                 <span asp-validation-for="Age" class="text-danger"></span>
                             </div>
+
 
                             <div class="mb-3">
                                 <label asp-for="Address" class="form-label fw-bold">Address</label>
@@ -154,29 +164,6 @@
                                 <label asp-for="LRN" class="form-label fw-bold">LRN (Learner Reference Number)</label>
                                 <input asp-for="LRN" class="form-control" placeholder="Enter your LRN" required />
                                 <span asp-validation-for="LRN" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <!-- Step 2: Document Uploads -->
-                        <div id="step2" class="step-section" style="display:none;">
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Upload Required Documents</label>
-                                <div class="mb-4">
-                                    <input type="file" name="Form10" class="form-control" required />
-                                    <small class="text-muted">Form 10 (Original Class Card)</small>
-                                </div>
-                                <div class="mb-4">
-                                    <input type="file" name="Form9" class="form-control" required />
-                                    <small class="text-muted">Form 9 (Original Transcript of Records)</small>
-                                </div>
-                                <div class="mb-4">
-                                    <input type="file" name="PSA" class="form-control" required />
-                                    <small class="text-muted">PSA (2 Photocopies)</small>
-                                </div>
-                                <div class="mb-4">
-                                    <input type="file" name="GoodMoralCertificate" class="form-control" required />
-                                    <small class="text-muted">Good Moral Certificate</small>
-                                </div>
                             </div>
                         </div>
 
@@ -235,12 +222,32 @@
                             </div>
                         </div>
 
+                        <div id="step2" class="step-section" style="display:none;">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Upload Required Documents</label>
+                                <div id="documentRequirements" class="mb-3 text-muted">
+                                </div>
+
+                                <div class="mb-3">
+                                    <input type="file" id="fileUpload" class="form-control" />
+                                    <small class="text-muted">You can upload up to 6 files</small>
+                                </div>
+
+                                <div id="uploadedFilesList" class="mt-3">
+                                    <h6 class="fw-bold">Uploaded Files:</h6>
+                                    <ul class="list-group" id="uploadedFiles"></ul>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-between">
                             <button type="button" class="btn btn-secondary" id="prevBtn">Previous</button>
                             <button type="button" class="btn btn-primary" id="nextBtn">Next</button>
                             <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none;">
                                 Enroll Now</button>
                         </div>
+
+
                     </form>
                 </div>
             </div>
@@ -263,6 +270,22 @@
         document.getElementById('nextBtn').style.display = step === allSteps.length ? 'none' : 'inline-block';
         document.getElementById('submitBtn').style.display = step === allSteps.length ? 'inline-block' : 'none';
     }
+
+    document.getElementById('dateOfBirth').addEventListener('change', function () {
+        const dob = new Date(this.value);
+        const today = new Date();
+
+        let age = today.getFullYear() - dob.getFullYear();
+        const month = today.getMonth();
+        const day = today.getDate();
+
+        if (month < dob.getMonth() || (month === dob.getMonth() && day < dob.getDate())) {
+            age--;
+        }
+
+        document.getElementById('age').value = age;
+    });
+
 
     document.getElementById('nextBtn').addEventListener('click', () => {
         if (currentStep < 4) {
@@ -287,6 +310,11 @@
     });
 
     document.addEventListener('DOMContentLoaded', function () {
+        const fileUploadInput = document.getElementById('fileUpload');
+        const documentRequirements = document.getElementById('documentRequirements');
+        const uploadedFilesList = document.getElementById('uploadedFiles');
+        const maxUploads = 6;
+
         const subjects = {
             'NURSERY': ['Play', 'Arts & Crafts', 'Story Time'],
             'KINDER': ['Reading', 'Math', 'Science'],
@@ -308,7 +336,7 @@
         const gradeLevelSelect = document.getElementById('GradeLevel');
         const subjectDropdown = document.getElementById('Subject');
         const subjectDropdownList = document.querySelector('.subject-dropdown-list');
-        const subjecTuitionFee = document.querySelector('.subject-tuition-fee');
+        const subjectTuitionFee = document.querySelector('.subject-tuition-fee');
         const selectedSubjectsInput = document.getElementById('SelectedSubjects');
         const selectedSubjectsContainer = subjectDropdown.querySelector('.dropdown-selected-subjects');
         let selectedSubjects = [];
@@ -316,42 +344,37 @@
         gradeLevelSelect.addEventListener('change', function () {
             const gradeLevel = this.value;
             const subjectsList = subjects[gradeLevel] || [];
-            subjecTuitionFee.innerHTML = 'Tuition Fee: ' + allTuition[gradeLevel];
+            subjectTuitionFee.innerHTML = 'Tuition Fee: ' + allTuition[gradeLevel];
             subjectDropdownList.innerHTML = '';
             selectedSubjects = [];
             selectedSubjectsContainer.innerHTML = '';
 
             subjectsList.forEach(subject => {
-                const subjectItem = document.createElement('label');
+                const subjectItem = document.createElement('div');
                 subjectItem.classList.add('subject-item');
+                subjectItem.style.cursor = 'pointer';
+                subjectItem.style.padding = '5px';
+                subjectItem.textContent = subject;
 
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.value = subject;
-                checkbox.addEventListener('change', function () {
-                    toggleSubjectSelection(subject, this.checked);
+                subjectItem.addEventListener('click', function () {
+                    toggleSubjectSelection(subject);
                 });
-
-                const labelText = document.createTextNode(subject);
-                subjectItem.appendChild(checkbox);
-                subjectItem.appendChild(labelText);
 
                 subjectDropdownList.appendChild(subjectItem);
             });
 
             subjectDropdownList.style.display = subjectsList.length > 0 ? 'block' : 'none';
-            subjectDropdown.classList.add('selected');
         });
 
         subjectDropdown.addEventListener('click', function () {
             subjectDropdownList.style.display = subjectDropdownList.style.display === 'block' ? 'none' : 'block';
         });
 
-        function toggleSubjectSelection(subject, isSelected) {
-            if (isSelected) {
-                selectedSubjects.push(subject);
-            } else {
+        function toggleSubjectSelection(subject) {
+            if (selectedSubjects.includes(subject)) {
                 selectedSubjects = selectedSubjects.filter(s => s !== subject);
+            } else {
+                selectedSubjects.push(subject);
             }
             updateSelectedSubjects();
         }
@@ -361,8 +384,53 @@
             selectedSubjectsInput.value = selectedSubjects.join(',');
         }
 
+        const gradeLevelRequirements = {
+            'NURSERY': ['PSA'],
+            'KINDER': ['PSA'],
+            'ELEMENTARY': ['PSA', 'Form 9', 'Form 10'],
+            'JUNIOR HIGH SCHOOL': ['PSA', 'Form 9', 'Form 10', 'Good Moral'],
+            'SENIOR HIGH SCHOOL - ABM': ['PSA', 'Form 9', 'Form 10', 'Good Moral', 'Certificate of Completion'],
+            'SENIOR HIGH SCHOOL - HUMSS': ['PSA', 'Form 9', 'Form 10', 'Good Moral', 'Certificate of Completion']
+        };
+
+        gradeLevelSelect.addEventListener('change', function () {
+            const selectedGrade = gradeLevelSelect.value;
+            const requirements = gradeLevelRequirements[selectedGrade] || [];
+            documentRequirements.innerHTML = `<strong>Required Documents:</strong> ${requirements.join(', ')}`;
+        });
+
+        fileUploadInput.addEventListener('change', function () {
+            if (uploadedFiles.length >= maxUploads) {
+                alert('You can only upload up to 6 files.');
+                return;
+            }
+
+            const file = fileUploadInput.files[0];
+            if (file) {
+    @* alert("TEST"); *@
+
+    @* uploadedFiles.push(file); *@
+
+    @* alert(listItem); *@
+
+
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                listItem.innerHTML = `${file.name}<button type="button" class="btn btn-sm btn-danger remove-file">Remove</button>`;
+
+                uploadedFilesList.appendChild(listItem);
+
+                listItem.querySelector('.remove-file').addEventListener('click', function () {
+    @* uploadedFiles = uploadedFiles.filter(f => f !== file); *@
+                        listItem.remove();
+                });
+                fileUploadInput.value = '';
+            }
+        });
+
         gradeLevelSelect.dispatchEvent(new Event('change'));
     });
+
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

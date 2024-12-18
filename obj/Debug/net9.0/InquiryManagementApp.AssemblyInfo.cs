@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("InquiryManagementApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3ad52bf0be96ff93db7a0af643fbfab0b619e072")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f4fb27ec8eb1a0505688176398f08d7d047ddacd")]
 [assembly: System.Reflection.AssemblyProductAttribute("InquiryManagementApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("InquiryManagementApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
