@@ -25,8 +25,6 @@ namespace InquiryManagementApp.Models
 
         [Key]
         public int EnrollmentId { get; set; }
-
-        // Student Information
         [Required]
         [StringLength(50)]
         public string Surname { get; set; }

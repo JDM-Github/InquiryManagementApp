@@ -1,0 +1,26 @@
+@model InquiryManagementApp.Models.Account
+
+@{
+    ViewData["Title"] = "Account Details";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div>
+    <h3>Account Information</h3>
+    <dl class="row">
+        <dt class="col-sm-2">Username</dt>
+        <dd class="col-sm-10">@Model.Username</dd>
+
+        <dt class="col-sm-2">Email</dt>
+        <dd class="col-sm-10">@Model.Email</dd>
+
+        <dt class="col-sm-2">Is Admin</dt>
+        <dd class="col-sm-10">@Model.IsAdmin</dd>
+
+        <dt class="col-sm-2">Is Marketing</dt>
+        <dd class="col-sm-10">@Model.IsMarketing</dd>
+    </dl>
+
+    <a href="@Url.Action("Edit", "Account", new { id = Model.AccountId })" class="btn btn-primary">Edit</a>
+</div>

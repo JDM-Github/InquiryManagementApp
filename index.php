@@ -1,100 +1,28 @@
-<?php
-$ch = curl_init();
-$parameters = array(
-    'apikey' => 'eda627d51969272535da5f7027d870c9',
-    'number' => '09303238796',
-    'message' => 'I just sent my first message with Semaphore',
-    'sendername' => 'SEMAPHORE'
-);
+<div class="mb-3"> <label asp-for="GradeLevel" class="form-label fw-bold">Grade Level</label> <select
+        asp-for="GradeLevel" class="form-control" required>
+        <option value="NURSERY">NURSERY</option>
+        <option value="KINDER">KINDER</option>
+        <option value="ELEMENTARY">ELEMENTARY GRADE 1</option>
+        <option value="ELEMENTARY">ELEMENTARY GRADE 2</option>
+        <option value="ELEMENTARY">ELEMENTARY GRADE 3</option>
+        <option value="ELEMENTARY">ELEMENTARY GRADE 4</option>
+        <option value="ELEMENTARY">ELEMENTARY GRADE 5</option>
+        <option value="ELEMENTARY">ELEMENTARY GRADE 6</option>
+        <option value="JUNIOR HIGH SCHOOL">JUNIOR HIGH SCHOOL GRADE 7</option>
+        <option value="JUNIOR HIGH SCHOOL">JUNIOR HIGH SCHOOL GRADE 8</option>
+        <option value="JUNIOR HIGH SCHOOL">JUNIOR HIGH SCHOOL GRADE 9</option>
+        <option value="JUNIOR HIGH SCHOOL">JUNIOR HIGH SCHOOL GRADE 10</option>
+        <option value="SENIOR HIGH SCHOOL 11 ABM (1ST SEM)">SENIOR HIGH SCHOOL 11 ABM (1ST SEM)</option>
+        <option value="SENIOR HIGH SCHOOL 11 ABM (2ND SEM)">SENIOR HIGH SCHOOL 11 ABM (2ND SEM)</option>
+        <option value="SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)">SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)</option>
+        <option value="SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)">SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)</option>
+        <option value="SENIOR HIGH SCHOOL 12 ABM (1ST SEM)">SENIOR HIGH SCHOOL 12 ABM (1ST SEM)</option>
+        <option value="SENIOR HIGH SCHOOL 12 ABM (2ND SEM)">SENIOR HIGH SCHOOL 12 ABM (2ND SEM)</option>
+        <option value="SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)">SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)</option>
+        <option value="SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)">SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)</option>
+    </select> <span asp-validation-for="GradeLevel" class="text-danger"></span> </div>
+<script> window.addEventListener('load', () => { const enrollmentModal = new bootstrap.Modal(document.getElementById('enrollmentStepsModal')); enrollmentModal.show(); });
 
-curl_setopt($ch, CURLOPT_URL, 'https://semaphore.co/api/v4/messages');
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($parameters));
-
-curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-    'Content-Type: application/x-www-form-urlencoded',
-));
-
-$output = curl_exec($ch);
-
-if ($output === false) {
-    echo "cURL Error: " . curl_error($ch);
-} else {
-    echo "Message sent successfully!";
-}
-curl_close($ch);
-?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Semaphore SMS API</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        .output {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            color: #333;
-            font-size: 14px;
-            white-space: pre-wrap;
-        }
-
-        .btn {
-            margin-top: 20px;
-            padding: 10px 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            background-color: #45a049;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1>SMS Sent Successfully!</h1>
-        <p>Your message was sent to the number <strong>09303238796</strong> via Semaphore API.</p>
-        <div class="output">
-            <h3>API Response:</h3>
-            <pre><?php echo htmlspecialchars($output); ?></pre>
-        </div>
-        <button class="btn" onclick="window.location.reload();">Send Another Message</button>
-    </div>
-</body>
-
-</html>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileUploadInput = document.getElementById('fileUpload'); const documentRequirements = document.getElementById('documentRequirements'); const uploadedFilesList = document.getElementById('uploadedFiles'); const maxUploads = 6; const subjects = { 'NURSERY': ['Cultural Arts', 'MAPE', 'Mathematics', 'Science', 'Reading and Language', 'Spelling'], 'KINDER': ['Filipino', 'English', 'Mathematics', 'Science and Health', 'Writing', 'MAPE',], 'ELEMENTARY': ['Math', 'Science', 'English', 'Filipino', 'AP', 'MAPEH', 'ESP', 'TLE'], 'JUNIOR HIGH SCHOOL': ['Math', 'English', 'Science', 'Filipino', 'AP', 'MAPEH', 'Values', 'TLE'], 'SENIOR HIGH SCHOOL 11 ABM (1ST SEM)': ['Physical Education 1', 'Statistic and Probability', '21st Century Literature from the Philippines and the World', 'Pagbasa and Pagsusuri ng ibat ibang teksto tungo sa Pananaliksik', 'Introduction to Philosophy of the Human Person', 'Oral Communication', 'Media and Information Literacy', 'Pagsusulat sa Filipino sa Piling Larangan'], 'SENIOR HIGH SCHOOL 11 ABM (2ND SEM)': ['Physical Education 2', 'Earth and Life Science', 'Contemporary Philippines Arts in the Regions', 'Understanding Culture, Society and Politics', 'Research in Daily Life 1', 'Organization and Management', 'Fundamentals of Accountancy and Business Management 1', 'Business Math'], 'SENIOR HIGH SCHOOL 12 ABM (1ST SEM)': ['Physical Education 3', 'General Mathematics', 'Physical Science', 'Research in Daily Life 2', 'Empowerment Technologies (ETech) ICT for Professionals Tracks', 'Applied Economics', 'Fundamentals of Accountancy and Business Management 2', 'Business Finance'], 'SENIOR HIGH SCHOOL 12 ABM (2ND SEM)': ['Physical Education 4', 'Komonikasyon at Pananaliksik sa Kultura at Wikang Pilipino', 'Reading and Writing Skills', 'Entrepreneurship', 'Inquiries, Investigation and Immersion', 'English for Academic and Professional Purposes', 'Business Ethics and Social Responsibility', 'Business Marketing', 'Capstone/Business Enterprise Simulation'], 'SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)': ['Physical Education 1', 'Statistic and Probability', '21st Century Literature from the Philippines and the World', 'Pagbasa and Pagsusuri ng ibat ibang teksto tungo sa Pananaliksik', 'Introduction to Philosophy of the Human Herson', 'Oral Communication', 'Media and Information Literacy', 'Pagsusulat sa Filipino sa Piling Larangan'], 'SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)': ['Physical Education 2', 'Earth and Life Science', 'Contemporary Philippines Arts in the Regions', 'Personal Development', 'Understanding Culture, Society and Politics', 'Research in Daily Life 1', 'Discipline and Ideas in the Social Sciences', 'Creative Writing', 'Philippine Politics and Governance'], 'SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)': ['Physical Education 3', 'General Mathematics', 'Physical Science', 'Research in Daily Life 2', 'Empowerment Technologies (ETech) ICT for Professionals Tracks', 'Introduce to World Religion and Belief Systems', 'Discipline and Ideas in the Social Sciences', 'Community Engagement Solidarity and Citizenship'], 'SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)': ['Physical Education 4', 'Komonikasyon at Pananaliksik sa Kultura at Wikang Pilipino', 'Reading and Writing Skills', 'Entrepreneurship', 'Inquiries, Investigation and Immersion', 'English for Academic and Professional Purposes', 'Creative Nonfiction', 'Trends, Networks, and Critica; Thinking in the 21st Century Culture', 'Capstone/Culminating Program'], }; const allTuition = { 'NURSERY': 2000, 'KINDER': 5000, 'ELEMENTARY': 4000, 'JUNIOR HIGH SCHOOL': 6000, 'SENIOR HIGH SCHOOL 11 ABM (1ST SEM)': 7000, 'SENIOR HIGH SCHOOL 11 ABM (2ND SEM)': 7000, 'SENIOR HIGH SCHOOL 12 ABM (1ST SEM)': 8000, 'SENIOR HIGH SCHOOL 12 ABM (2ND SEM)': 8000, 'SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)': 7000, 'SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)': 7000, 'SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)': 8000, 'SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)': 8000 }
+    }); 

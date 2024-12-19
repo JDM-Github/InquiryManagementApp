@@ -44,6 +44,13 @@
                 </a>
             </li>
             <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageFees", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
+                    <span>Manage Fees</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
                 <a href="@Url.Action("ManageTransactions", "Admin")"
                     class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
                     <i class="bi bi-receipt me-3 text-warning" style="font-size: 1.2rem;"></i>
@@ -60,9 +67,8 @@
                 <div class="d-flex justify-content-end w-50">
                     <select class="form-control w-50" id="grade-level-filter">
                         <option value="">Select Grade Level</option>
-                        @foreach (var gradeLevel in new[] { "NURSERY", "KINDER", "ELEMENTARY", "JUNIOR HIGH SCHOOL",
-                        "SENIOR HIGH SCHOOL - ABM",
-                        "SENIOR HIGH SCHOOL - HUMSS" })
+                        @foreach (var gradeLevel in new[] { "NURSERY", "KINDER", "ELEMENTARY GRADE 1", "ELEMENTARY GRADE 2", "ELEMENTARY GRADE 3", "ELEMENTARY GRADE 4", "ELEMENTARY GRADE 5", "ELEMENTARY GRADE 6", "JUNIOR HIGH SCHOOL GRADE 7", 
+                        "JUNIOR HIGH SCHOOL GRADE 8", "JUNIOR HIGH SCHOOL GRADE 9", "JUNIOR HIGH SCHOOL GRADE 10", "SENIOR HIGH SCHOOL - 11 ABM", "SENIOR HIGH SCHOOL - 11 HUMSS", "SENIOR HIGH SCHOOL - 12 ABM", "SENIOR HIGH SCHOOL - 12 HUMSS" })
                         {
                             <option value="@gradeLevel">@gradeLevel</option>
                         }
@@ -103,7 +109,7 @@
                                 <td>@enrollment.SubmissionDate.ToString("MMMM dd, yyyy")</td>
                                 <td>@(enrollment.IsApproved ? "Approved" : "Pending")</td>
                                 <td>
-                                    <a class="btn btn-info btn-sm" asp-action="Details"
+                                    <a class="btn btn-info btn-sm" asp-action="EnrollDetail" asp-controller="Account"
                                         asp-route-id="@enrollment.EnrollmentId">Details</a>
 
                                     @if (!enrollment.IsApproved)
@@ -117,8 +123,6 @@
                                             <button type="submit" class="btn btn-warning btn-sm">Reject</button>
                                         </form>
                                     }
-                                    @* <a class="btn btn-danger btn-sm" asp-action="Delete"
-                                        asp-route-id="@enrollment.EnrollmentId">Delete</a> *@
                                 </td>
                             </tr>
                         }

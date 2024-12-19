@@ -1,36 +1,96 @@
 @model InquiryManagementApp.Models.FeeListModel
 
-<div class="container mt-4">
-    <h4>Tuition Fees per Level</h4>
-    <hr />
+<div class="container-fluid mt-4 d-flex" style="margin-top: 65px !important; margin-bottom: 10px;">
+    <!-- Sidebar -->
+    <div class="col-md-3 bg-light shadow-lg rounded-3 py-4" style="height: 100vh;">
+        <h3 class="text-center text-primary mb-4 fw-bold">ADMIN PANEL</h3>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("index", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageAccounts", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                    <span>Manage Accounts</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageEnrolled", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                    <span>Manage Enrolled</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageEnrollees", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-list-check me-3 text-success" style="font-size: 1.2rem;"></i>
+                    <span>Enrollees</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageInquiries", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
+                    <span>Inquiries</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageFees", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
+                    <span>Manage Fees</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageTransactions", "Admin")"
+                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
+                    <i class="bi bi-receipt me-3 text-warning" style="font-size: 1.2rem;"></i>
+                    <span>Transactions</span>
+                </a>
+            </li>
+        </ul>
+    </div>
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Level</th>
-                <th>Tuition Fee</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var fee in Model.Fees)
-            {
-                <tr>
-                    <td>@fee.Level</td>
-                    <td>
-                        <input type="number" class="form-control" name="fee" value="@fee.Fee" />
-                    </td>
-                    <td>
-                        <a asp-controller="Fee" asp-action="Edit" asp-route-level="@fee.Level"
-                            class="btn btn-warning btn-sm">Edit</a>
+    <div class="col-md-9" style="padding-left: 0px;">
+        <div class="container mt-3" style="min-height: 80vh;">
+            <div class="container mt-4">
+                <h4>Tuition Fees per Level</h4>
+                <hr />
 
-                        <a asp-controller="Fee" asp-action="Delete" asp-route-level="@fee.Level"
-                            class="btn btn-danger btn-sm">Delete</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Level</th>
+                            <th>Tuition Fee</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var fee in Model.Fees)
+                        {
+                            <tr>
+                                <td>@fee.Level</td>
+                                <td>
+                                    <input type="number" class="form-control" name="fee" value="@fee.Fee" />
+                                </td>
+                                <td>
+                                    <a asp-controller="Fee" asp-action="Edit" asp-route-level="@fee.Level"
+                                        class="btn btn-warning btn-sm">Edit</a>
 
-    <a asp-controller="Fee" asp-action="Add" class="btn btn-primary">Add New Fee</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <a asp-controller="Fee" asp-action="Add" class="btn btn-primary">Add New Fee</a>
+            </div>
+        </div>
+    </div>
 </div>

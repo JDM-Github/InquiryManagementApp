@@ -61,10 +61,16 @@ public class AdminController : Controller
         }
     }
 
+
     public IActionResult ManageFees()
     {
         var feeListModel = new FeeListModel();
         return View(feeListModel);
+    }
+
+    public IActionResult ManageTransactions()
+    {
+        return View();
     }
 
     public IActionResult Create()

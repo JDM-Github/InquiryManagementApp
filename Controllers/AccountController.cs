@@ -26,6 +26,77 @@ namespace InquiryManagementApp.Controllers
             return View();
         }
 
+        // public IActionResult Detail(int id)
+        // {
+        //     var account = _context.Accounts.Find(id);
+        //     if (account == null)
+        //     {
+        //         return NotFound();
+        //     }
+
+        //     return View(account);
+        // }
+
+        // public IActionResult Edit(int id)
+        // {
+        //     var account = _context.Accounts.Find(id);
+        //     if (account == null)
+        //     {
+        //         return NotFound();
+        //     }
+
+        //     return View(account);
+        // }
+
+
+        public IActionResult EnrolleesDetail(int id)
+        {
+            var account = _context.Students.Find(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            return View(account);
+        }
+        public IActionResult EnrollDetail(int id)
+        {
+            var account = _context.Students.Find(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            return View(account);
+        }
+
+        public IActionResult Delete(int id)
+        {
+            var account = _context.Accounts.Find(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            return View(account);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var account = _context.Accounts.Find(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            _context.Accounts.Remove(account);
+            _context.SaveChanges();
+            return RedirectToAction("ManageAccounts", "Admin");
+        }
+
+
         // [HttpPost]
         // public IActionResult Admin(string username, string password)
         // {
@@ -107,39 +178,60 @@ namespace InquiryManagementApp.Controllers
 
         }
 
-        // [HttpPost]
-        // public IActionResult Login(string lrn, string surname, string firstname, string password)
-        // {
-        //     var enrollment = new Enrollment
-        //     {
-        //         LRN = lrn,
-        //         Surname = surname,
-        //         Firstname = firstname
-        //     };
 
-        //     if (ValidateUser(enrollment, password))
-        //     {
-        //         HttpContext.Session.SetString("Username", enrollment.Username);
-        //         HttpContext.Session.SetString("Firstname", enrollment.Firstname);
-        //         HttpContext.Session.SetString("Surname", enrollment.Surname);
-        //         HttpContext.Session.SetString("LRN", enrollment.LRN);
-        //         return RedirectToAction("Home", "Dashboard");
-        //     }
+        public IActionResult Detail(int id)
+        {
+            var account = _context.Accounts.FirstOrDefault(a => a.AccountId == id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+            return View(account);
+        }
 
-        //     TempData["Error"] = "Invalid username or password.";
-        //     return View();
-        // }
+        // GET: Account/Edit/5
+        public IActionResult Edit(int id)
+        {
+            var account = _context.Accounts.FirstOrDefault(a => a.AccountId == id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+            return View(account);
+        }
 
-        // private bool ValidateUser(Enrollment enrollment, string enteredPassword)
-        // {
-        //     string expectedPassword = enrollment.Password;
-        //     return enteredPassword == expectedPassword;
-        // }
+        // POST: Account/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, Account account)
+        {
+            if (id != account.AccountId)
+            {
+                return NotFound();
+            }
 
-        // public IActionResult Logout()
-        // {
-        //     HttpContext.Session.Clear();
-        //     return RedirectToAction("Login");
-        // }
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(account);
+                    _context.SaveChanges();
+                }
+                catch
+                {
+                    if (!_context.Accounts.Any(a => a.AccountId == account.AccountId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Detail), new { id = account.AccountId });
+            }
+            return View(account);
+        }
+
     }
 }

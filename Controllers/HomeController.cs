@@ -72,8 +72,6 @@ public class HomeController : Controller
         return View(enrollment);
     }
 
-
-
     public IActionResult Privacy()
     {
         return View();
@@ -89,7 +87,6 @@ public class HomeController : Controller
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
-
 
     [HttpPost]
     public async Task<IActionResult> UploadDocument(List<IFormFile> files)
