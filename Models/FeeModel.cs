@@ -1,15 +1,17 @@
-using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace InquiryManagementApp.Models
 {
     public class FeeModel
     {
+        [Key]
+        public int Id { get; set; }
         public string Level { get; set; }
-        public decimal Fee { get; set; }
+        public double Fee { get; set; }
         public string PaymentType { get; set; }
 
-        public FeeModel(string level, decimal fee, string paymentType)
+        public FeeModel() { }
+        public FeeModel(string level, double fee, string paymentType)
         {
             Level = level;
             Fee = fee;

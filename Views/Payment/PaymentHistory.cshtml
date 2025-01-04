@@ -1,0 +1,86 @@
+@model IEnumerable<Payment>
+
+<div class="container my-5" style="margin-top: 80px !important; min-height: 80vh;">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header d-flex align-items-center justify-content-between"
+            style="border-left: 4px solid #FFD700; background-color: #f8f9fa;">
+            <h2 class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #007bff; padding-left: 15px;">PAYMENT HISTORY</h2>
+            <div class="w-25 d-flex gap-2">
+                @if (ViewBag.IsPaymentScheduleActive)
+                {
+                    <a href="@Url.Action("Pay", "Payment")" class="btn btn-primary btn-sm w-100">PAY</a>
+                }
+                <span class="btn btn-secondary btn-sm w-100">₱@ViewBag.Fee</span>
+            </div>
+            
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <p class="text-warning">No payments found.</p>
+            }
+            else
+            {
+                <table class="table table-striped table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Payment ID</th>
+                            <th>Paid Amount</th>
+                            <th>Reference Number</th>
+                            <th>Payment Method</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var payment in Model)
+                        {
+                            <tr>
+                                <td>@payment.Date.ToShortDateString()</td>
+                                <td>@payment.PaymentId</td>
+                                <td>@payment.PaidAmount</td>
+                                <td>@payment.ReferenceNumber</td>
+                                <td>@payment.PaymentMethod</td>
+                                <td>@payment.Status</td>
+                                <td>
+                                    @if (payment.Status == "Pending")
+                                    {
+                                        <a href="@payment.PaymentLink" target="_blank" class="btn btn-primary btn-sm w-100">Pay</a>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-info btn-sm w-100" data-bs-toggle="modal"
+                                            data-bs-target="#details-@payment.Id">Details</button>
+                                    }
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="details-@payment.Id" tabindex="-1"
+                                aria-labelledby="details-@payment.Id-Label" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="details-@payment.Id-Label">Payment Details for
+                                                @payment.PaymentId</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Date:</strong> @payment.Date.ToShortDateString()</p>
+                                            <p><strong>Payment ID:</strong> @payment.PaymentId</p>
+                                            <p><strong>Paid Amount:</strong> @payment.PaidAmount</p>
+                                            <p><strong>Reference Number:</strong> @payment.ReferenceNumber</p>
+                                            <p><strong>Payment Method:</strong> @payment.PaymentMethod</p>
+                                            <p><strong>Status:</strong> @payment.Status</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

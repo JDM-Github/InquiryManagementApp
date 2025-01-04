@@ -1,0 +1,22 @@
+
+<div class="modal fade" id="walkInPaymentModal" tabindex="-1" aria-labelledby="walkInPaymentModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="walkInPaymentModalLabel">Enter Walk-in Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="walkInPaymentForm" method="post" asp-action="SubmitWalkInPayment" asp-controller="Payment">
+                    <div class="mb-3">
+                        <label for="lrn" class="form-label">Student LRN</label>
+                        <input type="text" class="form-control" id="lrn" name="EnrollreesId" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Submit Payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

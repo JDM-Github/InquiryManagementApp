@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using InquiryManagementApp.Models;
 using System.Text.Json;
 using InquiryManagementApp.Service;
+using Microsoft.EntityFrameworkCore;
 
 namespace InquiryManagementApp.Controllers;
 
@@ -10,22 +11,31 @@ public class HomeController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly FileUploadService _fileUploadService;
-    public HomeController(ApplicationDbContext context, FileUploadService fileUploadService)
+    private readonly FileDownloadService _fileDownloadService;
+
+    public HomeController(ApplicationDbContext context, FileUploadService fileUploadService, FileDownloadService fileDownloadService)
     {
         _context = context;
         _fileUploadService = fileUploadService;
+        _fileDownloadService = fileDownloadService;
     }
 
     public IActionResult Index()
     {
-        var userId = HttpContext.Session.GetString("LRN");
-        var notifications = _context.Notifications
-                                    .Where(n => n.UserId == userId)
-                                    .OrderByDescending(n => n.CreatedAt)
-                                    .ToList();
+        var existingSchedule = _context.PaymentSchedules.FirstOrDefault();
+        if (existingSchedule != null)
+        {
+            PaymentSchedule.CreateInstance(existingSchedule);
+        }
 
-        var notificationsJson = JsonSerializer.Serialize(notifications);
-        HttpContext.Session.SetString("Notifications", notificationsJson);
+        var userId = HttpContext.Session.GetString("LRN");
+        // var notifications = _context.Notifications
+        //                             .Where(n => n.UserId == userId)
+        //                             .OrderByDescending(n => n.CreatedAt)
+        //                             .ToList();
+
+        // var notificationsJson = JsonSerializer.Serialize(notifications);
+        // HttpContext.Session.SetString("Notifications", notificationsJson);
         if (HttpContext.Session.GetString("isAdmin") == "1")
         {
             return RedirectToAction("Index", "Admin");
@@ -37,10 +47,9 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Document()
+    public async Task<IActionResult> Document()
     {
         var userId = HttpContext.Session.GetString("LRN");
-
         if (string.IsNullOrEmpty(userId))
         {
             return RedirectToAction("Login", "Account");
@@ -52,12 +61,19 @@ public class HomeController : Controller
 
         if (enrollment == null)
         {
-            return RedirectToAction("Error", "Home");
+            return NotFound();
         }
 
-        var uploadedDocuments = enrollment.UploadedFiles;
-        ViewBag.UploadedDocuments = uploadedDocuments;
-        return View(enrollment);
+        var requiredFiles = await _context.RequirementModels
+            .Where(c => c.EnrollmentId == enrollment.EnrollmentId)
+            .ToListAsync();
+
+        var model = new EnrollmentRequirementsViewModel
+        {
+            Enrollment = enrollment,
+            Requirements = requiredFiles
+        };
+        return View(model);
     }
 
     public IActionResult Payment()
@@ -77,9 +93,38 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Account()
+    public async Task<IActionResult> Account()
     {
-        return View();
+        var userId = HttpContext.Session.GetString("LRN");
+        var account = await _context.Students.FirstOrDefaultAsync(c => c.LRN == userId);
+        if (account == null)
+        {
+            TempData["ErrorMessage"] = "User not found.";
+            return RedirectToAction("Login", "Account");
+        }
+
+        return View(account);
+    }
+
+    public async Task<IActionResult> ViewAccount(string userId)
+    {
+        var account = await _context.Students.FirstOrDefaultAsync(c => c.LRN == userId);
+        if (account == null)
+        {
+            TempData["ErrorMessage"] = "User not found.";
+            return RedirectToAction("Login", "Account");
+        }
+        return View(account);
+    }
+
+    public async Task<IActionResult> Notification()
+    {
+        var userId = HttpContext.Session.GetString("LRN");
+        var notifications = await _context.Notifications
+            .Where(c => c.UserId == userId)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync();
+        return View(notifications);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -88,46 +133,72 @@ public class HomeController : Controller
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 
-    [HttpPost]
-    public async Task<IActionResult> UploadDocument(List<IFormFile> files)
-    {
-        var userId = HttpContext.Session.GetString("LRN");
-        var enrollment = _context.Students.FirstOrDefault(e => e.LRN == userId);
 
-        if (enrollment == null)
+    [HttpPost]
+    public async Task<IActionResult> UploadDocument(int id, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
         {
-            return NotFound("Enrollment record not found.");
+            ModelState.AddModelError("File", "Please select a file to upload.");
+            return RedirectToAction("Index"); 
         }
-        foreach (var file in files)
+
+        var requirement = await _context.RequirementModels.FindAsync(id);
+        if (requirement == null)
         {
-            var fileUrl = await _fileUploadService.UploadFileToCloudinaryAsync(file);
-            enrollment.UploadedFiles.Add(fileUrl);
+            TempData["ErrorMessage"] = $"Requirement with ID {id} not found.";
+            return RedirectToAction("Index");
         }
-        _context.SaveChanges();
+
+        var fileUrl = await _fileUploadService.UploadFileToCloudinaryAsync(file);
+        requirement.UploadedFile = fileUrl;
+        _context.Update(requirement);
+        await _context.SaveChangesAsync();
+
+        Console.WriteLine(fileUrl);
+
+        TempData["SuccessMessage"] = "File uploaded successfully.";
         return RedirectToAction("Document");
     }
 
-    [HttpPost]
-    public IActionResult DeleteDocument(string filename)
+    public async Task<IActionResult> ViewDocument(int id)
     {
-        var userId = HttpContext.Session.GetString("LRN");
-        var enrollment = _context.Students.FirstOrDefault(e => e.LRN == userId);
-
-        if (enrollment == null || !enrollment.UploadedFiles.Contains(filename))
+        var requirement = await _context.RequirementModels.FindAsync(id);
+        if (requirement == null || string.IsNullOrEmpty(requirement.UploadedFile))
         {
-            return BadRequest("File not found.");
+            TempData["ErrorMessage"] = "The file does not exist.";
+            return RedirectToAction("Document");
+        }
+        return Redirect(requirement.UploadedFile);
+    }
+
+    public async Task<IActionResult> DownloadDocument(int id)
+    {
+        var requirement = await _context.RequirementModels.FindAsync(id);
+        if (requirement == null || string.IsNullOrEmpty(requirement.UploadedFile))
+        {
+            TempData["ErrorMessage"] = "The file does not exist.";
+            return RedirectToAction("Document");
         }
 
-        var filePath = Path.Combine("wwwroot/uploads", filename);
-        if (System.IO.File.Exists(filePath))
+        var fileBytes = await _fileDownloadService.DownloadFileFromUrlAsync(requirement.UploadedFile);
+        return File(fileBytes, "application/octet-stream", Path.GetFileName(requirement.UploadedFile));
+    }
+
+    public async Task<IActionResult> DeleteDocument(int id)
+    {
+        var requirement = await _context.RequirementModels.FindAsync(id);
+        if (requirement == null || string.IsNullOrEmpty(requirement.UploadedFile))
         {
-            System.IO.File.Delete(filePath);
+            TempData["ErrorMessage"] = "The file does not exist.";
+            return RedirectToAction("Document");
         }
+        requirement.UploadedFile = "";
+        _context.RequirementModels.Update(requirement);
+        await _context.SaveChangesAsync();
 
-        enrollment.UploadedFiles.Remove(filename);
-        _context.SaveChanges();
-
-        return Ok();
+        TempData["SuccessMessage"] = "File deleted successfully.";
+        return RedirectToAction("Document");
     }
 
 

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using InquiryManagementApp.Models;
 using Microsoft.Extensions.Hosting;
 using InquiryManagementApp.Service;
+using Microsoft.EntityFrameworkCore;
 
 namespace InquiryManagementApp.Controllers
 {
@@ -36,35 +37,59 @@ namespace InquiryManagementApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             [Bind("Surname, Firstname, Middlename, Gender, GradeLevel, Email, DateOfBirth, Age, Address, LRN, FatherLastName, FatherFirstName, FatherOccupation, FatherMaidenName, MotherLastName, MotherFirstName, MotherOccupation, MotherMaidenName")]
-            Enrollment enrollment,
-            List<IFormFile> uploadedFiles)
+            Enrollment enrollment)
         {
             if (ModelState.IsValid)
             {
-                enrollment.SetTemporaryCredentials();
-
-                foreach (var file in uploadedFiles)
+                var inquired = await _context.Inquiries.FirstOrDefaultAsync(s => s.EmailAddress == enrollment.Email);
+                if (inquired == null)
                 {
-                    if (file != null && file.Length > 0)
-                    {
-                        Console.WriteLine($"Uploading file: {file.FileName}, Length: {file.Length}");
-                        try
-                        {
-                            var fileUrl = await _fileUploadService.UploadFileToCloudinaryAsync(file);
-                            Console.WriteLine($"File uploaded to: {fileUrl}");
-                            enrollment.UploadedFiles.Add(fileUrl);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error uploading file {file.FileName}: {ex.Message}");
-                        }
-                    }
+                    TempData["ErrorMessage"] = "Email is not inquired.";
+                    return View(enrollment);
                 }
+                if (inquired.IsRejected == true)
+                {
+                    TempData["ErrorMessage"] = "Inquired email is rejected.";
+                    return View(enrollment);
+                }
+                if (inquired.IsApproved == false)
+                {
+                    TempData["ErrorMessage"] = "Inquired email is not approved yet.";
+                    return View(enrollment);
+                }
+                if (inquired.IsCancelled == true)
+                {
+                    TempData["ErrorMessage"] = "Inquired email is cancelled.";
+                    return View(enrollment);
+                }
+
+                if (await _context.Students.FirstOrDefaultAsync(s => s.LRN == enrollment.LRN) != null
+                 || await _context.Students.FirstOrDefaultAsync(s => s.Email == enrollment.Email) != null)
+                {
+                    TempData["ErrorMessage"] = "Enrollment already exists.";
+                    return View(enrollment);
+                }
+
+                var requiredFiles = await _context.Requirements
+                    .Where(r => r.GradeLevel == enrollment.GradeLevel)
+                    .ToListAsync();
+
+                enrollment.SetTemporaryCredentials();
                 _context.Add(enrollment);
                 await _context.SaveChangesAsync();
 
-                Console.WriteLine(enrollment.TemporaryUsername);
-                Console.WriteLine(enrollment.TemporaryPassword);
+                var requirementModels = requiredFiles.Select(r => new RequirementModel
+                {
+                    RequirementName = r.RequirementName,
+                    Description = r.Description,
+                    UploadedFile = r.UploadedFile,
+                    IsRequired = r.IsRequired,
+                    GradeLevel = r.GradeLevel,
+                    EnrollmentId = enrollment.EnrollmentId
+                }).ToList();
+
+                _context.RequirementModels.AddRange(requirementModels);
+                await _context.SaveChangesAsync();
 
                 string subject = "Enrollment Confirmation";
                 string body = $@"
@@ -86,12 +111,12 @@ namespace InquiryManagementApp.Controllers
                     Console.WriteLine("Error sending email: " + ex.Message);
                 }
 
-                HttpContext.Session.SetString("ToastMessage", "Enrollment created successfully!");
-                HttpContext.Session.SetString("isAdmin", "0");
-
+                HttpContext.Session.SetString("isAdmin", "0");                
+                TempData["SuccessMessage"] = "Enrollment created successfully.";
                 return RedirectToAction("Index", "Home");
             }
 
+            TempData["ErrorMessage"] = "Error creating enrollment.";
             return View(enrollment);
         }
 

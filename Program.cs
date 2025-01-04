@@ -36,6 +36,7 @@ builder.Services.AddSession(options =>
 
 // builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
 //     .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddHttpClient();
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllersWithViews().AddControllersAsServices();
 
@@ -45,6 +46,8 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddTransient<EnrollmentScheduleService>();
 builder.Services.AddTransient<FileUploadService>();
 builder.Services.AddTransient<EmailService>();
+builder.Services.AddTransient<FileDownloadService>();
+builder.Services.AddHostedService<PaymentExpirationService>();
 
 
 var app = builder.Build();

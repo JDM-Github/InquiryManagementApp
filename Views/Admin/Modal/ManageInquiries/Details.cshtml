@@ -1,0 +1,47 @@
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">Inquiry Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Inquiry ID:</strong> <span id="modalInquiryId"></span></p>
+                <p><strong>Student Name:</strong> <span id="modalStudentName"></span></p>
+                <p><strong>Guardian Name:</strong> <span id="modalGuardianName"></span></p>
+                <p><strong>Contact Number:</strong> <span id="modalContactNumber"></span></p>
+                <p><strong>Email Address:</strong> <span id="modalEmailAddress"></span></p>
+                <p><strong>Source of Information:</strong> <span id="modalSourceOfInformation"></span></p>
+                <p><strong>Date Created:</strong> <span id="modalDateCreated"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const detailsModal = document.getElementById("detailsModal");
+        const modalInquiryId = document.getElementById("modalInquiryId");
+        const modalStudentName = document.getElementById("modalStudentName");
+        const modalGuardianName = document.getElementById("modalGuardianName");
+        const modalContactNumber = document.getElementById("modalContactNumber");
+        const modalEmailAddress = document.getElementById("modalEmailAddress");
+        const modalSourceOfInformation = document.getElementById("modalSourceOfInformation");
+        const modalDateCreated = document.getElementById("modalDateCreated");
+
+        document.querySelectorAll(".view-details").forEach(button => {
+            button.addEventListener("click", function () {
+                modalInquiryId.textContent = this.getAttribute("data-id");
+                modalStudentName.textContent = this.getAttribute("data-studentname");
+                modalGuardianName.textContent = this.getAttribute("data-guardianname");
+                modalContactNumber.textContent = this.getAttribute("data-contactnumber");
+                modalEmailAddress.textContent = this.getAttribute("data-emailaddress");
+                modalSourceOfInformation.textContent = this.getAttribute("data-sourceofinformation");
+                modalDateCreated.textContent = this.getAttribute("data-datecreated");
+            });
+        });
+    });
+</script>

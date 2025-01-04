@@ -1,0 +1,42 @@
+@model InquiryCancellationViewModel
+
+<div class="container d-flex justify-content-center align-items-center" style="height: 80vh">
+    <div style="min-width: 400px; width: 100%; max-width: 100px;">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-primary text-white text-center">
+                <h3>Cancel Inquiry</h3>
+                <p class="mb-0">Please fill out the form why you want to cancel.</p>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Cancel" method="post">
+                    <input type="hidden" asp-for="InquiryId" />
+
+                    <div class="mb-3">
+                        <label asp-for="CancellationReason" class="form-label">Reason for Cancellation</label>
+                        <select asp-for="CancellationReason" class="form-select" required>
+                            <option value="">Select a reason</option>
+                            <option value="NotInterested">Not Interested</option>
+                            <option value="FoundAnotherOption">Found Another Option</option>
+                            <option value="FinancialIssues">Financial Issues</option>
+                            <option value="PoorCustomerService">Poor Customer Service</option>
+                            <option value="ProductUnavailable">Product Unavailable</option>
+                            <option value="ChangeInRequirements">Change in Requirements</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <span asp-validation-for="CancellationReason" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CancellationNotes" class="form-label">Additional Notes (Optional)</label>
+                        <textarea asp-for="CancellationNotes" class="form-control" rows="4"></textarea>
+                        <span asp-validation-for="CancellationNotes" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger">Submit Cancellation</button>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>

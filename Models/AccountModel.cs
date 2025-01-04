@@ -2,6 +2,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InquiryManagementApp.Models
 {
+    public class AccountView {
+        public IEnumerable<Account> Accounts { get; set; }
+        public int CurrentPage { get; set; }
+        public int TotalPages { get; set; }
+        public string SearchFilter { get; set; }
+        public string RoleFilter { get; set; }
+    }
+
     public class Account
     {
         [Key]
@@ -22,10 +30,6 @@ namespace InquiryManagementApp.Models
         [StringLength(50)]
         public string Email { get; set; }
 
-        [Required]
-        public bool IsAdmin { get; set; } = false;
-
-        [Required]
-        public bool IsMarketing { get; set; } = false;
+        public string Role { get; set; }
     }
 }

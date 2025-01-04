@@ -15,11 +15,8 @@
         <dt class="col-sm-2">Email</dt>
         <dd class="col-sm-10">@Model.Email</dd>
 
-        <dt class="col-sm-2">Is Admin</dt>
-        <dd class="col-sm-10">@Model.IsAdmin</dd>
-
-        <dt class="col-sm-2">Is Marketing</dt>
-        <dd class="col-sm-10">@Model.IsMarketing</dd>
+        <dt class="col-sm-2">Role</dt>
+        <dd class="col-sm-10">@Model.Role</dd>
     </dl>
 
     <a href="@Url.Action("Edit", "Account", new { id = Model.AccountId })" class="btn btn-primary">Edit</a>

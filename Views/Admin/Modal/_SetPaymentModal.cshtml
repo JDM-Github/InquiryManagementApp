@@ -1,0 +1,50 @@
+@model PaymentSchedule
+
+<div class="modal fade" id="paymentScheduleModal" tabindex="-1" aria-labelledby="paymentScheduleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="SetPaymentDate" asp-controller="Payment">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentScheduleModalLabel">Set Payment Schedule</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="ActionType" class="form-label">Action</label>
+                        <select class="form-select" id="ActionType" name="ActionType" required>
+                            <option value="" disabled selected>Choose an action</option>
+                            <option value="New">Set New Schedule</option>
+                            <option value="Edit">Edit Current Schedule</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="StartDate" class="form-label">Start Date</label>
+                        <input asp-for="StartDate" type="date" class="form-control" id="StartDate" name="StartDate"
+                            required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="EndDate" class="form-label">End Date</label>
+                        <input asp-for="EndDate" type="date" class="form-control" id="EndDate" name="EndDate"
+                            required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    @if (PaymentSchedule.InstanceExists)
+                    {
+                        if (PaymentSchedule.CurrentPaymentSchedule!.IsActive)
+                        {
+                            <a asp-action="Close" asp-controller="Payment" class=" btn btn-outline-danger">Shutdown</a>
+                        }
+                        else
+                        {
+                            <a asp-action="Activate" asp-controller="Payment" class=" btn btn-outline-danger">Activate</a>
+                        }
+                    }
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

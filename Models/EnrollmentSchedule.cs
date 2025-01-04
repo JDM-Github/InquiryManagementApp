@@ -22,7 +22,7 @@ namespace InquiryManagementApp.Models
             InstanceExists = false;
         }
 
-        public static void CreateInstance(DateTime startDate, DateTime endDate)
+        public static void CreateInstance()
         {
             if (InstanceExists)
             {

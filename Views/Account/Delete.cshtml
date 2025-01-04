@@ -4,8 +4,8 @@
     <h2>Are you sure you want to delete the account?</h2>
     <p><strong>Username:</strong> @Model.Username</p>
     <p><strong>Email:</strong> @Model.Email</p>
-    <p><strong>Admin Role:</strong> @(Model.IsAdmin ? "Yes" : "No")</p>
-    <p><strong>Registrar Role:</strong> @(Model.IsMarketing ? "Yes" : "No")</p>
+    <p><strong>Admin Role:</strong> @(Model.Role == "Admin" ? "Yes" : "No")</p>
+    <p><strong>Marketing Role:</strong> @(Model.Role == "Marketing" ? "Yes" : "No")</p>
 
     <form asp-action="DeleteConfirmed" method="post">
         <input type="hidden" name="id" value="@Model.AccountId" />

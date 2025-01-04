@@ -4,93 +4,54 @@
     ViewData["Title"] = "Enrolled Students";
 }
 
-<div class="container-fluid mt-4 d-flex" style="margin-top: 65px !important; margin-bottom: 10px;">
-    <!-- Sidebar -->
-    <div class="col-md-3 bg-light shadow-lg rounded-3 py-4" style="height: 100vh;">
-        <h3 class="text-center text-primary mb-4 fw-bold">ADMIN PANEL</h3>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("index", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
-                    <span>Home</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageAccounts", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
-                    <span>Manage Accounts</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageEnrolled", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
-                    <span>Manage Enrolled</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageEnrollees", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-list-check me-3 text-success" style="font-size: 1.2rem;"></i>
-                    <span>Enrollees</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageInquiries", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
-                    <span>Inquiries</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageFees", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
-                    <span>Manage Fees</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageTransactions", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-receipt me-3 text-warning" style="font-size: 1.2rem;"></i>
-                    <span>Transactions</span>
-                </a>
-            </li>
-        </ul>
-    </div>
 
-    <div class="col-md-9" style="padding-left: 0px;">
-        <div class="container mt-3" style="min-height: 80vh;">
-            <div class="d-flex justify-content-between mb-3" style="margin-top: 20px; border-radius: 10px;">
-                <input type="text" class="form-control w-25" id="search-input" placeholder="Search by Name or ID" />
+<div class="container-fluid mt-4 d-flex gap-3"
+    style="margin-top: 65px !important; margin-bottom: 10px; min-height: 90vh;">
+    @await Html.PartialAsync("Layout/Navigation")
 
-                <div class="d-flex justify-content-end w-50">
-                    <select class="form-control w-50" id="status-filter">
-                        <option value="">Select Status</option>
-                        <option value="Open">Open</option>
-                        <option value="Closed">Closed</option>
-                    </select>
-                </div>
+    <div class="card shadow-lg border-0 rounded-3 mt-2 w-100">
+        <div class="card-header d-flex align-items-center justify-content-between"
+            style="border-left: 4px solid #FFD700; background-color: #f8f9fa;">
+            <h2 class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #007bff; padding-left: 15px;">
+                MANAGE INQUIRIES</h2>
+            <div class="w-50"></div>
+        </div>
+
+        <div class="card-body">
+            <div class="d-flex gap-2">
+                <input type="text" class="form-control w-100 mb-2 shadow-sm" placeholder="Search..."
+                    style="border-radius: 5px; font-size: 0.9rem;" />
+                <button type="button" class="btn btn-primary shadow-sm mb-2"
+                    style="font-size: 0.9rem; border-radius: 5px;">
+                    Search
+                </button>
             </div>
-
-            <div class="table-responsive" style="min-height: 80vh;">
-                <table class="table table-striped table-bordered" style="margin: 0 auto; border-radius: 10px;">
-                    <thead class="thead-dark" style="background-color: #ffff00; color: #0D206A;">
+            <table class="table table-striped table-bordered table-hover w-100">
+                <thead style="background-color: yellow;">
+                    <tr style="font-size: 0.9rem !important;">
+                        <th scope="col">ID</th>
+                        <th scope="col">S. NAME</th>
+                        <th scope="col">GUARDIAN</th>
+                        <th scope="col">CONTACT NO.</th>
+                        <th scope="col">EMAIL</th>
+                        <th scope="col">SOURCE</th>
+                        <th scope="col">STATUS</th>
+                        <th scope="col">DATE</th>
+                        <th scope="col">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="inquiry-table-body">
+                    @if (Model == null || !Model.Any())
+                    {
                         <tr>
-                            <th>#</th>
-                            <th>Student Name</th>
-                            <th>Guardian Name</th>
-                            <th>Contact Number</th>
-                            <th>Email Address</th>
-                            <th>Source of Information</th>
-                            <th>Date Created</th>
-                            <th>Actions</th>
+                            <td colspan="9" class="text-center text-muted">
+                                No inquiries data available.
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody id="inquiry-table-body">
-                        @foreach (var inquiry in Model)
+                    }
+                    else
+                    {
+                        foreach (var inquiry in Model)
                         {
                             <tr>
                                 <td>@inquiry.InquiryId</td>
@@ -99,18 +60,242 @@
                                 <td>@inquiry.ContactNumber</td>
                                 <td>@inquiry.EmailAddress</td>
                                 <td>@inquiry.SourceOfInformation</td>
+                                <td>
+                                    @if (inquiry.IsApproved)
+                                    {
+                                        <span class="badge bg-success">Approved</span>
+                                    }
+                                    else if (inquiry.IsRejected)
+                                    {
+                                        <span class="badge bg-danger">Rejected</span>
+                                    }
+                                    else if (inquiry.IsCancelled)
+                                    {
+                                        <span class="badge bg-secondary">Cancelled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">Pending</span>
+                                    }
+                                </td>
                                 <td>@inquiry.DateCreated.ToString("MMMM dd, yyyy")</td>
                                 <td>
-                                    <a class="btn btn-info btn-sm" asp-controller="Inquiry" asp-action="Details"
-                                        asp-route-id="@inquiry.InquiryId">Details</a>
-                                    <a class="btn btn-warning btn-sm" asp-action="Edit"
-                                        asp-route-id="@inquiry.InquiryId">Reply</a>
+                                    <button class="btn btn-info btn-sm view-details w-100" data-bs-toggle="modal"
+                                        data-bs-target="#detailsModal-@inquiry.InquiryId">
+                                        <i class="bi bi-info-circle"></i> Details
+                                    </button>
+
+                                    @if (!inquiry.IsApproved && !inquiry.IsRejected && !inquiry.IsCancelled)
+                                    {
+                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#sendNoteModal-@inquiry.InquiryId">
+                                            <i class="bi bi-pencil"></i> Send Note
+                                        </button>
+
+                                        <button class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#approveModal-@inquiry.InquiryId">
+                                            <i class="bi bi-check-circle"></i> Approve
+                                        </button>
+
+                                        <button class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#rejectModal-@inquiry.InquiryId">
+                                            <i class="bi bi-x-circle"></i> Reject
+                                        </button>
+                                    }
                                 </td>
                             </tr>
+
+                            <div class="modal fade" id="detailsModal-@inquiry.InquiryId" tabindex="-1"
+                                aria-labelledby="detailsModal-@inquiry.InquiryId-Label" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="detailsModal-@inquiry.InquiryId-Label">Inquiry
+                                                Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="container">
+                                                <div class="row mb-2">
+                                                    <div class="col-sm-4"><strong>Inquiry ID:</strong></div>
+                                                    <div class="col-sm-8">@inquiry.InquiryId</div>
+                                                </div>
+                                                <div class="row mb-2">
+                                                    <div class="col-sm-4"><strong>Student Name:</strong></div>
+                                                    <div class="col-sm-8">@inquiry.StudentName</div>
+                                                </div>
+                                                <div class="row mb-2">
+                                                    <div class="col-sm-4"><strong>Guardian Name:</strong></div>
+                                                    <div class="col-sm-8">@inquiry.GuardianName</div>
+                                                </div>
+                                                <div class="row mb-2">
+                                                    <div class="col-sm-4"><strong>Contact Number:</strong></div>
+                                                    <div class="col-sm-8">@inquiry.ContactNumber</div>
+                                                </div>
+                                                <div class="row mb-2">
+                                                    <div class="col-sm-4"><strong>Email Address:</strong></div>
+                                                    <div class="col-sm-8">@inquiry.EmailAddress</div>
+                                                </div>
+                                                <div class="row mb-2">
+                                                    <div class="col-sm-4"><strong>Source of Information:</strong></div>
+                                                    <div class="col-sm-8">@inquiry.SourceOfInformation</div>
+                                                </div>
+                                                <div class="row mb-2">
+                                                    <div class="col-sm-4"><strong>Additional Notes:</strong></div>
+                                                    <div class="col-sm-8">@inquiry.Notes</div>
+                                                </div>
+                                                <div class="row mb-2">
+                                                    <div class="col-sm-4"><strong>Date Created:</strong></div>
+                                                    <div class="col-sm-8">@inquiry.DateCreated.ToString("MMMM dd, yyyy")
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-2">
+                                                    <div class="col-sm-4"><strong>Status:</strong></div>
+                                                    <div class="col-sm-8">
+                                                        @if (inquiry.IsCancelled)
+                                                        {
+                                                            <span class="badge bg-secondary">Cancelled</span>
+                                                        }
+                                                        else if (inquiry.IsApproved)
+                                                        {
+                                                            <span class="badge bg-success">Approved</span>
+                                                        }
+                                                        else if (inquiry.IsRejected)
+                                                        {
+                                                            <span class="badge bg-danger">Rejected</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-warning">Pending</span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                                @if (inquiry.IsCancelled)
+                                                {
+                                                    <hr>
+                                                    <div class="row mb-2">
+                                                        <div class="col-sm-4"><strong>Cancellation Reason:</strong></div>
+                                                        <div class="col-sm-8">
+                                                            <span>@inquiry.CancellationReason</span>
+                                                        </div>
+                                                        <div class="col-sm-4"><strong>Cancellation Notes</strong></div>
+                                                        <div class="col-sm-8">
+                                                            <span>@inquiry.CancellationNotes</span>
+                                                        </div>
+                                                    </div>
+                                                }
+
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="modal fade" id="sendNoteModal-@inquiry.InquiryId" tabindex="-1"
+                                aria-labelledby="sendNoteModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form asp-action="SendNote" asp-route-id="@inquiry.InquiryId" method="post">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="sendNoteModalLabel">Send Note</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="noteContent-@inquiry.InquiryId" class="form-label">Note
+                                                        Content</label>
+                                                    <textarea id="noteContent-@inquiry.InquiryId" name="NoteContent"
+                                                        class="form-control" rows="4" required></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Action</label>
+                                                    <div>
+                                                        <input type="radio" id="actionNone-@inquiry.InquiryId" name="Action"
+                                                            value="None" checked />
+                                                        <label for="actionNone-@inquiry.InquiryId">None</label>
+                                                    </div>
+                                                    <div>
+                                                        <input type="radio" id="actionVerify-@inquiry.InquiryId" name="Action"
+                                                            value="Verify" />
+                                                        <label for="actionVerify-@inquiry.InquiryId">Verify Inquiry</label>
+                                                    </div>
+                                                    <div>
+                                                        <input type="radio" id="actionReject-@inquiry.InquiryId" name="Action"
+                                                            value="Reject" />
+                                                        <label for="actionReject-@inquiry.InquiryId">Reject Inquiry</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Send Note</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="modal fade" id="approveModal-@inquiry.InquiryId" tabindex="-1"
+                                aria-labelledby="approveModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form asp-action="ApproveInquiry" asp-route-id="@inquiry.InquiryId" method="post">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="approveModalLabel">Confirm Approval</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to approve this inquiry?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-success">Approve</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="rejectModal-@inquiry.InquiryId" tabindex="-1"
+                                aria-labelledby="rejectModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form asp-action="Reject" asp-route-id="@inquiry.InquiryId" method="post">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="rejectModalLabel">Confirm Rejection</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to reject this inquiry?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-danger">Reject</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         }
-                    </tbody>
-                </table>
-            </div>
+                    }
+                </tbody>
+            </table>
+
+
         </div>
+
     </div>
 </div>

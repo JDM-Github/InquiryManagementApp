@@ -16,7 +16,6 @@ public class EnrollmentScheduleController : Controller
         return View();
     }
 
-    // GET: EnrollmentSchedule/Create
     public IActionResult Create()
     {
         if (EnrollmentSchedule.InstanceExists)
@@ -26,25 +25,33 @@ public class EnrollmentScheduleController : Controller
         return View();
     }
 
-    // POST: EnrollmentSchedule/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("StartDate,EndDate")] EnrollmentSchedule enrollmentSchedule)
     {
         if (ModelState.IsValid)
         {
-            try
+            if (EnrollmentSchedule.InstanceExists)
             {
-                EnrollmentSchedule.CreateInstance(enrollmentSchedule.StartDate, enrollmentSchedule.EndDate);
-                _context.Add(enrollmentSchedule);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var schedule = _context.EnrollmentSchedules.FirstOrDefault();
+                _context.EnrollmentSchedules.Remove(schedule!);
+                _context.SaveChanges();
             }
-            catch (InvalidOperationException)
+            EnrollmentSchedule.CreateInstance();
+            _context.EnrollmentSchedules.Add(enrollmentSchedule);
+            await _context.SaveChangesAsync();
+
+            var recent = new RecentActivity
             {
-                return View("Error", new ErrorViewModel { RequestId = "Only one instance of Enrollment Schedule is allowed." });
-            }
+                Activity = $"Enrollment schedule created. Start date: {enrollmentSchedule.StartDate}, End date: {enrollmentSchedule.EndDate}",
+                CreatedAt = DateTime.Now
+            };
+            _context.RecentActivities.Add(recent);
+
+            TempData["SuccessMessage"] = "Enrollment schedule created successfully."; 
+            return RedirectToAction(nameof(Index));
         }
+        TempData["ErrorMessage"] = "Error creating enrollment schedule.";
         return View(enrollmentSchedule);
     }
 

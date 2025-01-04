@@ -2,6 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InquiryManagementApp.Models
 {
+    public class InquiryCancellationViewModel
+    {
+        public int InquiryId { get; set; }
+        public string CancellationReason { get; set; }
+        public string? CancellationNotes { get; set; }
+    }
+
     public class Inquiry
     {
         [Key]
@@ -30,9 +37,16 @@ namespace InquiryManagementApp.Models
 
         public DateTime DateCreated { get; set; } = DateTime.Now;
 
-        // Optional field for future use
+
         [StringLength(500, ErrorMessage = "Notes cannot exceed 500 characters.")]
         public string? Notes { get; set; }
         public string? Reason { get; set; } = null;
+
+
+        public bool IsApproved { get; set; } = false;
+        public bool IsRejected { get; set; } = false;
+        public bool IsCancelled { get; set; } = false;
+        public string CancellationReason { get; set; } = "";
+        public string? CancellationNotes { get; set; } = "";
     }
 }

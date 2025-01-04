@@ -5,7 +5,7 @@
         <div class="col-lg-8">
             <div class="card shadow-lg border-0 rounded-4">
                 <div class="card-header bg-primary text-white text-center">
-                    <h3>Student Inquiry Form</h3>
+                    <h3><strong>STUDENT INQUIRY FORM</strong></h3>
                     <p class="mb-0">Please fill out the form below with accurate information.</p>
                 </div>
                 <div class="card-body p-4">
@@ -17,7 +17,6 @@
                             <span asp-validation-for="StudentName" class="text-danger small"></span>
                         </div>
 
-                        <!-- Guardian Name -->
                         <div class="mb-4">
                             <label asp-for="GuardianName" class="form-label fw-bold">Guardian Name</label>
                             <input asp-for="GuardianName" class="form-control rounded-3 border border-primary"
@@ -25,7 +24,6 @@
                             <span asp-validation-for="GuardianName" class="text-danger small"></span>
                         </div>
 
-                        <!-- Contact Number -->
                         <div class="mb-4">
                             <label asp-for="ContactNumber" class="form-label fw-bold">Contact Number</label>
                             <input asp-for="ContactNumber" type="tel"
@@ -34,7 +32,6 @@
                             <span asp-validation-for="ContactNumber" class="text-danger small"></span>
                         </div>
 
-                        <!-- Email Address -->
                         <div class="mb-4">
                             <label asp-for="EmailAddress" class="form-label fw-bold">Email Address</label>
                             <input asp-for="EmailAddress" type="email"
@@ -59,7 +56,6 @@
                             <span asp-validation-for="SourceOfInformation" class="text-danger small"></span>
                         </div>
 
-                        <!-- Notes -->
                         <div class="mb-4">
                             <label asp-for="Notes" class="form-label fw-bold">Additional Notes</label>
                             <textarea asp-for="Notes" class="form-control rounded-3 border border-primary" rows="4"
@@ -67,10 +63,8 @@
                             <span asp-validation-for="Notes" class="text-danger small"></span>
                         </div>
 
-                        <!-- Buttons -->
                         <div class="d-flex justify-content-between">
                             <button type="submit" class="btn btn-primary rounded-3 px-5">Submit</button>
-                            @* <a asp-action="Index" class="btn btn-outline-secondary rounded-3 px-5">Back to List</a> *@
                         </div>
                     </form>
                 </div>
@@ -78,27 +72,6 @@
         </div>
     </div>
 </div>
-
-
-@section Scripts {
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <script>
-            toastr.options = {
-                "positionClass": "toast-center-center",
-                "closeButton": true,
-                "progressBar": true,
-                "timeOut": "5000",
-                "extendedTimeOut": "1000"
-            };
-            toastr.success('@TempData["SuccessMessage"]');
-
-            $("input, textarea, select").val("");
-        </script>
-    }
-    @TempData.Remove("SuccessMessage");
-
-}
 
 <style>
     .toast-success {

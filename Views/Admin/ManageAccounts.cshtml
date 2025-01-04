@@ -1,149 +1,186 @@
-@model IEnumerable<InquiryManagementApp.Models.Account>
+@model AccountView
 
 @{
     ViewData["Title"] = "Enrolled Students";
 }
 
-<div class="container-fluid mt-4 d-flex" style="margin-top: 65px !important; margin-bottom: 10px;">
-    <!-- Sidebar -->
-    <div class="col-md-3 bg-light shadow-lg rounded-3 py-4" style="height: 100vh;">
-        <h3 class="text-center text-primary mb-4 fw-bold">ADMIN PANEL</h3>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("index", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
-                    <span>Home</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageAccounts", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
-                    <span>Manage Accounts</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageEnrolled", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
-                    <span>Manage Enrolled</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageEnrollees", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-list-check me-3 text-success" style="font-size: 1.2rem;"></i>
-                    <span>Enrollees</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageInquiries", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
-                    <span>Inquiries</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageFees", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
-                    <span>Manage Fees</span>
-                </a>
-            </li>
-            <li class="list-group-item border-0">
-                <a href="@Url.Action("ManageTransactions", "Admin")"
-                    class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                    <i class="bi bi-receipt me-3 text-warning" style="font-size: 1.2rem;"></i>
-                    <span>Transactions</span>
-                </a>
-            </li>
-        </ul>
-    </div>
+<div class="container-fluid mt-4 d-flex gap-3"
+    style="margin-top: 65px !important; margin-bottom: 10px; min-height: 90vh;">
+    @await Html.PartialAsync("Layout/Navigation")
 
-    <div class="col-md-9" style="padding-left: 0px;">
-        <div class="container mt-3" style="min-height: 80vh;">
+    <div class="card shadow-lg border-0 rounded-3 mt-2 w-100">
+        <div class="card-header d-flex align-items-center justify-content-between"
+            style="border-left: 4px solid #FFD700; background-color: #f8f9fa;">
+            <h2 class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #007bff; padding-left: 15px;">
+                MANAGE ACCOUNTS</h2>
 
-
-            <div class="d-flex justify-content-between mb-3" style="margin-top: 20px; border-radius: 10px;">
-                <input type="text" class="form-control w-25" id="search-input"
-                    placeholder="Search by Username or Email" />
-                <div class="d-flex w-25">
-                    <select class="form-control" id="role-filter">
-                        <option value="">All Roles</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Marketing">Registrar</option>
-                    </select>
-                    <div class="form-control">
-                        <a href="@Url.Action("Create", "Admin")" class="btn btn-primary">Add Account</a>
-                    </div>
-                </div>
+            <div class="d-flex gap-2 w-50">
+                <select class="form-control w-100" id="role-filter" asp-for="RoleFilter" onchange="applyFilters()">
+                    <option value="All">All Roles</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Marketing">Marketing</option>
+                </select>
+                <a href="@Url.Action("Create", "Admin")" class="btn btn-primary w-100">Add Account</a>
             </div>
+        </div>
 
-            <div class="table-responsive" style="min-height: 80vh;">
-                <table class="table table-striped table-bordered" style="margin: 0 auto; border-radius: 10px;">
-                    <thead class="thead-dark" style="background-color: #ffff00; color: #0D206A;">
+        <div class="card-body">
+            <div class="d-flex gap-2">
+                <input type="text" class="form-control w-100 mb-2 shadow-sm" id="searchInput" placeholder="Search..."
+                    style="border-radius: 5px; font-size: 0.9rem;" value="@Model.SearchFilter" />
+                <button type="button" class="btn btn-primary shadow-sm mb-2"
+                    style="font-size: 0.9rem; border-radius: 5px;" onclick="applyFilters()">
+                    Search
+                </button>
+            </div>
+            <table class="table table-striped table-bordered table-hover w-100">
+                <thead style="background-color: yellow;">
+                    <tr style="font-size: 0.9rem !important;">
+                        <th>#</th>
+                        <th>USERNAME</th>
+                        <th>EMAIL</th>
+                        <th>ADMIN ROLE</th>
+                        <th>MARKETING ROLE</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="account-table-body">
+                    @if (Model == null || !Model.Accounts.Any())
+                    {
                         <tr>
-                            <th>#</th>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Admin Role</th>
-                            <th>Registrar Role</th>
-                            <th>Actions</th>
+                            <td colspan="9" class="text-center text-muted">
+                                No accounts data available.
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody id="account-table-body">
-                        @foreach (var account in Model)
+                    }
+                    else
+                    {
+                        foreach (var account in Model.Accounts)
                         {
-                            <tr data-role="@((account.IsAdmin ? "Admin" : account.IsMarketing ? "Registrar" : "None"))">
+                            <tr data-role="@account.Role">
                                 <td>@account.AccountId</td>
                                 <td>@account.Username</td>
                                 <td>@account.Email</td>
-                                <td>@(account.IsAdmin ? "Yes" : "No")</td>
-                                <td>@(account.IsMarketing ? "Yes" : "No")</td>
+                                <td>@(account.Role == "Admin" ? "Yes" : "No")</td>
+                                <td>@(account.Role == "Marketing" ? "Yes" : "No")</td>
                                 <td>
-                                    <a class="btn btn-info btn-sm" asp-action="Detail" asp-controller="Account"
-                                        asp-route-id="@account.AccountId">Details</a>
-                                    <a class="btn btn-warning btn-sm" asp-action="Edit" asp-controller="Account"
-                                        asp-route-id="@account.AccountId">Edit</a>
-                                    <a class="btn btn-danger btn-sm" asp-action="Delete" asp-controller="Account"
-                                        asp-route-id="@account.AccountId">Delete</a>
+                                    <div class="d-flex w-100 gap-2">
+                                    <button class="btn btn-info btn-sm w-100" data-bs-toggle="modal"
+                                        data-bs-target="#modal-@account.AccountId-Details">Details</button>
+                                    <button class="btn btn-warning btn-sm w-100" data-bs-toggle="modal"
+                                        data-bs-target="#modal-@account.AccountId-Edit">Edit</button>
+                                    <button class="btn btn-danger btn-sm w-100" data-bs-toggle="modal"
+                                        data-bs-target="#modal-@account.AccountId-Delete">Delete</button>
+                                    </div>
                                 </td>
                             </tr>
+
+                            <div class="modal fade" id="modal-@account.AccountId-Details" tabindex="-1"
+                                aria-labelledby="detailsModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Account Details - @account.Username</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Account ID:</strong> @account.AccountId</p>
+                                            <p><strong>Username:</strong> @account.Username</p>
+                                            <p><strong>Email:</strong> @account.Email</p>
+                                            <p><strong>Role:</strong> @account.Role</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="modal-@account.AccountId-Edit" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form method="post" asp-action="EditAccount">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Edit Account - @account.Username</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <input type="hidden" name="AccountId" value="@account.AccountId" />
+                                                <div class="mb-3">
+                                                    <label for="editUsername-@account.AccountId" class="form-label">Username</label>
+                                                    <input type="text" class="form-control" id="editUsername-@account.AccountId" name="Username" value="@account.Username" required />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editEmail-@account.AccountId" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="editEmail-@account.AccountId" name="Email" value="@account.Email" required />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editRole-@account.AccountId" class="form-label">Role</label>
+                                                    <select class="form-select" id="editRole-@account.AccountId" name="Role" asp-for="@account.Role" required>
+                                                        <option value="Admin">Admin</option>
+                                                        <option value="Marketing">Marketing</option>
+                                                        <option value="User">User</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-primary">Save changes</button>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="modal-@account.AccountId-Delete" tabindex="-1"
+                                aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form method="post" asp-action="DeleteAccount">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Delete Account - @account.Username</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <input type="hidden" name="AccountId" value="@account.AccountId" />
+                                                <p>Are you sure you want to delete this account?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         }
-                    </tbody>
-                </table>
+                    }
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-center mt-3">
+                <ul class="pagination">
+                    <li class="page-item @(Model!.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                            href="@Url.Action("ManageAccounts", new { page = Model.CurrentPage - 1, search = Model.SearchFilter, role = Model.RoleFilter })">Previous</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="@Url.Action("ManageAccounts", new { page = Model.CurrentPage + 1, search = Model.SearchFilter, role = Model.RoleFilter })">Next</a>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
+
 <script>
-    document.getElementById('role-filter').addEventListener('change', function () {
-        const selectedRole = this.value;
-        const rows = document.querySelectorAll('#account-table-body tr');
-
-        rows.forEach(row => {
-            const role = row.getAttribute('data-role');
-            if (!selectedRole || role === selectedRole) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    });
-
-    document.getElementById('search-input').addEventListener('input', function () {
-        const query = this.value.toLowerCase();
-        const rows = document.querySelectorAll('#account-table-body tr');
-
-        rows.forEach(row => {
-            const username = row.children[1].textContent.toLowerCase();
-            const email = row.children[2].textContent.toLowerCase();
-            if (username.includes(query) || email.includes(query)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    });
+    function applyFilters() {
+        const role = document.getElementById("role-filter").value;
+        const search = document.getElementById("searchInput").value;
+        window.location.href = `@Url.Action("ManageAccounts", "Admin")?search=${search}&page=1&role=${role}`;
+    }
 </script>

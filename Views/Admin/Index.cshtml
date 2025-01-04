@@ -1,70 +1,15 @@
+@model AdminDashboardViewModel
 @{
     ViewData["Title"] = "Admin Dashboard";
 }
 
 <div class="container-fluid mt-4" style="margin-top: 65px !important; margin-bottom: 10px;">
     <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 bg-light shadow-lg rounded-3 py-4">
-            <h3 class="text-center text-primary mb-4 fw-bold">ADMIN PANEL</h3>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item border-0">
-                    <a href="@Url.Action("index", "Admin")"
-                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                        <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
-                        <span>Home</span>
-                    </a>
-                </li>
-                <li class="list-group-item border-0">
-                    <a href="@Url.Action("ManageAccounts", "Admin")"
-                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                        <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
-                        <span>Manage Accounts</span>
-                    </a>
-                </li>
-                <li class="list-group-item border-0">
-                    <a href="@Url.Action("ManageEnrolled", "Admin")"
-                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                        <i class="bi bi-people-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
-                        <span>Manage Enrolled</span>
-                    </a>
-                </li>
-                <li class="list-group-item border-0">
-                    <a href="@Url.Action("ManageEnrollees", "Admin")"
-                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                        <i class="bi bi-list-check me-3 text-success" style="font-size: 1.2rem;"></i>
-                        <span>Enrollees</span>
-                    </a>
-                </li>
-                <li class="list-group-item border-0">
-                    <a href="@Url.Action("ManageInquiries", "Admin")"
-                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                        <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
-                        <span>Inquiries</span>
-                    </a>
-                </li>
-
-                <li class="list-group-item border-0">
-                    <a href="@Url.Action("ManageFees", "Admin")"
-                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                        <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
-                        <span>Manage Fees</span>
-                    </a>
-                </li>
-                <li class="list-group-item border-0">
-                    <a href="@Url.Action("ManageTransactions", "Admin")"
-                        class="text-decoration-none text-dark d-flex align-items-center p-2 rounded-3 hover-shadow">
-                        <i class="bi bi-receipt me-3 text-warning" style="font-size: 1.2rem;"></i>
-                        <span>Transactions</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
+        @await Html.PartialAsync("Layout/Navigation")
 
 
-        <!-- Main Content -->
         <div class="col-md-9">
-            <!-- Analytics Cards -->
+
             <div class="row text-center g-4">
                 <div class="col-md-3">
                     <div class="card shadow-lg border-0"
@@ -77,18 +22,10 @@
                         <div class="card-body">
                             <p class="card-text small">Inquiries we have received this month</p>
                             <h2 class="fw-bold">@Model.TotalInquiries</h2>
-                            <i class="bi bi-arrow-up-circle-fill" style="font-size: 1.5rem; color: #0D206A;"></i>
                         </div>
                     </div>
                 </div>
-                <div class="container mt-4">
-                    <h4>Analytics: Reasons for Not Proceeding</h4>
-                    <hr />
-                    <div class="chart-container" style="position: relative; height: 400px;">
-                        <canvas id="reasonsChart"></canvas>
-                    </div>
-                </div>
-
+                
                 <div class="col-md-3">
                     <div class="card shadow-lg border-0"
                         style="background-color: #FFFFFF; color: #0D206A; min-height: 120px; max-height: 120px; display: flex; flex-direction: column;">
@@ -100,7 +37,6 @@
                         <div class="card-body">
                             <p class="card-text small">Total number of students enrolles</p>
                             <h2 class="fw-bold">@Model.TotalEnrolled</h2>
-                            <i class="bi bi-arrow-up-circle-fill" style="font-size: 1.5rem; color: #0D206A;"></i>
                         </div>
                     </div>
                 </div>
@@ -115,7 +51,6 @@
                         <div class="card-body">
                             <p class="card-text small">Number of approved enrollments</p>
                             <h2 class="fw-bold">@Model.TotalApproved</h2>
-                            <i class="bi bi-arrow-up-circle-fill" style="font-size: 1.5rem; color: #0D206A;"></i>
                         </div>
                     </div>
                 </div>
@@ -132,33 +67,48 @@
                             style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
                             <p class="card-text small">Total revenue generated from enrollments</p>
                             <h2 class="fw-bold">₱@Model.TotalRevenue.ToString("N2")</h2>
-                            <i class="bi bi-arrow-up-circle-fill" style="font-size: 1.5rem; color: #0D206A;"></i>
                         </div>
                     </div>
                 </div>
 
             </div>
             <div class="row mt-3">
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <div class="card shadow-lg border-0">
+                        
                         <div class="card-header fw-bold" style="background-color: #FFD700; color:#0D206A">
                             Enrollment Trends
-                            <button class="btn btn-dark btn-sm float-end" data-bs-toggle="modal"
-                                data-bs-target="#enrollmentScheduleModal">
-                                Set Enrollment Schedule
-                            </button>
-                            <form action="@Url.Action("ClearEnrollment", "Admin")" method="post" class="float-end me-2">
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    Clear Enrollment
+                            @if (Context.Session.GetString("isAdmin") == "1")
+                            {
+                                <button class="btn btn-dark btn-sm float-end" data-bs-toggle="modal"
+                                    data-bs-target="#enrollmentScheduleModal">
+                                    Set Enrollment Schedule
                                 </button>
-                            </form>
+                                <form action="@Url.Action("ClearEnrollment", "Admin")" method="post" class="float-end me-2">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Clear Enrollment
+                                    </button>
+                                </form>
+                            }
                         </div>
-                        <div class="card-body">
-                            <canvas id="enrollmentChart" height="100"></canvas>
+                        <div class="card-body" style="position: relative; height: 300px;">
+                            <canvas id="enrollmentTrendsChart"></canvas>
                         </div>
                     </div>
                 </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header fw-bold" style="background-color: #FFD700; color:#0D206A">
+                            Inquiry Reasons For Not Proceeding
+                        </div>
+                        <div class="chart-container" style="position: relative; height: 300px; display: flex; align-items: center; justify-content: center;">
+                            <canvas id="reasonsChart" style="height: 200px;"></canvas>
+                        </div>
+                    </div>  
+                </div>
             </div>
+            
 
             <div class="modal fade" id="enrollmentScheduleModal" tabindex="-1"
                 aria-labelledby="enrollmentScheduleModalLabel" aria-hidden="true">
@@ -186,47 +136,21 @@
             </div>
 
             <div class="row mt-3">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="card shadow-lg border-0">
                         <div class="card-header fw-bold" style="background-color: #FFD700; color:#0D206A">
                             Recent Activities
                         </div>
                         <div class="card-body">
-                            <ul class="list-group">
-                                <li class="list-group-item">New inquiry received from John Doe</li>
-                                <li class="list-group-item">Enrollee Mary Smith was approved</li>
-                                <li class="list-group-item">Transaction ID #12345 was completed</li>
-                                <li class="list-group-item">Revenue updated: ₱5000.00</li>
-                                <li class="list-group-item">Inquiry from Jane Roe was processed</li>
+                            <ul class="list-group" style="min-height: 300px;">
+                            @foreach (var activity in Model.RecentActivities)
+                            {
+                                <li class="list-group-item">
+                                    <strong>@activity.Activity</strong> -
+                                    <span>@activity.CreatedAt.ToString("MM/dd/yyyy HH:mm:ss")</span>
+                                </li>
+                            }
                             </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="col-md-4">
-                    <div class="card shadow-lg border-0">
-                        <div class="card-header fw-bold" style="background-color: #FFD700; color:#0D206A">
-                            Quick Actions
-                        </div>
-                        <div class="card-body d-grid gap-3">
-                            <a href="@Url.Action("ManageAccounts", "Admin")" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-people-fill"></i> Manage Accounts
-                            </a>
-
-                            <a href="@Url.Action("ManageEnrollees", "Admin")" class="btn btn-outline-success w-100">
-                                <i class="bi bi-list-check"></i> Enrollees
-                            </a>
-                            <a href="@Url.Action("ManageInquiries", "Admin")" class="btn btn-outline-info w-100">
-                                <i class="bi bi-question-circle-fill"></i> Inquiries
-                            </a>
-
-                            <a href="@Url.Action("ManageFees", "Admin")" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-people-fill"></i> Manage Fees
-                            </a>
-                            <a href="@Url.Action("ManageTransactions", "Admin")" class="btn btn-outline-warning w-100">
-                                <i class="bi bi-receipt"></i> Transactions
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -237,60 +161,81 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const labels = Object.keys(reasonsData);
-            const dataCounts = Object.values(reasonsData);
-            const ctx = document.getElementById('reasonsChart').getContext('2d');
-            const reasonsChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Number of Students',
-                        data: dataCounts,
-                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
+        var cancellationReasons = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.CancellationAnalytics));
+
+        var reasonsData = {
+            labels: Object.keys(cancellationReasons),
+            datasets: [{
+                label: 'Reasons for Not Proceeding',
+                data: Object.values(cancellationReasons),
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'
+                ],
+                hoverBackgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'
+                ]
+            }]
+        };
+
+        var ctx2 = document.getElementById('reasonsChart').getContext('2d');
+        var reasonsChart = new Chart(ctx2, {
+            type: 'pie',
+            data: reasonsData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                var label = context.label || '';
+                                var value = context.raw || 0;
+                                return label + ': ' + value;
                             }
                         }
                     }
                 }
-            });
+            }
         });
     </script>
 
     <script>
-        const ctx = document.getElementById('enrollmentChart').getContext('2d');
-        const enrollmentChart = new Chart(ctx, {
+        var enrollmentTrends = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.EnrollmentTrends));
+        var years = Object.keys(enrollmentTrends);
+        var enrollments = Object.values(enrollmentTrends);
+
+        var ctx = document.getElementById('enrollmentTrendsChart').getContext('2d');
+        var enrollmentTrendsChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['2020', '2021', '2022', '2023', '2024'],
+                labels: years,
                 datasets: [{
                     label: 'Enrollments',
-                    data: [122, 139, 123, 135, 142],
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    data: enrollments,
+                    borderColor: '#36A2EB',
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    tension: 0.3,
+                    fill: true,
+                    tension: 0.4
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
                     legend: {
-                        display: true,
                         position: 'top',
                     },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                var value = context.raw || 0;
+                                return label + ': ' + value;
+                            }
+                        }
+                    }
                 }
             }
         });

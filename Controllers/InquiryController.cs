@@ -8,10 +8,13 @@ namespace InquiryManagementApp.Controllers
     {
 
         private readonly ApplicationDbContext _context;
+        private readonly EmailService _emailService;
 
-        public InquiryController(ApplicationDbContext context)
+
+        public InquiryController(ApplicationDbContext context, EmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         // GET: Inquiry
@@ -53,82 +56,123 @@ namespace InquiryManagementApp.Controllers
             return View(inquiry);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var student = await _context.Inquiries.FirstOrDefaultAsync(c => c.InquiryId == id);
+            if (student != null)
+            {
+                if (student.IsCancelled)
+                {
+                    TempData["ErrorMessage"] = "Inquiry already cancelled.";
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+
+            var viewModel = new InquiryCancellationViewModel
+            {
+                InquiryId = id
+            };
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(InquiryCancellationViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var inquiry = await _context.Inquiries.FindAsync(model.InquiryId);
+                if (inquiry != null)
+                {
+                    inquiry.IsCancelled = true;
+                    inquiry.CancellationReason = model.CancellationReason;
+                    inquiry.CancellationNotes = model.CancellationNotes;
+                    await _context.SaveChangesAsync();
+
+                    var recent = new RecentActivity
+                    {
+                        Activity = $"Inquiry {inquiry.InquiryId} cancelled",
+                        CreatedAt = DateTime.Now
+                    };
+                    _context.RecentActivities.Add(recent);
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = "Inquiry canceled successfully.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                TempData["ErrorMessage"] = "Inquiry not found.";
+            }
+            return View(model);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("StudentName,GuardianName,ContactNumber,EmailAddress,SourceOfInformation,Notes")] Inquiry inquiry)
         {
             if (ModelState.IsValid)
             {
+                var admins = await _context.Accounts.FirstOrDefaultAsync(a => a.Email == inquiry.EmailAddress);
+                if (admins != null)
+                {
+                    TempData["ErrorMessage"] = "Email already exists.";
+                    return View(inquiry);
+                }
+                var anotherInquiry = await _context.Inquiries.FirstOrDefaultAsync(c => c.EmailAddress == inquiry.EmailAddress);
+                if (anotherInquiry != null)
+                {
+                    if (!anotherInquiry.IsCancelled)
+                    {
+                        TempData["ErrorMessage"] = "Email already inquired.";
+                        return View(inquiry);
+                    }
+                    _context.Inquiries.Remove(anotherInquiry);
+                    await _context.SaveChangesAsync();
+                }
+
+                
+
                 inquiry.DateCreated = DateTime.Now;
                 _context.Add(inquiry);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Successfully Inquired!";
-                return View(inquiry);
-            }
+                string subject = "Inquiry Confirmation";
+                string cancellationLink = Url.Action("Cancel", "Inquiry", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
+                string body = $@"
+                    <p>Dear {inquiry.StudentName},</p>
+                    <p>Thank you for reaching out to us. Your inquiry has been successfully recorded. We will get back to you soon.</p>
+                    <p>If you need to cancel your inquiry, you can do so by clicking the link below:</p>
+                    <p><a href='{cancellationLink}'>Cancel My Inquiry</a></p>
+                    <p>We appreciate your interest in our services. Please feel free to reply to this email if you have any questions or concerns.</p>
+                    <p>Best regards,<br>Your Team</p>
+                ";
 
+                try
+                {
+                    await _emailService.SendEmailAsync(inquiry.EmailAddress, subject, body);
+                    Console.WriteLine("Email sent successfully!");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error sending email: " + ex.Message);
+                }
+
+                var recent = new RecentActivity
+                {
+                    Activity = $"New Inquiry from {inquiry.StudentName}",
+                    CreatedAt = DateTime.Now
+                };
+                _context.RecentActivities.Add(recent);
+                await _context.SaveChangesAsync();
+
+
+                TempData["SuccessMessage"] = "Successfully Inquired!";
+                return View();
+            }
             TempData["ErrorMessage"] = "Error when Inquiring.";
             return View(inquiry);
         }
 
-
-
-        // GET: Inquiry/Edit/5
-        // public IActionResult Edit(int id)
-        // {
-        //     var inquiry = _inquiries.FirstOrDefault(i => i.InquiryId == id);
-        //     if (inquiry == null)
-        //         return NotFound();
-
-        //     return View(inquiry);
-        // }
-
-        // POST: Inquiry/Edit/5
-        // [HttpPost]
-        // [ValidateAntiForgeryToken]
-        // public IActionResult Edit(int id, Inquiry inquiry)
-        // {
-        //     var existingInquiry = _inquiries.FirstOrDefault(i => i.InquiryId == id);
-        //     if (existingInquiry == null)
-        //         return NotFound();
-
-        //     if (ModelState.IsValid)
-        //     {
-        //         existingInquiry.StudentName = inquiry.StudentName;
-        //         existingInquiry.GuardianName = inquiry.GuardianName;
-        //         existingInquiry.ContactNumber = inquiry.ContactNumber;
-        //         existingInquiry.EmailAddress = inquiry.EmailAddress;
-        //         existingInquiry.SourceOfInformation = inquiry.SourceOfInformation;
-        //         existingInquiry.Notes = inquiry.Notes;
-
-        //         return RedirectToAction(nameof(IndexAsync));
-        //     }
-
-        //     return View(inquiry);
-        // }
-
-        // // GET: Inquiry/Delete/5
-        // public IActionResult Delete(int id)
-        // {
-        //     var inquiry = _inquiries.FirstOrDefault(i => i.InquiryId == id);
-        //     if (inquiry == null)
-        //         return NotFound();
-
-        //     return View(inquiry);
-        // }
-
-        // // POST: Inquiry/Delete/5
-        // [HttpPost, ActionName("Delete")]
-        // [ValidateAntiForgeryToken]
-        // public IActionResult DeleteConfirmed(int id)
-        // {
-        //     var inquiry = _inquiries.FirstOrDefault(i => i.InquiryId == id);
-        //     if (inquiry != null)
-        //     {
-        //         _inquiries.Remove(inquiry);
-        //     }
-
-        //     return RedirectToAction(nameof(IndexAsync));
-        // }
     }
 }

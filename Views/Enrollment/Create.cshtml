@@ -1,4 +1,7 @@
 @model InquiryManagementApp.Models.Enrollment
+@{
+
+}
 
 <div class="container my-5 py-5 min-vh-100">
     <div class="modal fade" id="enrollmentStepsModal" tabindex="-1" aria-labelledby="enrollmentStepsLabel"
@@ -13,18 +16,16 @@
                     <ol class="list-group list-group-numbered">
                         <li class="list-group-item">Click the <b>Enroll Now</b> button.</li>
                         <li class="list-group-item">Complete the form with the required information.</li>
-                        <li class="list-group-item">
+                        @* <li class="list-group-item">
                             Update the necessary documents:
                             <ul>
                                 <li>Form 10 (Original Class Card)</li>
                                 <li>Form 9 (Original Transcript of Records)</li>
                                 <li>PSA (2 Photocopies)</li>
                                 <li>Good Moral Certificate</li>
-
-
                             </ul>
-                        </li>
-                        <li class="list-group-item">After uploading documents, a message will indicate that your
+                        </li> *@
+                        <li class="list-group-item">After sending enrollment form, a message will indicate that your
                             application is awaiting approval from the registrar. Please allow some time for this
                             process.</li>
                         <li class="list-group-item">
@@ -194,7 +195,6 @@
                             </div>
                         </div>
 
-                        <!-- Step 3: Parent Information -->
                         <div id="step3" class="step-section" style="display:none;">
                             <div class="mb-3">
                                 <label asp-for="FatherLastName" class="form-label fw-bold">Father's Last
@@ -249,7 +249,7 @@
                             </div>
                         </div>
 
-                        <div id="step2" class="step-section" style="display:none;">
+                        @* <div id="step2" class="step-section" style="display:none;">
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Upload Required Documents</label>
                                 <div id="documentRequirements" class="mb-3 text-muted">
@@ -265,7 +265,7 @@
                                     <ul class="list-group" id="uploadedFiles"></ul>
                                 </div>
                             </div>
-                        </div>
+                        </div> *@
 
                         <div class="d-flex justify-content-between">
                             <button type="button" class="btn btn-secondary" id="prevBtn">Previous</button>
@@ -284,97 +284,13 @@
 </div>
 
 
-@* <script>
-    window.addEventListener('load', () => {
-        const enrollmentModal = new bootstrap.Modal(document.getElementById('enrollmentStepsModal'));
-        enrollmentModal.show();
-    });
-    document.addEventListener('DOMContentLoaded', function () {
-        const fileUploadInput = document.getElementById('fileUpload');
-        const documentRequirements = document.getElementById('documentRequirements');
-        const uploadedFilesList = document.getElementById('uploadedFiles');
-        const maxUploads = 6;
-
-        const subjects = {
-            'NURSERY': ['Cultural Arts', 'MAPE', 'Mathematics', 'Science', 'Reading and Language', 'Spelling'],
-            'KINDER': ['Filipino', 'English', 'Mathematics', 'Science and Health', 'Writing', 'MAPE',],
-            'ELEMENTARY': ['Math', 'Science', 'English', 'Filipino', 'AP', 'MAPEH', 'ESP', 'TLE'],
-            'JUNIOR HIGH SCHOOL': ['Math', 'English', 'Science', 'Filipino', 'AP', 'MAPEH', 'Values', 'TLE'],
-            'SENIOR HIGH SCHOOL 11 ABM (1ST SEM)': ['Physical Education 1', 'Statistic and Probability', '21st Century Literature from the Philippines and the World', 'Pagbasa and Pagsusuri ng ibat ibang teksto tungo sa Pananaliksik', 'Introduction to Philosophy of the Human Person', 'Oral Communication', 'Media and Information Literacy', 'Pagsusulat sa Filipino sa Piling Larangan'],
-            'SENIOR HIGH SCHOOL 11 ABM (2ND SEM)': ['Physical Education 2', 'Earth and Life Science', 'Contemporary Philippines Arts in the Regions', 'Understanding Culture, Society and Politics', 'Research in Daily Life 1', 'Organization and Management', 'Fundamentals of Accountancy and Business Management 1', 'Business Math'],
-            'SENIOR HIGH SCHOOL 12 ABM (1ST SEM)': ['Physical Education 3', 'General Mathematics', 'Physical Science', 'Research in Daily Life 2', 'Empowerment Technologies (ETech) ICT for Professionals Tracks', 'Applied Economics', 'Fundamentals of Accountancy and Business Management 2', 'Business Finance'],
-            'SENIOR HIGH SCHOOL 12 ABM (2ND SEM)': ['Physical Education 4', 'Komonikasyon at Pananaliksik sa Kultura at Wikang Pilipino', 'Reading and Writing Skills', 'Entrepreneurship', 'Inquiries, Investigation and Immersion', 'English for Academic and Professional Purposes', 'Business Ethics and Social Responsibility', 'Business Marketing', 'Capstone/Business Enterprise Simulation'],
-            'SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)': ['Physical Education 1', 'Statistic and Probability', '21st Century Literature from the Philippines and the World', 'Pagbasa and Pagsusuri ng ibat ibang teksto tungo sa Pananaliksik', 'Introduction to Philosophy of the Human Herson', 'Oral Communication', 'Media and Information Literacy', 'Pagsusulat sa Filipino sa Piling Larangan'],
-            'SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)': ['Physical Education 2', 'Earth and Life Science', 'Contemporary Philippines Arts in the Regions', 'Personal Development', 'Understanding Culture, Society and Politics', 'Research in Daily Life 1', 'Discipline and Ideas in the Social Sciences', 'Creative Writing', 'Philippine Politics and Governance'],
-            'SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)': ['Physical Education 3', 'General Mathematics', 'Physical Science', 'Research in Daily Life 2', 'Empowerment Technologies (ETech) ICT for Professionals Tracks', 'Introduce to World Religion and Belief Systems', 'Discipline and Ideas in the Social Sciences', 'Community Engagement Solidarity and Citizenship'],
-            'SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)': ['Physical Education 4', 'Komonikasyon at Pananaliksik sa Kultura at Wikang Pilipino', 'Reading and Writing Skills', 'Entrepreneurship', 'Inquiries, Investigation and Immersion', 'English for Academic and Professional Purposes', 'Creative Nonfiction', 'Trends, Networks, and Critica; Thinking in the 21st Century Culture', 'Capstone/Culminating Program'],
-        };
-
-        const allTuition = {
-            'NURSERY': 2000,
-            'KINDER': 5000,
-            'ELEMENTARY': 4000,
-            'JUNIOR HIGH SCHOOL': 6000,
-            'SENIOR HIGH SCHOOL 11 ABM (1ST SEM)': 7000,
-            'SENIOR HIGH SCHOOL 11 ABM (2ND SEM)': 7000,
-            'SENIOR HIGH SCHOOL 12 ABM (1ST SEM)': 8000,
-            'SENIOR HIGH SCHOOL 12 ABM (2ND SEM)': 8000,
-            'SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)': 7000,
-            'SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)': 7000,
-            'SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)': 8000,
-            'SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)': 8000
-        };
-    });
-
-    let currentStep = 1;
-    function showStep(step) {
-        const allSteps = document.querySelectorAll('.step-section');
-        allSteps.forEach((stepElement, index) => {
-            stepElement.style.display = index === step - 1 ? 'block' : 'none';
-        });
-
-        document.getElementById('prevBtn').disabled = step === 1;
-        document.getElementById('nextBtn').style.display = step === allSteps.length ? 'none' : 'inline-block';
-        document.getElementById('submitBtn').style.display = step === allSteps.length ? 'inline-block' : 'none';
-    }
-
-    document.getElementById('dateOfBirth').addEventListener('change', function () {
-        const dob = new Date(this.value);
-        const today = new Date();
-
-        let age = today.getFullYear() - dob.getFullYear();
-        const month = today.getMonth();
-        const day = today.getDate();
-
-        if (month < dob.getMonth() || (month === dob.getMonth() && day < dob.getDate())) {
-            age--;
-        }
-
-        document.getElementById('age').value = age;
-    });
-    document.getElementById('nextBtn').addEventListener('click', () => {
-        if (currentStep < 4) {
-            currentStep++;
-            showStep(currentStep);
-        }
-    });
-    document.getElementById('prevBtn').addEventListener('click', () => {
-        if (currentStep > 1) {
-            currentStep--;
-            showStep(currentStep);
-        }
-    });
-    showStep(currentStep);
-</script> *@
-
 <script>
     window.addEventListener('load', () => {
         const enrollmentModal = new bootstrap.Modal(document.getElementById('enrollmentStepsModal'));
         enrollmentModal.show();
     });
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const fileUploadInput = document.getElementById('fileUpload');
+    document.addEventListener('DOMContentLoaded', async function () {
         const documentRequirements = document.getElementById('documentRequirements');
         const uploadedFilesList = document.getElementById('uploadedFiles');
         const maxUploads = 6;
@@ -394,20 +310,20 @@
             'SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)': ['Physical Education 4', 'Komonikasyon at Pananaliksik sa Kultura at Wikang Pilipino', 'Reading and Writing Skills', 'Entrepreneurship', 'Inquiries, Investigation and Immersion', 'English for Academic and Professional Purposes', 'Creative Nonfiction', 'Trends, Networks, and Critica; Thinking in the 21st Century Culture', 'Capstone/Culminating Program'],
         };
 
-        const allTuition = {
-            'NURSERY': 2000,
-            'KINDER': 5000,
-            'ELEMENTARY': 4000,
-            'JUNIOR HIGH SCHOOL': 6000,
-            'SENIOR HIGH SCHOOL 11 ABM (1ST SEM)': 7000,
-            'SENIOR HIGH SCHOOL 11 ABM (2ND SEM)': 7000,
-            'SENIOR HIGH SCHOOL 12 ABM (1ST SEM)': 8000,
-            'SENIOR HIGH SCHOOL 12 ABM (2ND SEM)': 8000,
-            'SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)': 7000,
-            'SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)': 7000,
-            'SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)': 8000,
-            'SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)': 8000
-        };
+        async function loadTuitionFees() {
+            const response = await fetch('/Fee/GetTuitionFees');
+            const tuitionFees = await response.json();
+
+            const allTuition = {};
+
+            tuitionFees.forEach(fee => {
+                allTuition[fee.level] = fee.fee;
+            });
+            return allTuition;
+        }
+
+        const allTuition = await loadTuitionFees();
+
 
         const gradeLevelSelect = document.getElementById('GradeLevel');
         const subjectDropdown = document.getElementById('Subject');
@@ -432,9 +348,9 @@
                 subjectItem.style.padding = '5px';
                 subjectItem.textContent = subject;
 
-                subjectItem.addEventListener('click', function () {
+                @* subjectItem.addEventListener('click', function () {
                     toggleSubjectSelection(subject);
-                });
+                }); *@
 
                 subjectDropdownList.appendChild(subjectItem);
             });
@@ -442,9 +358,9 @@
             subjectDropdownList.style.display = subjectsList.length > 0 ? 'block' : 'none';
         });
 
-        subjectDropdown.addEventListener('click', function () {
+        @* subjectDropdown.addEventListener('click', function () {
             subjectDropdownList.style.display = subjectDropdownList.style.display === 'block' ? 'none' : 'block';
-        });
+        }); *@
 
         function toggleSubjectSelection(subject) {
             if (selectedSubjects.includes(subject)) {
@@ -475,7 +391,7 @@
             documentRequirements.innerHTML = `<strong>Required Documents:</strong> ${requirements.join(', ')}`;
         });
 
-        fileUploadInput.addEventListener('change', function () {
+        @* fileUploadInput.addEventListener('change', function () {
             if (uploadedFiles.length >= maxUploads) {
                 alert('You can only upload up to 6 files.');
                 return;
@@ -483,13 +399,6 @@
 
             const file = fileUploadInput.files[0];
             if (file) {
-    @* alert("TEST"); *@
-
-    @* uploadedFiles.push(file); *@
-
-    @* alert(listItem); *@
-
-
                 const listItem = document.createElement('li');
                 listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
                 listItem.innerHTML = `${file.name}<button type="button" class="btn btn-sm btn-danger remove-file">Remove</button>`;
@@ -497,14 +406,52 @@
                 uploadedFilesList.appendChild(listItem);
 
                 listItem.querySelector('.remove-file').addEventListener('click', function () {
-    @* uploadedFiles = uploadedFiles.filter(f => f !== file); *@
-                        listItem.remove();
+                    listItem.remove();
                 });
                 fileUploadInput.value = '';
             }
-        });
-
+        }); *@
         gradeLevelSelect.dispatchEvent(new Event('change'));
+
+        let currentStep = 1;
+        function showStep(step) {
+            const allSteps = document.querySelectorAll('.step-section');
+            allSteps.forEach((stepElement, index) => {
+                stepElement.style.display = index === step - 1 ? 'block' : 'none';
+            });
+
+            document.getElementById('prevBtn').disabled = step === 1;
+            document.getElementById('nextBtn').style.display = step === allSteps.length ? 'none' : 'inline-block';
+            document.getElementById('submitBtn').style.display = step === allSteps.length ? 'inline-block' : 'none';
+        }
+
+        document.getElementById('dateOfBirth').addEventListener('change', function () {
+            const dob = new Date(this.value);
+            const today = new Date();
+
+            let age = today.getFullYear() - dob.getFullYear();
+            const month = today.getMonth();
+            const day = today.getDate();
+
+            if (month < dob.getMonth() || (month === dob.getMonth() && day < dob.getDate())) {
+                age--;
+            }
+
+            document.getElementById('age').value = age;
+        });
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentStep < 4) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        });
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        });
+        showStep(currentStep);
     });
 
 

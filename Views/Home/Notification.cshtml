@@ -1,0 +1,65 @@
+@model IEnumerable<Notification>
+
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="container my-5" style="margin-top: 80px !important; min-height: 80vh;">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header d-flex align-items-center"
+            style="border-left: 4px solid #FFD700; background-color: #f8f9fa;">
+            <h2 class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #007bff; padding-left: 15px;">
+                NOTIFICATIONS
+            </h2>
+        </div>
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="list-group">
+                    @foreach (var notification in Model)
+                    {
+                        <div class="list-group-item d-flex justify-content-between align-items-center 
+                            @((notification.IsRead ? "list-group-item-light" : "list-group-item-warning"))">
+                            <div>
+                                <h5 class="mb-1" style="font-size: 1rem;">
+                                    @((notification.Message.Length > 50) ? notification.Message.Substring(0, 50) + "..." :
+                                        notification.Message)
+                                </h5>
+                                <small class="text-muted">
+                                    @notification.CreatedAt.ToString("MMM dd, yyyy HH:mm:ss")
+                                </small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-info btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#viewNotificationModal-@notification.Id">
+                                    View
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="viewNotificationModal-@notification.Id" tabindex="-1"
+                            aria-labelledby="viewNotificationModal-@notification.Id-Label" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="viewNotificationModal-@notification.Id-Label">Notification
+                                            Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p style="white-space: pre-wrap;">@notification.Message</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p>No notifications available.</p>
+            }
+        </div>
+    </div>
+</div>

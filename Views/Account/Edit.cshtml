@@ -17,11 +17,12 @@
     </div>
     <div class="form-group">
         <label for="IsAdmin">Is Admin</label>
-        <input type="checkbox" id="IsAdmin" name="IsAdmin" @(Model.IsAdmin ? "checked" : "") />
+        <input type="radio" id="IsAdmin" name="Role" value="Admin" @(Model.Role == "Admin" ? "checked" : "") />
     </div>
     <div class="form-group">
         <label for="IsMarketing">Is Marketing</label>
-        <input type="checkbox" id="IsMarketing" name="IsMarketing" @(Model.IsMarketing ? "checked" : "") />
+        <input type="radio" id="IsMarketing" name="Role" value="Marketing" @(Model.Role == "Marketing" ? "checked" :
+            "") />
     </div>
     <div class="form-group">
         <label for="Password">Password</label>

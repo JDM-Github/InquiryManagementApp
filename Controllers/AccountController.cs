@@ -9,9 +9,12 @@ namespace InquiryManagementApp.Controllers
     public class AccountController : Controller
     {
         private readonly ApplicationDbContext _context;
-        public AccountController(ApplicationDbContext context)
+        private readonly EmailService _emailService;
+
+        public AccountController(ApplicationDbContext context, EmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -115,47 +118,87 @@ namespace InquiryManagementApp.Controllers
             if (username == "admin" && password == "admin")
             {
                 HttpContext.Session.SetString("isAdmin", "1");
+                TempData["SuccessMessage"] = "Successfully login as admin.";
                 return RedirectToAction("Index", "Admin");
+            }
+
+            var admins = await _context.Accounts.Where(s => s.Email == username || s.Username == username).FirstOrDefaultAsync();
+            if (admins != null)
+            {
+                if (admins.Password == password)
+                {
+                    if (admins.Role == "Admin")
+                    {
+                        HttpContext.Session.SetString("isAdmin", "1");
+                        TempData["SuccessMessage"] = "Successfully login as admin.";
+                        return RedirectToAction("Index", "Admin");
+                    }
+                    else
+                    {
+                        HttpContext.Session.SetString("isAdmin", "3");
+                        TempData["SuccessMessage"] = "Successfully login as marketing.";
+                        return RedirectToAction("Index", "Admin");
+                    }
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Invalid username or password.";
+                    return RedirectToAction("Login", "Account");
+                }
             }
 
             var enrollment = await _context.Students
                 .Where(s => s.TemporaryUsername == username)
                 .FirstOrDefaultAsync();
 
-            if (enrollment == null)
-            {
-                enrollment = await _context.Students
+            var enrollment2 = await _context.Students
                     .Where(s => s.Username == username)
                     .FirstOrDefaultAsync();
-            }
 
             if (enrollment != null)
             {
+                if (enrollment.IsDeleted)
+                {
+                    TempData["ErrorMessage"] = "Your account has been deleted.";
+                    return RedirectToAction("Login", "Account");
+                }
                 if (enrollment.TemporaryPassword == password)
                 {
                     HttpContext.Session.SetString("isAdmin", "2");
                     SetSessionVariables(enrollment);
+                    TempData["SuccessMessage"] = "Login successful.";
                     return RedirectToAction("Account", "Home");
                 }
-                else
+            } 
+
+            if (enrollment2 != null)
+            {
+                if (enrollment2.IsDeleted)
                 {
-                    if (enrollment.Password == password && enrollment.IsApproved)
+                    TempData["ErrorMessage"] = "Your account has been deleted.";
+                    return RedirectToAction("Login", "Account");
+                }
+                if (enrollment2!.Password == password)
+                {
+                    if (enrollment2.IsApproved)
                     {
                         HttpContext.Session.SetString("isAdmin", "2");
-                        SetSessionVariables(enrollment);
+                        SetSessionVariables(enrollment2);
                         return RedirectToAction("Account", "Home");
                     }
-                    else
+                    else 
                     {
-                        if (enrollment.IsRejected)
-                            ViewBag.ErrorMessage = "Your account has been rejected";
+                        if (enrollment2!.IsRejected)
+                            TempData["ErrorMessage"] = "Your account has been rejected";
                         else
-                            ViewBag.ErrorMessage = "Your account is still not approved.";
+                            TempData["ErrorMessage"] = "Your account is still not approved.";
+
+                        return RedirectToAction("Login", "Account");
                     }
                 }
             }
-            ViewBag.ErrorMessage = "Invalid username or password.";
-            return View();
+            TempData["ErrorMessage"] = "Invalid username or password.";
+            return RedirectToAction("Login", "Account");
         }
 
         private void SetSessionVariables(Enrollment enrollment)
@@ -233,5 +276,217 @@ namespace InquiryManagementApp.Controllers
             return View(account);
         }
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile(string Address)
+        {
+            var userId = HttpContext.Session.GetString("LRN");
+
+            if (userId == null)
+            {
+                TempData["ErrorMessage"] = "You must be logged in to edit your profile.";
+                return RedirectToAction("Login", "Account");
+            }
+            var account = await _context.Students.FirstOrDefaultAsync(s => s.LRN == userId);
+
+            if (account == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            var notification = new Notification
+            {
+                Message = $"Your profile has been updated.",
+                UserId = account!.LRN,
+                CreatedAt = DateTime.Now,
+                IsRead = false
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            account.Address = Address;
+            _context.Update(account);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Profile updated successfully.";
+            return RedirectToAction("Account", "Home");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeTemporary(string Username, string? Password = null, string? ConfirmPassword = null)
+        {
+            var userId = HttpContext.Session.GetString("LRN");
+            if (userId == null)
+            {
+                TempData["ErrorMessage"] = "You must be logged in to edit your profile.";
+                return RedirectToAction("Login", "Account");
+            }
+            var account = await _context.Students.FirstOrDefaultAsync(s => s.LRN == userId);
+            if (await _context.Students.FirstOrDefaultAsync(s => s.Username == Username && s.LRN != userId) != null)
+            {
+                TempData["ErrorMessage"] = "Username already exists.";
+                return RedirectToAction("Account", "Home");
+            }
+
+            if (account == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            account.TemporaryUsername = Username;
+            if (Password != null)
+            {
+                if (Password != ConfirmPassword)
+                {
+                    TempData["ErrorMessage"] = "Passwords do not match.";
+                    return RedirectToAction("Account", "Home");
+                }
+                else
+                {
+                    account.TemporaryPassword = Password;
+                }
+            }
+            string subject = "New Temporary Signin Information";
+            string body = $@"
+                    <p>Dear {account.Firstname} {account.Surname},</p>
+                    <p>Your new account login information</p>
+                    <p>Username: {account.TemporaryUsername}</p>
+                    <p>Password: {account.TemporaryPassword}</p>
+                    <p>We appreciate your interest in our services. Please feel free to reply to this email if you have any questions or concerns.</p>
+                    <p>Best regards,<br>Your Team</p>
+                ";
+            await _emailService.SendEmailAsync(account.Email, subject, body);
+
+            var notification = new Notification
+            {
+                Message = $"Your temporary signin information has been updated.",
+                UserId = account!.LRN,
+                CreatedAt = DateTime.Now,
+                IsRead = false
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            _context.Update(account);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Temporary signin information updated successfully.";
+            return RedirectToAction("Account", "Home");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeSignin(string Username, string? Password = null, string? ConfirmPassword = null)
+        {
+            var userId = HttpContext.Session.GetString("LRN");
+            if (userId == null)
+            {
+                TempData["ErrorMessage"] = "You must be logged in to edit your profile.";
+                return RedirectToAction("Login", "Account");
+            }
+            var account = await _context.Students.FirstOrDefaultAsync(s => s.LRN == userId);
+            if (await _context.Students.FirstOrDefaultAsync(s => s.Username == Username && s.LRN != userId) != null)
+            {
+                TempData["ErrorMessage"] = "Username already exists.";
+                return RedirectToAction("Account", "Home");
+            }
+
+            if (account == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            account.Username = Username;
+            if (Password != null)
+            {
+                if (Password != ConfirmPassword)
+                {
+                    TempData["ErrorMessage"] = "Passwords do not match.";
+                    return RedirectToAction("Account", "Home");
+                }
+                else
+                {
+                    account.Password = Password;
+                }
+            }
+            string subject = "New Signin Information";
+            string body = $@"
+                    <p>Dear {account.Firstname} {account.Surname},</p>
+                    <p>Your new account login information</p>
+                    <p>Username: {account.Username}</p>
+                    <p>Password: {account.Password}</p>
+                    <p>We appreciate your interest in our services. Please feel free to reply to this email if you have any questions or concerns.</p>
+                    <p>Best regards,<br>Your Team</p>
+                ";
+            await _emailService.SendEmailAsync(account.Email, subject, body);
+
+            var notification = new Notification
+            {
+                Message = $"Your signin information has been updated.",
+                UserId = account!.LRN,
+                CreatedAt = DateTime.Now,
+                IsRead = false
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+
+            _context.Update(account);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Signin information updated successfully.";
+            return RedirectToAction("Account", "Home");
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfileInfo(string FatherFirstName, string FatherLastName, string FatherOccupation, string MotherFirstName, string MotherLastName, string MotherOccupation, string MotherMaidenName)
+        {
+            var userId = HttpContext.Session.GetString("LRN");
+
+            if (userId == null)
+            {
+                TempData["ErrorMessage"] = "You must be logged in to edit your profile.";
+                return RedirectToAction("Login", "Account");
+            }
+            var account = await _context.Students.FirstOrDefaultAsync(s => s.LRN == userId);
+
+            if (account == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            account.FatherFirstName = FatherFirstName;
+            account.FatherLastName = FatherLastName;
+            account.FatherOccupation = FatherOccupation;
+            account.MotherFirstName = MotherFirstName;
+            account.MotherLastName = MotherLastName;
+            account.MotherOccupation = MotherOccupation;
+            account.MotherMaidenName = MotherMaidenName;
+
+            var notification = new Notification
+            {
+                Message = $"Your profile has been updated.",
+                UserId = account!.LRN,
+                CreatedAt = DateTime.Now,
+                IsRead = false
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+
+            _context.Update(account);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Profile updated successfully.";
+            return RedirectToAction("Account", "Home");
+        }
     }
 }

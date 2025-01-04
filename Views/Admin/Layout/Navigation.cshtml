@@ -1,0 +1,85 @@
+<div class="col-md-3 bg-white shadow-lg rounded-3 py-2">
+    <h3 class="text-center text-primary p-3 fw-bold position-relative"
+        style="border-left: 5px solid #007bff; padding-left: 15px; background-color: #eee;">
+        @if (Context.Session.GetString("isAdmin") == "3")
+        {
+            <span>MARKETING PANEL</span>
+        }
+        else {
+            <span>ADMIN PANEL</span>
+        }
+    </h3>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item border-0">
+            <a href="@Url.Action("index", "Admin")"
+                class="text-decoration-none d-flex align-items-center p-2 rounded-3 hover-shadow 
+                @(ViewBag.ActiveTab == "Index" ? "bg-light text-primary" : "text-dark")">
+                <i class="bi bi-house-door-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                <span>Home</span>
+            </a>
+        </li>
+        @if (Context.Session.GetString("isAdmin") == "3")
+        {
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageEnrolled", "Admin")" class="text-decoration-none d-flex align-items-center p-2 rounded-3 hover-shadow 
+                @(ViewBag.ActiveTab == "ManageEnrolled" ? "bg-light text-primary" : "text-dark")">
+                    <i class="bi bi-person-lines-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                    <span>Manage Enrolled</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageInquiries", "Admin")" class="text-decoration-none d-flex align-items-center p-2 rounded-3 hover-shadow 
+                @(ViewBag.ActiveTab == "ManageInquiries" ? "bg-light text-primary" : "text-dark")">
+                    <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
+                    <span>Inquiries</span>
+                </a>
+            </li>
+        }
+        else
+        {
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageAccounts", "Admin")" class="text-decoration-none d-flex align-items-center p-2 rounded-3 hover-shadow 
+                @(ViewBag.ActiveTab == "ManageAccounts" ? "bg-light text-primary" : "text-dark")">
+                    <i class="bi bi-person-badge-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                    <span>Manage Accounts</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageEnrolled", "Admin")" class="text-decoration-none d-flex align-items-center p-2 rounded-3 hover-shadow 
+                @(ViewBag.ActiveTab == "ManageEnrolled" ? "bg-light text-primary" : "text-dark")">
+                    <i class="bi bi-person-lines-fill me-3 text-primary" style="font-size: 1.2rem;"></i>
+                    <span>Manage Enrolled</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageEnrollees", "Admin")" class="text-decoration-none d-flex align-items-center p-2 rounded-3 hover-shadow 
+                @(ViewBag.ActiveTab == "ManageEnrollees" ? "bg-light text-primary" : "text-dark")">
+                    <i class="bi bi-list-check me-3 text-success" style="font-size: 1.2rem;"></i>
+                    <span>Enrollees</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageInquiries", "Admin")" class="text-decoration-none d-flex align-items-center p-2 rounded-3 hover-shadow 
+                @(ViewBag.ActiveTab == "ManageInquiries" ? "bg-light text-primary" : "text-dark")">
+                    <i class="bi bi-question-circle-fill me-3 text-info" style="font-size: 1.2rem;"></i>
+                    <span>Inquiries</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageFees", "Admin")" class="text-decoration-none d-flex align-items-center p-2 rounded-3 hover-shadow 
+                @(ViewBag.ActiveTab == "ManageFees" ? "bg-light text-primary" : "text-dark")">
+                    <i class="bi bi-cash-coin me-3 text-info" style="font-size: 1.2rem;"></i>
+                    <span>Manage Fees</span>
+                </a>
+            </li>
+            <li class="list-group-item border-0">
+                <a href="@Url.Action("ManageTransactions", "Admin")" class="text-decoration-none d-flex align-items-center p-2 rounded-3 hover-shadow 
+                @(ViewBag.ActiveTab == "ManageTransactions" ? "bg-light text-primary" : "text-dark")">
+                    <i class="bi bi-receipt me-3 text-warning" style="font-size: 1.2rem;"></i>
+                    <span>Transactions</span>
+                </a>
+            </li>
+        }
+
+    </ul>
+</div>

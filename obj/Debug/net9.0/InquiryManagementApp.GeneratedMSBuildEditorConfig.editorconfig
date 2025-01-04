@@ -56,12 +56,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/JDM/InquiryManagementApp/Views/Account/Modal/_SetPaymentModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxNb2RhbFxfU2V0UGF5bWVudE1vZGFsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/JDM/InquiryManagementApp/Views/Admin/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/JDM/InquiryManagementApp/Views/Admin/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/JDM/InquiryManagementApp/Views/Admin/Layout/Navigation.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cTGF5b3V0XE5hdmlnYXRpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/JDM/InquiryManagementApp/Views/Admin/ManageAccounts.cshtml]
@@ -86,6 +94,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/JDM/InquiryManagementApp/Views/Admin/ManageTransactions.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cTWFuYWdlVHJhbnNhY3Rpb25zLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/JDM/InquiryManagementApp/Views/Admin/Modal/ManageInquiries/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cTW9kYWxcTWFuYWdlSW5xdWlyaWVzXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/JDM/InquiryManagementApp/Views/Admin/Modal/_SetPaymentModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cTW9kYWxcX1NldFBheW1lbnRNb2RhbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/JDM/InquiryManagementApp/Views/Admin/Modal/_WalkInPayment.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cTW9kYWxcX1dhbGtJblBheW1lbnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/JDM/InquiryManagementApp/Views/Enrollment/Create.cshtml]
@@ -116,12 +136,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/JDM/InquiryManagementApp/Views/Home/Payment.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQYXltZW50LmNzaHRtbA==
+[C:/JDM/InquiryManagementApp/Views/Home/Notification.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxOb3RpZmljYXRpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/JDM/InquiryManagementApp/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/JDM/InquiryManagementApp/Views/Home/ViewAccount.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxWaWV3QWNjb3VudC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/JDM/InquiryManagementApp/Views/Inquiry/Cancel.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW5xdWlyeVxDYW5jZWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/JDM/InquiryManagementApp/Views/Inquiry/Create.cshtml]
@@ -142,6 +170,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/JDM/InquiryManagementApp/Views/Inquiry/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW5xdWlyeVxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/JDM/InquiryManagementApp/Views/Payment/PaymentHistory.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF5bWVudFxQYXltZW50SGlzdG9yeS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/JDM/InquiryManagementApp/Views/Shared/Error.cshtml]

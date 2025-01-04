@@ -1,4 +1,4 @@
-@{
+@* @{
     var isAdmin = Context.Session.GetString("isAdmin");
     var firstName = Context.Session.GetString("Firstname");
     var lastName = Context.Session.GetString("Surname");
@@ -13,117 +13,152 @@
     var father = Context.Session.GetString("Father");
     var age = Context.Session.GetString("Age");
     var dateOfBirth = Context.Session.GetString("DateOfBirth");
-    DateTime parsedDate = DateTime.Parse(dateOfBirth!);
-}
+    DateTime parsedDate = DateTime.Parse(dateOfBirth!).Date;
+} *@
+@model Enrollment
 
 <div class="container-fluid py-5" style="max-width: 80vw; margin-top: 30px;">
     <div class="row g-4">
+        <!-- Profile Image Section -->
         <div class="col-md-4">
             <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-body text-center">
                     <img src="https://via.placeholder.com/200" alt="Profile Image"
                         class="rounded-circle shadow-lg img-fluid mb-3"
                         style="max-width: 150px; height: auto; border: 4px solid #FFD700;">
-                    <h5 class="text-primary font-weight-bold mb-2">@firstName @middleName</h5>
-                    <p class="text-muted">@gradeLevel | @gender</p>
-                    <div class="profile-box mb-2">
+                    <h5 class="text-primary font-weight-bold mb-2">@Model.Firstname @Model.Surname</h5>
+                    <p class="text-muted">@Model.GradeLevel | @Model.Gender</p>
+                    <!-- Profile Fields -->
+                    <div class="profile-box mb-3">
                         <label class="form-label text-muted">Date of Birth</label>
-                        <input type="text" class="form-control" value="@parsedDate" readonly>
+                        <input type="text" class="form-control" value="@Model.DateOfBirth.ToString("yyyy-MM-dd")"
+                            readonly>
                     </div>
-                    @* <div class="profile-box mb-2">
-                        <label class="form-label text-muted">Age</label>
-                        <input type="text" class="form-control" value="@age" readonly>
-                    </div> *@
-                    <div class="profile-box mb-2">
+                    <div class="profile-box mb-3">
                         <label class="form-label text-muted">Address</label>
-                        <input type="text" class="form-control" value="@address" readonly>
+                        <input type="text" class="form-control" value="@Model.Address" readonly>
                     </div>
-                    <div class="profile-box mb-2">
+                    <div class="profile-box mb-3">
                         <label class="form-label text-muted">LRN</label>
-                        <input type="text" class="form-control" value="@lrn" readonly>
+                        <input type="text" class="form-control" value="@Model.LRN" readonly>
                     </div>
                     <button class="btn btn-warning w-100 mt-3" data-bs-toggle="modal" data-bs-target="#editModal">
                         <i class="fas fa-edit"></i> Edit Profile
                     </button>
+                    @if (!Model.IsApproved)
+                    {
+                        <button class="btn btn-warning w-100 mt-3" data-bs-toggle="modal" data-bs-target="#editTemporary">
+                            <i class="fas fa-edit"></i> Edit Temporary Signin Info
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-warning w-100 mt-3" data-bs-toggle="modal" data-bs-target="#editSigninInfo">
+                            <i class="fas fa-edit"></i> Edit Signin Info
+                        </button>
+                    }
+                    
                 </div>
             </div>
         </div>
 
+        <!-- Student and Parent Information Section -->
         <div class="col-md-8">
+            <!-- Student Information Card -->
             <div class="card shadow-sm border-0 rounded-3 mb-4">
                 <div class="card-body">
                     <h5 class="text-primary font-weight-bold">Student Information</h5>
-                    <div class="profile-box mb-2">
+                    <div class="profile-box mb-3">
                         <label class="form-label text-muted">Surname</label>
-                        <input type="text" class="form-control" value="@lastName" readonly>
+                        <input type="text" class="form-control" value="@Model.Surname" readonly>
                     </div>
-                    <div class="profile-box mb-2">
+                    <div class="profile-box mb-3">
                         <label class="form-label text-muted">First Name</label>
-                        <input type="text" class="form-control" value="@firstName" readonly>
+                        <input type="text" class="form-control" value="@Model.Firstname" readonly>
                     </div>
-                    <div class="profile-box mb-2">
+                    <div class="profile-box mb-3">
                         <label class="form-label text-muted">Middle Name</label>
-                        <input type="text" class="form-control" value="@middleName" readonly>
+                        <input type="text" class="form-control" value="@Model.Middlename" readonly>
                     </div>
-                    <div class="profile-box mb-2">
+                    <div class="profile-box mb-3">
+                        <label class="form-label text-muted">Email</label>
+                        <input type="text" class="form-control" value="@Model.Email" readonly>
+                    </div>
+                    <div class="profile-box mb-3">
                         <label class="form-label text-muted">Gender</label>
-                        <input type="text" class="form-control" value="@gender" readonly>
+                        <input type="text" class="form-control" value="@Model.Gender" readonly>
                     </div>
-                    <div class="profile-box mb-2">
+                    <div class="profile-box mb-3">
                         <label class="form-label text-muted">Grade Level</label>
-                        <input type="text" class="form-control" value="@gradeLevel" readonly>
+                        <input type="text" class="form-control" value="@Model.GradeLevel" readonly>
                     </div>
-                    <div class="profile-box mb-2">
+                    <div class="profile-box mb-3">
                         <label class="form-label text-muted">LRN</label>
-                        <input type="text" class="form-control" value="@lrn" readonly>
+                        <input type="text" class="form-control" value="@Model.LRN" readonly>
                     </div>
                 </div>
             </div>
 
+            <!-- Parent Information Card -->
             <div class="card shadow-sm border-0 rounded-3 mb-4">
                 <div class="card-body">
                     <h5 class="text-primary font-weight-bold">Parent Information</h5>
-                    <div class="profile-box mb-2">
-                        <label class="form-label text-muted">Father</label>
-                        <input type="text" class="form-control" value="@father" readonly>
+                    <div class="profile-box mb-3">
+                        <label class="form-label text-muted">Mother's Information</label>
+                        <div class="profile-box mb-3">
+                            <label for="editMotherFirstName" class="form-label">Mother's First Name</label>
+                            <input type="text" class="form-control" id="editMotherFirstName" name="MotherFirstName"
+                                value="@Model.MotherFirstName" readonly>
+                        </div>
+                        <div class="profile-box mb-3">
+                            <label for="editMotherLastName" class="form-label">Mother's Last Name</label>
+                            <input type="text" class="form-control" id="editMotherLastName" name="MotherLastName"
+                                value="@Model.MotherLastName" readonly>
+                        </div>
+                        <div class="profile-box mb-3">
+                            <label for="editMotherMaidenName" class="form-label">Mother's Maiden Name</label>
+                            <input type="text" class="form-control" id="editMotherMaidenName" name="MotherMaidenName"
+                                value="@Model.MotherMaidenName" readonly>
+                        </div>
+                        <div class="profile-box mb-3">
+                            <label for="editMotherOccupation" class="form-label">Mother's Occupation</label>
+                            <input type="text" class="form-control" id="editMotherOccupation" name="MotherOccupation"
+                                value="@Model.MotherOccupation" readonly>
+                        </div>
                     </div>
-                    <div class="profile-box mb-2">
-                        <label class="form-label text-muted">Mother</label>
-                        <input type="text" class="form-control" value="@mother" readonly>
+
+                    <hr>
+
+                    <div class="profile-box mb-3">
+                        <label class="form-label text-muted">Father's Information</label>
+                        <div class="profile-box mb-3">
+                            <label for="editFatherFirstName" class="form-label">Father's First Name</label>
+                            <input type="text" class="form-control" id="editFatherFirstName" name="FatherFirstName"
+                                value="@Model.FatherFirstName" readonly>
+                        </div>
+                        <div class="profile-box mb-3">
+                            <label for="editFatherLastName" class="form-label">Father's Last Name</label>
+                            <input type="text" class="form-control" id="editFatherLastName" name="FatherLastName"
+                                value="@Model.FatherLastName" readonly>
+                        </div>
+                        <div class="profile-box mb-3">
+                            <label for="editFatherOccupation" class="form-label">Father's Occupation</label>
+                            <input type="text" class="form-control" id="editFatherOccupation" name="FatherOccupation"
+                                value="@Model.FatherOccupation" readonly>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            @* <div class="card shadow-sm border-0 rounded-3 mb-4">
-                <div class="card-body">
-                    <h5 class="text-primary font-weight-bold">Required Documents</h5>
-                    <div class="profile-box mb-2">
-                        <label class="form-label text-muted">Form 10</label>
-                        <input type="text" class="form-control" value="Uploaded" readonly>
-                    </div>
-                    <div class="profile-box mb-2">
-                        <label class="form-label text-muted">Form 9</label>
-                        <input type="text" class="form-control" value="Uploaded" readonly>
-                    </div>
-                    <div class="profile-box mb-2">
-                        <label class="form-label text-muted">PSA</label>
-                        <input type="text" class="form-control" value="Uploaded" readonly>
-                    </div>
-                    <div class="profile-box mb-2">
-                        <label class="form-label text-muted">Good Moral Certificate</label>
-                        <input type="text" class="form-control" value="Uploaded" readonly>
-                    </div>
-                </div>
-            </div> *@
-
+            <!-- Status Card -->
             <div class="card shadow-sm border-0 rounded-3 mb-4">
                 <div class="card-body d-flex justify-content-between align-items-center">
-                    @* <span class="text-muted">Submission Date: 2024-11-01</span> *@
-                    <span class="badge bg-success text-white p-3">@isApproved</span>
+                    <span class="badge bg-success text-white p-3">@(Model.IsApproved ? "Approved" : "Pending")</span>
                 </div>
             </div>
 
-            <button class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#editModal">
+            <!-- Edit Button -->
+            <button class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#editModalInfo">
                 <i class="fas fa-edit"></i> Edit Information
             </button>
         </div>
@@ -138,39 +173,182 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="editName" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="editName" value="@firstName @lastName">
+                <form method="post" asp-action="EditProfile" asp-controller="Account">
+                    <div class="profile-box mb-2">
+                        <label class="form-label text-muted">Surname</label>
+                        <input type="text" class="form-control" value="@Model.Surname" readonly>
+                    </div>
+                    <div class="profile-box mb-2">
+                        <label class="form-label text-muted">First Name</label>
+                        <input type="text" class="form-control" value="@Model.Firstname" readonly>
+                    </div>
+                    <div class="profile-box mb-2">
+                        <label class="form-label text-muted">Middle Name</label>
+                        <input type="text" class="form-control" value="@Model.Middlename" readonly>
+                    </div>
+                    <div class="profile-box mb-2">
+                        <label class="form-label text-muted">Email</label>
+                        <input type="text" class="form-control" value="@Model.Email" readonly>
                     </div>
                     <div class="mb-3">
                         <label for="editDob" class="form-label">Date of Birth</label>
-                        <input type="date" class="form-control" id="editDob" value="@parsedDate">
+                        <input type="date" class="form-control" id="editDob"
+                            value="@Model.DateOfBirth.ToString("yyyy-MM-dd")" readonly>
                     </div>
                     <div class="mb-3">
                         <label for="editGender" class="form-label">Gender</label>
-                        <select class="form-select" id="editGender">
-                            <option value="Male" selected>Male</option>
+                        <select class="form-select" id="editGender" asp-for="Gender" disabled>
+                            <option value="Male">Male</option>
                             <option value="Female">Female</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="editAddress" class="form-label">Address</label>
-                        <input type="text" class="form-control" id="editAddress" value="@address">
+                        <input type="text" class="form-control" id="editAddress" name="Address" value="@Model.Address">
                     </div>
                     <div class="mb-3">
                         <label for="editLRN" class="form-label">LRN</label>
-                        <input type="text" class="form-control" id="editLRN" value="@lrn">
+                        <input type="text" class="form-control" id="editLRN" value="@Model.LRN" readonly>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save Changes</button>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editTemporary" tabindex="-1" aria-labelledby="editTemporary-Label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTemporary-Label">Edit Temporary Signin Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-action="ChangeTemporary" asp-controller="Account">
+                    <div class="profile-box mb-2">
+                        <label class="form-label text-muted">Temporary Username</label>
+                        <input type="text" class="form-control" value="@Model.TemporaryUsername" name="Username" required>
+                    </div>
+                    <div class="profile-box mb-2">
+                        <label class="form-label text-muted">Temporary Password</label>
+                        <input type="password" class="form-control" name="Password">
+                    </div>
+                    <div class="profile-box mb-2">
+                        <label class="form-label text-muted">Confirm Password</label>
+                        <input type="password" class="form-control" name="ConfirmPassword">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="editSigninInfo" tabindex="-1" aria-labelledby="editSigninInfo-Label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSigninInfo-Label">Edit Signin Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-action="ChangeSignin" asp-controller="Account">
+                    <div class="profile-box mb-2">
+                        <label class="form-label text-muted">Username</label>
+                        <input type="text" class="form-control" value="@Model.Username" name="Username"
+                            required>
+                    </div>
+                    <div class="profile-box mb-2">
+                        <label class="form-label text-muted">Password</label>
+                        <input type="password" class="form-control" name="Password">
+                    </div>
+                    <div class="profile-box mb-2">
+                        <label class="form-label text-muted">Confirm Password</label>
+                        <input type="password" class="form-control" name="ConfirmPassword">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+
+<div class="modal fade" id="editModalInfo" tabindex="-1" aria-labelledby="editModalInfoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalInfoLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-action="EditProfileInfo" asp-controller="Account">
+
+                    <!-- Father's Information -->
+                    <div class="mb-3">
+                        <label for="editFatherFirstName" class="form-label">Father's First Name</label>
+                        <input type="text" class="form-control" id="editFatherFirstName" name="FatherFirstName"
+                            value="@Model.FatherFirstName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editFatherLastName" class="form-label">Father's Last Name</label>
+                        <input type="text" class="form-control" id="editFatherLastName" name="FatherLastName"
+                            value="@Model.FatherLastName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editFatherOccupation" class="form-label">Father's Occupation</label>
+                        <input type="text" class="form-control" id="editFatherOccupation" name="FatherOccupation"
+                            value="@Model.FatherOccupation">
+                    </div>
+
+                    <hr>
+                    <!-- Mother's Information -->
+                    <div class="mb-3">
+                        <label for="editMotherFirstName" class="form-label">Mother's First Name</label>
+                        <input type="text" class="form-control" id="editMotherFirstName" name="MotherFirstName"
+                            value="@Model.MotherFirstName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMotherLastName" class="form-label">Mother's Last Name</label>
+                        <input type="text" class="form-control" id="editMotherLastName" name="MotherLastName"
+                            value="@Model.MotherLastName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMotherLastName" class="form-label">Mother's Last Name</label>
+                        <input type="text" class="form-control" id="editMotherLastName"
+                            name="MotherMaidenName" value="@Model.MotherMaidenName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMotherOccupation" class="form-label">Mother's Occupation</label>
+                        <input type="text" class="form-control" id="editMotherOccupation" name="MotherOccupation"
+                            value="@Model.MotherOccupation">
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <style>
     .profile-box {
