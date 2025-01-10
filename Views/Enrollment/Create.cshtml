@@ -250,21 +250,19 @@
                         </div>
 
                         <div id="step5" class="step-section" style="display:none;">
-                            <div id="step5" class="step-section" style="display:none;">
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="HaveSiblingInSchool"
-                                        name="HaveSiblingInSchool" asp-for="HaveSiblingInSchool" />
-                                    <label for="HaveSiblingInSchool" asp-for="HaveSiblingInSchool"
-                                        class="form-check-label">Do you have siblings in
-                                        this school?</label>
-                                </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="HaveSiblingInSchool"
+                                    name="HaveSiblingInSchool" asp-for="HaveSiblingInSchool" />
+                                <label for="HaveSiblingInSchool" asp-for="HaveSiblingInSchool"
+                                    class="form-check-label">Do you have siblings in
+                                    this school?</label>
+                            </div>
 
-                                <div class="mb-3">
-                                    <label for="NumberOfSibling" class="form-label" asp-for="NumberOfSibling">Number
-                                        of Siblings:</label>
-                                    <input type="number" class="form-control" id="NumberOfSibling" asp-for="NumberOfSibling"
-                                        name="NumberOfSibling" min="0" value="0" />
-                                </div>
+                            <div class="mb-3">
+                                <label for="NumberOfSibling" class="form-label" asp-for="NumberOfSibling">Number
+                                    of Siblings:</label>
+                                <input type="number" class="form-control" id="NumberOfSibling" asp-for="NumberOfSibling"
+                                    name="NumberOfSibling" min="0" value="0" />
                             </div>
                         </div>
 
@@ -367,28 +365,28 @@
                 subjectItem.style.padding = '5px';
                 subjectItem.textContent = subject;
 
-                @* subjectItem.addEventListener('click', function () {
+    @* subjectItem.addEventListener('click', function () {
                     toggleSubjectSelection(subject);
                 }); *@
 
-                subjectDropdownList.appendChild(subjectItem);
+                    subjectDropdownList.appendChild(subjectItem);
             });
 
             subjectDropdownList.style.display = subjectsList.length > 0 ? 'block' : 'none';
         });
 
-        @* subjectDropdown.addEventListener('click', function () {
+    @* subjectDropdown.addEventListener('click', function () {
             subjectDropdownList.style.display = subjectDropdownList.style.display === 'block' ? 'none' : 'block';
         }); *@
 
-        function toggleSubjectSelection(subject) {
-            if (selectedSubjects.includes(subject)) {
-                selectedSubjects = selectedSubjects.filter(s => s !== subject);
-            } else {
-                selectedSubjects.push(subject);
+            function toggleSubjectSelection(subject) {
+                if (selectedSubjects.includes(subject)) {
+                    selectedSubjects = selectedSubjects.filter(s => s !== subject);
+                } else {
+                    selectedSubjects.push(subject);
+                }
+                updateSelectedSubjects();
             }
-            updateSelectedSubjects();
-        }
 
         function updateSelectedSubjects() {
             selectedSubjectsContainer.innerHTML = selectedSubjects.join(', ');
@@ -410,7 +408,7 @@
             documentRequirements.innerHTML = `<strong>Required Documents:</strong> ${requirements.join(', ')}`;
         });
 
-        @* fileUploadInput.addEventListener('change', function () {
+    @* fileUploadInput.addEventListener('change', function () {
             if (uploadedFiles.length >= maxUploads) {
                 alert('You can only upload up to 6 files.');
                 return;
@@ -430,7 +428,7 @@
                 fileUploadInput.value = '';
             }
         }); *@
-        gradeLevelSelect.dispatchEvent(new Event('change'));
+            gradeLevelSelect.dispatchEvent(new Event('change'));
 
         let currentStep = 1;
         function showStep(step) {

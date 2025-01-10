@@ -239,57 +239,53 @@ public class PaymentController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SubmitWalkInPayment(string EnrollreesId, bool IsEarlyBird)
     {
-        if (ModelState.IsValid)
+
+        var student = await _context.Students
+            .FirstOrDefaultAsync(e => e.LRN == EnrollreesId && e.IsApproved == true);
+
+        if (student == null)
         {
-            var student = await _context.Students
-                .FirstOrDefaultAsync(e => e.LRN == EnrollreesId && e.IsApproved == true);
-
-            if (student == null)
-            {
-                TempData["ErrorMessage"] = "Student not found.";
-                return RedirectToAction("ManageTransactions", "Admin");
-            }
-
-            var paymentSchedule = PaymentSchedule.CurrentPaymentSchedule;
-            var currentPaymentId = paymentSchedule!.CurrentPaymentId;
-            var existingPayment = await _context.Payments
-                .FirstOrDefaultAsync(p => p.EnrollreesId == student!.EnrollmentId
-                    && p.Status == "Paid" || p.Status == "Pending");
-
-            if (existingPayment != null)
-            {
-                TempData["ErrorMessage"] = "User have already paid.";
-                return RedirectToAction("ManageTransactions", "Admin");
-            }
-
-            double baseAmount = 31100;
-            if (IsEarlyBird)
-            {
-                baseAmount -= 1900;
-            }
-
-            var payment = new Payment
-            {
-                Date = DateTime.Now,
-                PaymentId = PaymentSchedule.CurrentPaymentSchedule!.CurrentPaymentId!,
-                TransactionId = Guid.NewGuid().ToString(),
-                PaidAmount = baseAmount,
-                ReferenceNumber = Guid.NewGuid().ToString(),
-                PaymentMethod = "Walk-in",
-                Status = "Paid",
-                EnrollreesId = student.EnrollmentId,
-                ExpirationTime = DateTime.Now.AddDays(7)
-            };
-
-            _context.Payments.Add(payment);
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Walk-in payment added successfully!";
+            TempData["ErrorMessage"] = "Student not found.";
             return RedirectToAction("ManageTransactions", "Admin");
         }
 
-        TempData["ErrorMessage"] = "Failed to process the payment.";
+        // var existingPayment = await _context.Payments
+        //     .FirstOrDefaultAsync(p => p.EnrollreesId == student!.EnrollmentId
+        //         && p.Status == "Paid" || p.Status == "Pending");
+
+        // if (existingPayment != null)
+        // {
+        //     TempData["ErrorMessage"] = "User have already paid.";
+        //     return RedirectToAction("ManageTransactions", "Admin");
+        // }
+
+        double baseAmount = 31100;
+        if (IsEarlyBird)
+        {
+            baseAmount -= 1900;
+        }
+
+        var payment = new Payment
+        {
+            Date = DateTime.Now,
+            PaymentId = Guid.NewGuid().ToString(),
+            TransactionId = Guid.NewGuid().ToString(),
+            PaidAmount = baseAmount,
+            ReferenceNumber = Guid.NewGuid().ToString(),
+            PaymentMethod = "Walk-in",
+            Status = "Paid",
+            EnrollreesId = student.EnrollmentId,
+            ExpirationTime = DateTime.Now.AddDays(7)
+        };
+
+        _context.Payments.Add(payment);
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Walk-in payment added successfully!";
         return RedirectToAction("ManageTransactions", "Admin");
+
+        // TempData["ErrorMessage"] = "Failed to process the payment.";
+        // return RedirectToAction("ManageTransactions", "Admin");
     }
 
 
@@ -335,7 +331,7 @@ public class PaymentController : Controller
         {
             var generateId = Guid.NewGuid().ToString();
             var existingSchedule = _context.PaymentSchedules.FirstOrDefault();
- 
+
             switch (ActionType)
             {
                 case "New":
