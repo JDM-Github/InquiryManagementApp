@@ -204,7 +204,9 @@ namespace InquiryManagementApp.Migrations
                     TemporaryPassword = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsWalkin = table.Column<bool>(type: "bit", nullable: false)
+                    IsWalkin = table.Column<bool>(type: "bit", nullable: false),
+                    HaveSiblingInSchool = table.Column<bool>(type: "bit", nullable: false),
+                    NumberOfSibling = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -240,18 +242,18 @@ namespace InquiryManagementApp.Migrations
                 columns: new[] { "Id", "Fee", "Level", "PaymentType" },
                 values: new object[,]
                 {
-                    { 1, 2000.0, "NURSERY", "Cash" },
-                    { 2, 5000.0, "KINDER", "Cash" },
-                    { 3, 4000.0, "ELEMENTARY", "Cash" },
-                    { 4, 6000.0, "JUNIOR HIGH SCHOOL", "Installment" },
-                    { 5, 7000.0, "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", "Installment" },
-                    { 6, 7000.0, "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", "Installment" },
-                    { 7, 8000.0, "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", "Installment" },
-                    { 8, 8000.0, "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", "Installment" },
-                    { 9, 7000.0, "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", "Installment" },
-                    { 10, 7000.0, "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", "Installment" },
-                    { 11, 8000.0, "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", "Installment" },
-                    { 12, 8000.0, "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", "Installment" }
+                    { 1, 19000.0, "NURSERY", "Cash" },
+                    { 2, 19000.0, "KINDER", "Cash" },
+                    { 3, 19000.0, "ELEMENTARY", "Cash" },
+                    { 4, 19000.0, "JUNIOR HIGH SCHOOL", "Installment" },
+                    { 5, 19000.0, "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", "Installment" },
+                    { 6, 19000.0, "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", "Installment" },
+                    { 7, 19000.0, "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", "Installment" },
+                    { 8, 19000.0, "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", "Installment" },
+                    { 9, 19000.0, "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", "Installment" },
+                    { 10, 19000.0, "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", "Installment" },
+                    { 11, 19000.0, "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", "Installment" },
+                    { 12, 19000.0, "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", "Installment" }
                 });
 
             migrationBuilder.InsertData(

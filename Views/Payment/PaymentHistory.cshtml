@@ -6,10 +6,10 @@
             style="border-left: 4px solid #FFD700; background-color: #f8f9fa;">
             <h2 class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #007bff; padding-left: 15px;">PAYMENT HISTORY</h2>
             <div class="w-25 d-flex gap-2">
-                @if (ViewBag.IsPaymentScheduleActive)
+                @* @if (ViewBag.IsPaymentScheduleActive)
                 {
                     <a href="@Url.Action("Pay", "Payment")" class="btn btn-primary btn-sm w-100">PAY</a>
-                }
+                } *@
                 <span class="btn btn-secondary btn-sm w-100">₱@ViewBag.Fee</span>
             </div>
             

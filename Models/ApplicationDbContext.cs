@@ -8,18 +8,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         base.OnModelCreating(modelBuilder);
         var allTuition = new Dictionary<string, double>
         {
-            { "NURSERY", 2000 },
-            { "KINDER", 5000 },
-            { "ELEMENTARY", 4000 },
-            { "JUNIOR HIGH SCHOOL", 6000 },
-            { "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", 7000 },
-            { "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", 7000 },
-            { "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", 8000 },
-            { "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", 8000 },
-            { "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", 7000 },
-            { "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", 7000 },
-            { "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", 8000 },
-            { "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", 8000 }
+            { "NURSERY", 19000 },
+            { "KINDER", 19000 },
+            { "ELEMENTARY", 19000 },
+            { "JUNIOR HIGH SCHOOL", 19000 },
+            { "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", 19000 },
+            { "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", 19000 },
+            { "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", 19000 },
+            { "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", 19000 },
+            { "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", 19000 },
+            { "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", 19000 },
+            { "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", 19000 },
+            { "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", 19000 }
         };
 
         modelBuilder.Entity<FeeModel>().HasData(

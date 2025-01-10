@@ -1,0 +1,66 @@
+@model CashFee
+
+<div class="container-fluid mt-4 d-flex gap-3"
+    style="margin-top: 65px !important; margin-bottom: 10px; min-height: 90vh;">
+    @await Html.PartialAsync("Layout/Navigation")
+
+    <div class="card shadow-lg border-0 rounded-3 mt-2 w-100">
+        <div class="card-header d-flex align-items-center justify-content-between"
+            style="border-left: 4px solid #FFD700; background-color: #f8f9fa;">
+            <h2 class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #007bff; padding-left: 15px;">
+                TABLE FEES</h2>
+            <div class="w-50"></div>
+        </div>
+
+        <div class="card-body">
+            @* PUT HERE *@
+            <div class="mb-4">
+                <h5 class="text-primary">CASH FEES DETAILS</h5>
+            </div>
+
+            <div class="mb-3 d-flex align-items-center justify-content-between">
+                <label class="form-label text-muted mb-0" style="flex: 1;">Tuition Fee:</label>
+                <input type="text" class="form-control" value="@Model.TuitionFee.ToString("C2")" readonly
+                    style="flex: 2;">
+            </div>
+
+            <div class="mb-3 d-flex align-items-center justify-content-between">
+                <label class="form-label text-muted mb-0" style="flex: 1;">Miscellaneous:</label>
+                <input type="text" class="form-control" value="@Model.Miscellaneous.ToString("C2")" readonly
+                    style="flex: 2;">
+            </div>
+
+            <div class="mb-3 d-flex align-items-center justify-content-between">
+                <label class="form-label text-muted mb-0" style="flex: 1;">Discount:</label>
+                <input type="text" class="form-control" value="@((Model.TuitionFee / Model.Discount).ToString("C2"))"
+                    readonly style="flex: 2;">
+            </div>
+
+            <div class="mb-3 d-flex align-items-center justify-content-between">
+                <label class="form-label text-muted mb-0" style="flex: 1;">Sub Total:</label>
+                <input type="text" class="form-control"
+                    value="@((Model.TuitionFee + Model.Miscellaneous).ToString("C2"))" readonly style="flex: 2;">
+            </div>
+
+            <div class="mb-3 d-flex align-items-center justify-content-between">
+                <label class="form-label text-muted mb-0" style="flex: 1;">Total After Discount:</label>
+                <input type="text" class="form-control"
+                    value="@(((Model.TuitionFee + Model.Miscellaneous) - (Model.TuitionFee / Model.Discount)).ToString("C2"))"
+                    readonly style="flex: 2;">
+            </div>
+            <hr>
+            <div class="mb-3 d-flex align-items-center justify-content-between">
+                <label class="form-label text-muted mb-0" style="flex: 1;">Early Bird Discount:</label>
+                <input type="text" class="form-control" value="@((Model.TuitionFee / Model.Discount).ToString("C2"))"
+                    readonly style="flex: 2;">
+            </div>
+            <div class="mb-3 d-flex align-items-center justify-content-between">
+                <label class="form-label text-muted mb-0" style="flex: 1;">Total For All Discount:</label>
+                <input type="text" class="form-control"
+                    value="@(((Model.TuitionFee + Model.Miscellaneous) - (Model.TuitionFee / Model.Discount * 2)).ToString("C2"))"
+                    readonly style="flex: 2;">
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -82,7 +82,7 @@ public class AdminController : Controller
 
     public IActionResult ManageEnrollees()
     {
-        var enrollments = _context.Students.Where(e => !e.IsRejected && !e.IsWalkin && !e.IsDeleted).ToList();
+        var enrollments = _context.Students.Where(e => !e.IsRejected && !e.IsWalkin && !e.IsDeleted && !e.IsApproved).ToList();
         ViewBag.ActiveTab = "ManageEnrollees";
         return View(enrollments);
     }
@@ -143,6 +143,12 @@ public class AdminController : Controller
         return View(feeListModel);
     }
 
+    public async Task<IActionResult> AllFees()
+    {
+        var cashFee = new CashFee();
+        return View(cashFee);
+    }
+
     public async Task<IActionResult> ManageTransactions(int page = 1, string search = "")
     {
         int pageSize = 10;
@@ -167,12 +173,19 @@ public class AdminController : Controller
             Enrollees = enrollments.FirstOrDefault(e => e.EnrollmentId == payment.EnrollreesId)
         }).ToList();
 
+        // bool isPaymentDay = await 
+        var existingSchedule = _context.PaymentSchedules.FirstOrDefault();
+
+        bool isPaymentScheduleActive = existingSchedule != null && existingSchedule!.IsActive &&
+            DateTime.Now >= existingSchedule!.StartDate && DateTime.Now <= existingSchedule.EndDate;
+
         var viewModel = new PaymentsManagementViewModel
         {
             Payments = paymentViewModels,
             CurrentPage = page,
             TotalPages = totalPages,
-            SearchFilter = search
+            SearchFilter = search,
+            IsPaymentDay = isPaymentScheduleActive
         };
 
         ViewBag.ActiveTab = "ManageTransactions";
@@ -268,10 +281,10 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> ClearEnrollment()
     {
-        if (EnrollmentSchedule.InstanceExists)
+        var existingSchedule = _context.EnrollmentSchedules.FirstOrDefault();
+        if (existingSchedule != null)
         {
-            var existingSchedule = _context.EnrollmentSchedules.FirstOrDefault();
-            _context.EnrollmentSchedules.Remove(existingSchedule!);
+            _context.EnrollmentSchedules.Remove(existingSchedule);
             await _context.SaveChangesAsync();
         }
         return RedirectToAction("Index", "Admin");
@@ -291,7 +304,7 @@ public class AdminController : Controller
         {
             enrollment.ApprovedEnrolled = DateTime.Now;
             enrollment.IsApproved = true;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             var subject = "Enrollment Approved";
             var body = $"Dear {enrollment.Firstname} {enrollment.Surname},<br>Your enrollment has been approved. Thank you for completing the necessary requirements. Your new email and password is username: {enrollment.Username}, password: {enrollment.Password}";
@@ -528,6 +541,45 @@ public class AdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RejectInquiry(int id)
+    {
+        var inquiry = await _context.Inquiries.FindAsync(id);
+
+        if (inquiry == null)
+        {
+            TempData["ErrorMessage"] = "Inquiry not found.";
+            return RedirectToAction("Index");
+        }
+
+        inquiry.IsRejected = true;
+        _context.Update(inquiry);
+        await _context.SaveChangesAsync();
+
+        string subject = "Inquiry Approved";
+        string body = $@"
+            <p>Dear {inquiry.StudentName},</p>
+            <p>We regret to inform you that your inquiry has been rejected.</p>
+            <p>If you have any questions, please feel free to contact us.</p>
+            <p>For further communication. here is our contact information:</p>
+            <ul>
+            </ul>
+            <p>Best regards,<br>Your Team</p>";
+
+        var recent = new RecentActivity
+        {
+            Activity = $"Inquiry {inquiry.StudentName} rejected",
+            CreatedAt = DateTime.Now
+        };
+        _context.RecentActivities.Add(recent);
+        await _context.SaveChangesAsync();
+
+        await _emailService.SendEmailAsync(inquiry.EmailAddress, subject, body);
+        TempData["SuccessMessage"] = "Inquiry rejected.";
+    return RedirectToAction("ManageInquiries");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApproveInquiry(int id)
     {
         var inquiry = await _context.Inquiries.FindAsync(id);
@@ -542,7 +594,7 @@ public class AdminController : Controller
         _context.Update(inquiry);
         await _context.SaveChangesAsync();
 
-        string subject = "Inquiry Approved";
+        string subject = "Inquiry Rejected";
         string enrollmentUrl = Url.Action("Index", "Home", null, Request.Scheme) ?? "";
         string body = $@"
             <p>Dear {inquiry.StudentName},</p>
@@ -562,7 +614,7 @@ public class AdminController : Controller
 
         await _emailService.SendEmailAsync(inquiry.EmailAddress, subject, body);
         TempData["SuccessMessage"] = "Inquiry approved and email sent.";
-        return RedirectToAction("Index");
+        return RedirectToAction("ManageInquiries");
     }
 
     [HttpPost]

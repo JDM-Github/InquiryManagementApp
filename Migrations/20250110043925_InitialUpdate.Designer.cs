@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InquiryManagementApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250104085629_InitialUpdate")]
+    [Migration("20250110043925_InitialUpdate")]
     partial class InitialUpdate
     {
         /// <inheritdoc />
@@ -118,6 +118,9 @@ namespace InquiryManagementApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("HaveSiblingInSchool")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsApproved")
                         .HasColumnType("bit");
 
@@ -155,6 +158,9 @@ namespace InquiryManagementApp.Migrations
                     b.Property<string>("MotherOccupation")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NumberOfSibling")
+                        .HasColumnType("int");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -231,84 +237,84 @@ namespace InquiryManagementApp.Migrations
                         new
                         {
                             Id = 1,
-                            Fee = 2000.0,
+                            Fee = 19000.0,
                             Level = "NURSERY",
                             PaymentType = "Cash"
                         },
                         new
                         {
                             Id = 2,
-                            Fee = 5000.0,
+                            Fee = 19000.0,
                             Level = "KINDER",
                             PaymentType = "Cash"
                         },
                         new
                         {
                             Id = 3,
-                            Fee = 4000.0,
+                            Fee = 19000.0,
                             Level = "ELEMENTARY",
                             PaymentType = "Cash"
                         },
                         new
                         {
                             Id = 4,
-                            Fee = 6000.0,
+                            Fee = 19000.0,
                             Level = "JUNIOR HIGH SCHOOL",
                             PaymentType = "Installment"
                         },
                         new
                         {
                             Id = 5,
-                            Fee = 7000.0,
+                            Fee = 19000.0,
                             Level = "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)",
                             PaymentType = "Installment"
                         },
                         new
                         {
                             Id = 6,
-                            Fee = 7000.0,
+                            Fee = 19000.0,
                             Level = "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)",
                             PaymentType = "Installment"
                         },
                         new
                         {
                             Id = 7,
-                            Fee = 8000.0,
+                            Fee = 19000.0,
                             Level = "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)",
                             PaymentType = "Installment"
                         },
                         new
                         {
                             Id = 8,
-                            Fee = 8000.0,
+                            Fee = 19000.0,
                             Level = "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)",
                             PaymentType = "Installment"
                         },
                         new
                         {
                             Id = 9,
-                            Fee = 7000.0,
+                            Fee = 19000.0,
                             Level = "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)",
                             PaymentType = "Installment"
                         },
                         new
                         {
                             Id = 10,
-                            Fee = 7000.0,
+                            Fee = 19000.0,
                             Level = "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)",
                             PaymentType = "Installment"
                         },
                         new
                         {
                             Id = 11,
-                            Fee = 8000.0,
+                            Fee = 19000.0,
                             Level = "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)",
                             PaymentType = "Installment"
                         },
                         new
                         {
                             Id = 12,
-                            Fee = 8000.0,
+                            Fee = 19000.0,
                             Level = "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)",
                             PaymentType = "Installment"
                         });

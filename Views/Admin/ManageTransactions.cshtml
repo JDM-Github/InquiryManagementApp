@@ -1,5 +1,6 @@
 @model PaymentsManagementViewModel
 
+
 <div class="container-fluid mt-4 d-flex gap-3" style="margin-top: 65px !important; margin-bottom: 10px; min-height: 90vh;">
     @await Html.PartialAsync("Layout/Navigation")
     <div class="card shadow-lg border-0 rounded-3 mt-2 w-100">
@@ -9,17 +10,17 @@
                 TRANSACTION HISTORY</h2>
 
             <div class="d-flex gap-2 w-50">
-                <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal"
+                @* <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal"
                     data-bs-target="#paymentScheduleModal">
                     Set Payment Schedule
-                </button>
-                @if (PaymentSchedule.InstanceExists && PaymentSchedule.CurrentPaymentSchedule!.IsActive)
-                {
+                </button> *@
+                @* @if (Model.IsPaymentDay)
+                { *@
                     <button type="button" class="btn btn-success w-100" data-bs-toggle="modal"
                         data-bs-target="#walkInPaymentModal">
                         Walk-in Payment
                     </button>
-                }
+                @* } *@
             </div>
         </div>
 

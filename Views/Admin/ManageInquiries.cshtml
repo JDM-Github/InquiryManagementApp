@@ -80,7 +80,7 @@
                                 </td>
                                 <td>@inquiry.DateCreated.ToString("MMMM dd, yyyy")</td>
                                 <td>
-                                    <button class="btn btn-info btn-sm view-details w-100" data-bs-toggle="modal"
+                                    <button class="btn btn-info btn-sm view-details" data-bs-toggle="modal"
                                         data-bs-target="#detailsModal-@inquiry.InquiryId">
                                         <i class="bi bi-info-circle"></i> Details
                                     </button>
@@ -271,7 +271,7 @@
                                 aria-labelledby="rejectModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
-                                        <form asp-action="Reject" asp-route-id="@inquiry.InquiryId" method="post">
+                                        <form asp-action="RejectInquiry" asp-route-id="@inquiry.InquiryId" method="post">
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="rejectModalLabel">Confirm Rejection</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"

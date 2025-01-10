@@ -23,14 +23,9 @@ public class PaymentController : Controller
     {
         var userIdString = HttpContext.Session.GetString("LRN");
         var existingSchedule = _context.PaymentSchedules.FirstOrDefault();
-        if (existingSchedule != null)
-        {
-            PaymentSchedule.CreateInstance(existingSchedule);
-        }
-        var currentSchedule = PaymentSchedule.CurrentPaymentSchedule;
 
-        bool isPaymentScheduleActive = currentSchedule!.IsActive &&
-            DateTime.Now >= currentSchedule!.StartDate && DateTime.Now <= currentSchedule.EndDate;
+        bool isPaymentScheduleActive = existingSchedule != null && existingSchedule!.IsActive &&
+            DateTime.Now >= existingSchedule!.StartDate && DateTime.Now <= existingSchedule.EndDate;
 
         if (userIdString == null)
         {
@@ -50,7 +45,7 @@ public class PaymentController : Controller
             .ToListAsync();
 
         var fee = await _context.Fees.FirstOrDefaultAsync(f => f.Level == user!.GradeLevel);
-        bool isAlreadyPaid = payments.Any(p => p.PaymentId.ToString() == currentSchedule!.CurrentPaymentId && p.Status == "Paid");
+        bool isAlreadyPaid = payments.Any(p => p.PaymentId.ToString() == existingSchedule!.CurrentPaymentId && p.Status == "Paid");
         ViewBag.IsPaymentScheduleActive = isPaymentScheduleActive;
         ViewBag.IsAlreadyPaid = isAlreadyPaid;
         ViewBag.Fee = fee!.Fee;
@@ -242,7 +237,7 @@ public class PaymentController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SubmitWalkInPayment(string EnrollreesId)
+    public async Task<IActionResult> SubmitWalkInPayment(string EnrollreesId, bool IsEarlyBird)
     {
         if (ModelState.IsValid)
         {
@@ -258,22 +253,27 @@ public class PaymentController : Controller
             var paymentSchedule = PaymentSchedule.CurrentPaymentSchedule;
             var currentPaymentId = paymentSchedule!.CurrentPaymentId;
             var existingPayment = await _context.Payments
-                .FirstOrDefaultAsync(p => p.EnrollreesId == student!.EnrollmentId && p.PaymentId.ToString() == currentPaymentId
+                .FirstOrDefaultAsync(p => p.EnrollreesId == student!.EnrollmentId
                     && p.Status == "Paid" || p.Status == "Pending");
 
             if (existingPayment != null)
             {
-                TempData["ErrorMessage"] = "User have already made the payment for this schedule.";
+                TempData["ErrorMessage"] = "User have already paid.";
                 return RedirectToAction("ManageTransactions", "Admin");
             }
 
-            var fee = await _context.Fees.FirstOrDefaultAsync(f => f.Level == student!.GradeLevel);
+            double baseAmount = 31100;
+            if (IsEarlyBird)
+            {
+                baseAmount -= 1900;
+            }
+
             var payment = new Payment
             {
                 Date = DateTime.Now,
                 PaymentId = PaymentSchedule.CurrentPaymentSchedule!.CurrentPaymentId!,
                 TransactionId = Guid.NewGuid().ToString(),
-                PaidAmount = fee!.Fee,
+                PaidAmount = baseAmount,
                 ReferenceNumber = Guid.NewGuid().ToString(),
                 PaymentMethod = "Walk-in",
                 Status = "Paid",
@@ -335,38 +335,28 @@ public class PaymentController : Controller
         {
             var generateId = Guid.NewGuid().ToString();
             var existingSchedule = _context.PaymentSchedules.FirstOrDefault();
-            if (existingSchedule != null)
-            {
-                PaymentSchedule.CreateInstance(existingSchedule);
-            }
-
+ 
             switch (ActionType)
             {
                 case "New":
-                    if (PaymentSchedule.InstanceExists)
+                    if (existingSchedule == null)
                     {
-                        var schedule = _context.PaymentSchedules.FirstOrDefault();
-                        schedule!.StartDate = paymentSchedule.StartDate;
-                        schedule.EndDate = paymentSchedule.EndDate;
-                        schedule.PaymentIds.Add(generateId);
-                        schedule.CurrentPaymentId = generateId;
-
-                        schedule.IsActive = true;
-                        _context.PaymentSchedules.Update(schedule!);
-                        await _context.SaveChangesAsync();
-                    }
-                    else
-                    {
-                        _context.PaymentSchedules.RemoveRange(_context.PaymentSchedules);
-                        PaymentSchedule.CreateInstance(paymentSchedule);
-                        paymentSchedule.PaymentIds.Add(generateId);
                         paymentSchedule.CurrentPaymentId = generateId;
-
+                        paymentSchedule.PaymentIds.Add(generateId);
                         paymentSchedule.IsActive = true;
                         _context.PaymentSchedules.Add(paymentSchedule);
                         await _context.SaveChangesAsync();
                     }
-
+                    else
+                    {
+                        existingSchedule!.StartDate = paymentSchedule.StartDate;
+                        existingSchedule.EndDate = paymentSchedule.EndDate;
+                        existingSchedule.CurrentPaymentId = generateId;
+                        existingSchedule.IsActive = true;
+                        existingSchedule.PaymentIds.Add(generateId);
+                        _context.PaymentSchedules.Update(existingSchedule!);
+                        await _context.SaveChangesAsync();
+                    }
                     var students = await _context.Students.ToListAsync();
                     foreach (var student in students)
                     {
@@ -377,22 +367,20 @@ public class PaymentController : Controller
                     TempData["SuccessMessage"] = "Payment schedule created successfully.";
                     break;
                 case "Edit":
-                    if (PaymentSchedule.InstanceExists)
+                    if (existingSchedule == null)
                     {
-                        var schedule = _context.PaymentSchedules.FirstOrDefault();
-                        schedule!.StartDate = paymentSchedule.StartDate;
-                        schedule.EndDate = paymentSchedule.EndDate;
-                        schedule.CurrentPaymentId = generateId;
-                        _context.PaymentSchedules.Update(schedule!);
+                        paymentSchedule.CurrentPaymentId = generateId;
+                        paymentSchedule.PaymentIds.Add(generateId);
+                        paymentSchedule.IsActive = true;
+                        _context.PaymentSchedules.Add(paymentSchedule);
                         await _context.SaveChangesAsync();
                     }
                     else
                     {
-                        _context.PaymentSchedules.RemoveRange(_context.PaymentSchedules);
-                        PaymentSchedule.CreateInstance(paymentSchedule);
-                        paymentSchedule.PaymentIds.Add(generateId);
-                        paymentSchedule.CurrentPaymentId = generateId;
-                        _context.PaymentSchedules.Add(paymentSchedule);
+                        existingSchedule!.StartDate = paymentSchedule.StartDate;
+                        existingSchedule.EndDate = paymentSchedule.EndDate;
+                        existingSchedule.IsActive = true;
+                        _context.PaymentSchedules.Update(existingSchedule!);
                         await _context.SaveChangesAsync();
                     }
                     TempData["SuccessMessage"] = "Payment schedule updated successfully.";
@@ -408,31 +396,31 @@ public class PaymentController : Controller
     public IActionResult Activate()
     {
         var existingSchedule = _context.PaymentSchedules.FirstOrDefault();
-        if (existingSchedule != null)
+        if (existingSchedule == null)
         {
-            PaymentSchedule.CreateInstance(existingSchedule);
+            TempData["ErrorMessage"] = "Payment schedule not found.";
+            return RedirectToAction("ManageTransactions", "Admin");
         }
-
-        if (PaymentSchedule.InstanceExists)
-        {
-            PaymentSchedule.CurrentPaymentSchedule!.IsActive = true;
-        }
-        return RedirectToAction("Index", "Admin");
+        existingSchedule!.IsActive = true;
+        _context.PaymentSchedules.Update(existingSchedule!);
+        _context.SaveChanges();
+        TempData["SuccessMessage"] = "Payment schedule activated successfully.";
+        return RedirectToAction("ManageTransactions", "Admin");
     }
 
     public IActionResult Close()
     {
         var existingSchedule = _context.PaymentSchedules.FirstOrDefault();
-        if (existingSchedule != null)
+        if (existingSchedule == null)
         {
-            PaymentSchedule.CreateInstance(existingSchedule);
+            TempData["ErrorMessage"] = "Payment schedule not found.";
+            return RedirectToAction("ManageTransactions", "Admin");
         }
-
-        if (PaymentSchedule.InstanceExists)
-        {
-            PaymentSchedule.CurrentPaymentSchedule!.IsActive = false;
-        }
-        return RedirectToAction("Index", "Admin");
+        existingSchedule!.IsActive = false;
+        _context.PaymentSchedules.Update(existingSchedule!);
+        _context.SaveChanges();
+        TempData["SuccessMessage"] = "Payment schedule closed successfully.";
+        return RedirectToAction("ManageTransactions", "Admin");
     }
 
 

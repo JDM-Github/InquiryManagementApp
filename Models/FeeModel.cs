@@ -1,7 +1,15 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InquiryManagementApp.Models
 {
+    public class CashFee {
+        public double TuitionFee { get; set; } = 19000;
+        public double Miscellaneous { get; set; } = 14000;
+
+        public double Discount { get; set; } = 10; // PERCENTAGE
+    }
+
     public class FeeModel
     {
         [Key]

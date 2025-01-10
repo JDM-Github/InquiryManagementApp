@@ -249,6 +249,24 @@
                             </div>
                         </div>
 
+                        <div id="step5" class="step-section" style="display:none;">
+                            <div id="step5" class="step-section" style="display:none;">
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="HaveSiblingInSchool"
+                                        name="HaveSiblingInSchool" asp-for="HaveSiblingInSchool" />
+                                    <label for="HaveSiblingInSchool" asp-for="HaveSiblingInSchool"
+                                        class="form-check-label">Do you have siblings in
+                                        this school?</label>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="NumberOfSibling" class="form-label" asp-for="NumberOfSibling">Number
+                                        of Siblings:</label>
+                                    <input type="number" class="form-control" id="NumberOfSibling" asp-for="NumberOfSibling"
+                                        name="NumberOfSibling" min="0" value="0" />
+                                </div>
+                        </div>
+
                         @* <div id="step2" class="step-section" style="display:none;">
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Upload Required Documents</label>

@@ -79,6 +79,8 @@ namespace InquiryManagementApp.Models
         public string Password { get; set; }
 
         public bool IsWalkin { get; set; } = false;
+        public bool HaveSiblingInSchool { get; set; } = false;
+        public int NumberOfSibling { get; set; } = 0;
     }
 }
 

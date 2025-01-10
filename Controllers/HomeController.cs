@@ -29,13 +29,6 @@ public class HomeController : Controller
         }
 
         var userId = HttpContext.Session.GetString("LRN");
-        // var notifications = _context.Notifications
-        //                             .Where(n => n.UserId == userId)
-        //                             .OrderByDescending(n => n.CreatedAt)
-        //                             .ToList();
-
-        // var notificationsJson = JsonSerializer.Serialize(notifications);
-        // HttpContext.Session.SetString("Notifications", notificationsJson);
         if (HttpContext.Session.GetString("isAdmin") == "1")
         {
             return RedirectToAction("Index", "Admin");
@@ -114,7 +107,11 @@ public class HomeController : Controller
             TempData["ErrorMessage"] = "User not found.";
             return RedirectToAction("Login", "Account");
         }
-        return View(account);
+        var enrollView = new EnrollmentRequirementsViewModel {
+            Enrollment = account,
+            Requirements = await _context.RequirementModels.Where(c => c.EnrollmentId == account.EnrollmentId).ToListAsync()
+        };
+        return View(enrollView);
     }
 
     public async Task<IActionResult> Notification()

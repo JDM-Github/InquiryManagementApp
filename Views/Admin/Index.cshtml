@@ -1,5 +1,7 @@
+@inject InquiryManagementApp.Service.EnrollmentScheduleService EnrollmentController
 @model AdminDashboardViewModel
 @{
+    var isEnrollmentActive = EnrollmentController.IsEnrollmentOpen();
     ViewData["Title"] = "Admin Dashboard";
 }
 
@@ -84,11 +86,14 @@
                                     data-bs-target="#enrollmentScheduleModal">
                                     Set Enrollment Schedule
                                 </button>
-                                <form action="@Url.Action("ClearEnrollment", "Admin")" method="post" class="float-end me-2">
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        Clear Enrollment
-                                    </button>
-                                </form>
+                                @if (isEnrollmentActive)
+                                {
+                                    <form action="@Url.Action("ClearEnrollment", "Admin")" method="post" class="float-end me-2">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            Clear Enrollment
+                                        </button>
+                                    </form>
+                                }
                             }
                         </div>
                         <div class="card-body" style="position: relative; height: 300px;">

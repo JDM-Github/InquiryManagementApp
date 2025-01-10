@@ -8,6 +8,7 @@ namespace InquiryManagementApp.Models
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }
         public string SearchFilter { get; set; }
+        public bool IsPaymentDay { get; set; }
 
     }
 
@@ -35,6 +36,7 @@ namespace InquiryManagementApp.Models
             CurrentPaymentSchedule = instance;
             InstanceExists = true;
         }
+        
     }
 
     public class Payment
@@ -44,7 +46,7 @@ namespace InquiryManagementApp.Models
         public DateTime Date { get; set; }
 
         public string TransactionId { get; set; }
-        public string PaymentId { get; set; } // CurrentPaymentId of schedule
+        public string PaymentId { get; set; } 
         public double PaidAmount { get; set; }
         public string ReferenceNumber { get; set; } = "";
         public string PaymentMethod { get; set; } = "";
