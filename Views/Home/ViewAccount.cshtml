@@ -75,6 +75,10 @@
                                     {
                                         <span class="badge bg-danger ms-2">Rejected</span>
                                     }
+                                    else if (requirement.IsApproved)
+                                    {
+                                        <span class="badge bg-success ms-2">Approved</span>
+                                    }
                                 </h6>
                                 @if (!string.IsNullOrEmpty(requirement.UploadedFile))
                                 {

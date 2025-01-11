@@ -198,5 +198,48 @@ namespace InquiryManagementApp.Controllers
             return View(inquiry);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteInquiry(int id)
+        {
+            var inquiry = await _context.Inquiries.FindAsync(id);
+
+            if (inquiry == null)
+            {
+                TempData["ErrorMessage"] = "Inquiry not found.";
+                return RedirectToAction("Index", "Admin");
+            }
+
+            _context.Inquiries.Remove(inquiry);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Inquiry deleted.";
+            return RedirectToAction("ManageInquiries", "Admin");
+        }
+
+        [HttpPost]
+        public IActionResult EditInquiry(Inquiry inquiry)
+        {
+            if (ModelState.IsValid)
+            {
+                var existingInquiry = _context.Inquiries.Find(inquiry.InquiryId);
+                if (existingInquiry != null)
+                {
+                    existingInquiry.StudentName = inquiry.StudentName;
+                    existingInquiry.GuardianName = inquiry.GuardianName;
+                    existingInquiry.ContactNumber = inquiry.ContactNumber;
+                    existingInquiry.SourceOfInformation = inquiry.SourceOfInformation;
+                    existingInquiry.Notes = inquiry.Notes;
+
+                    _context.SaveChanges();
+                }
+                TempData["SuccessMessage"] = "Inquiry updated successfully.";
+                return RedirectToAction("ManageInquiries", "Admin");
+            }
+            TempData["ErrorMessage"] = "Error updating inquiry.";
+            return RedirectToAction("ManageInquiries", "Admin");
+        }
+
     }
+
+    
 }

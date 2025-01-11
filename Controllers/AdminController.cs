@@ -77,23 +77,139 @@ public class AdminController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-    public IActionResult ManageEnrolled()
+    public async Task<IActionResult> ManageEnrolled(int page = 1, string search = "", string grade = "")
     {
-        var enrollments = _context.Students.Where(e => e.IsEnrolled && !e.IsDeleted).ToList();
+        int pageSize = 10;
+        var query = _context.Students.Where(e => (e.IsEnrolled || e.IsApproved) && !e.IsDeleted).AsQueryable();
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(f => f.Email.Contains(search) || f.Username.Contains(search));
+        }
+
+        if (grade != "")
+        {
+            query = query.Where(f => f.GradeLevel == grade);
+        }
+
+        var enrollments = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var totalPayments = enrollments.Count();
+        var totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
+
+        var viewModel = new ManageEnrolledView
+        {
+            Enrolled = enrollments,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            SearchFilter = search,
+            GradeFilter = grade
+        };
+
         ViewBag.ActiveTab = "ManageEnrolled";
-        return View(enrollments);
+        return View(viewModel);
     }
 
-    public IActionResult ManageEnrollees()
+    public async Task<IActionResult> ManageEnrollees(int page = 1, string search = "", string grade = "", string status = "")
     {
-        var enrollments = _context.Students.Where(e => !e.IsRejected && !e.IsDeleted).ToList();
+        int pageSize = 10;
+        var query = _context.Students.Where(e => !e.IsRejected && !e.IsWalkin && !e.IsDeleted).AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(f => f.Email.Contains(search) || f.Username.Contains(search));
+        }
+
+        if (grade != "")
+        {
+            query = query.Where(f => f.GradeLevel == grade);
+        }
+        if (status != "")
+        {
+            if (status == "Approved")
+                query = query.Where(f => f.IsApproved);
+
+            if (status == "Rejected")
+                query = query.Where(f => f.IsRejected);
+
+            if (status == "Pending")
+                query = query.Where(f => !f.IsApproved && !f.IsRejected);
+        }
+
+        var enrollments = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var totalPayments = enrollments.Count();
+        var totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
+
+        var viewModel = new ManageEnrolledView
+        {
+            Enrolled = enrollments,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            SearchFilter = search,
+            GradeFilter = grade
+        };
         ViewBag.ActiveTab = "ManageEnrollees";
-        return View(enrollments);
+        return View(viewModel);
     }
 
-    public async Task<IActionResult> ManageInquiries()
+    public async Task<IActionResult> ManageInquiries(int page = 1, string search = "", string status = "", string rstatus = "")
     {
-        var inquiries = _context.Inquiries.ToList();
+        int pageSize = 10;
+        var query = _context.Inquiries.AsQueryable();
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(f => f.EmailAddress.Contains(search));
+        }
+
+        if (status != "")
+        {
+            if (status == "Approved")
+                query = query.Where(f => f.IsApproved);
+
+            if (status == "Rejected")
+                query = query.Where(f => f.IsRejected);
+
+            if (status == "Pending")
+                query = query.Where(f => !f.IsApproved && !f.IsRejected);
+        }
+
+        if (rstatus != "")
+        {
+            if (rstatus == "Confirmed")
+                query = query.Where(f => f.IsConfirmed);
+
+            if (rstatus == "Cancelled")
+                query = query.Where(f => f.IsCancelled);
+
+            if (rstatus == "Pending")
+                query = query.Where(f => !f.IsConfirmed && !f.IsCancelled);
+        }
+
+        var inquiries = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var totalPayments = inquiries.Count();
+        var totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
+
+        var viewModel = new InquiryView
+        {
+            Inquiries = inquiries,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            SearchFilter = search,
+            StatusFilter = status,
+            RStatusFilter = rstatus
+        };
+
+        // var inquiries = _context.Inquiries.ToList();
         foreach (var inquiry in inquiries)
         {
             if (!inquiry.IsConfirmed && inquiry.CreatedAt.Date <= DateTime.Now.Date.AddDays(-5))
@@ -113,7 +229,7 @@ public class AdminController : Controller
 
         await _context.SaveChangesAsync();
         ViewBag.ActiveTab = "ManageInquiries";
-        return View(inquiries);
+        return View(viewModel);
     }
 
     // ----------------------------------------------------------
@@ -340,9 +456,16 @@ public class AdminController : Controller
                     studentPay.PerPayment = 19000;
                     studentPay.CashDiscount = true;
                 }
-
                 var allDiscount = studentPay.SiblingDiscount + (studentPay.EarlyBird ? 1 : 0) + (studentPay.CashDiscount ? 1 : 0);
                 studentPay.Balance = 14000 + ((studentPay.PerPayment ?? 0) - (allDiscount * 1900)) - UserWillPay ?? 0;
+
+                if (studentPay.PaymentType == "Initial5")
+                {
+                    studentPay.PerPayment = 2800;
+                    studentPay.Balance = 5000;
+                }
+
+                
 
                 _context.Update(studentPay);
                 await _context.SaveChangesAsync();
@@ -727,6 +850,7 @@ public class AdminController : Controller
         await _emailService.SendEmailAsync(enrollment.Email, subject, body);
 
         enrollment.IsDeleted = true;
+        enrollment.Email = "";
         _context.Update(enrollment);
         await _context.SaveChangesAsync();
 
@@ -748,6 +872,8 @@ public class AdminController : Controller
             TempData["ErrorMessage"] = "Email already exists.";
             return View(enrollment);
         }
+
+        string studentNumber = enrollment.EnrollmentId.ToString("D4");
         if (enrollment.LRN == null)
         {
             if (enrollment.GradeLevel != "NURSERY" && enrollment.GradeLevel == "KINDER")
@@ -757,7 +883,6 @@ public class AdminController : Controller
             }
             string schoolId = "001994";
             string schoolYear = DateTime.Now.Year.ToString();
-            string studentNumber = enrollment.EnrollmentId.ToString("D4");
             enrollment.LRN = $"{schoolId}{schoolYear}{studentNumber}";
         }
         var approvedId = Guid.NewGuid().ToString();
@@ -765,7 +890,8 @@ public class AdminController : Controller
         enrollment.IsApproved = true;
         enrollment.SubmissionDate = DateTime.Now;
         enrollment.IsWalkin = true;
-        enrollment.SetTemporaryCredentials();
+
+        enrollment.SetTemporaryCredentials(studentNumber);
         enrollment.ApprovedEnrolled = DateTime.Now;
         var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={approvedId}";
         var subject = "Your Enrollment Has Been Approved!";
@@ -952,6 +1078,9 @@ public class AdminController : Controller
         TempData["SuccessMessage"] = "Inquiry rejected.";
         return RedirectToAction("ManageInquiries");
     }
+
+
+    
 
     [HttpPost]
     [ValidateAntiForgeryToken]

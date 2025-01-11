@@ -85,13 +85,30 @@ public class PaymentController : Controller
         }
         else if (!IsCreated && payment.PaymentType == "Monthly")
         {
-            if (monthName == "September" || monthName == "October" || monthName == "November" || monthName == "December" || monthName == "January" || monthName == "February" || monthName == "March" || monthName == "April")
+            if (monthName == "September" || monthName == "October" || monthName == "November" || monthName == "December" || monthName == "January" || monthName == "February" || monthName == "March" || monthName == "April" || monthName == "May")
             {
                 var Payment = new StudentPayment
                 {
                     UserId = user.EnrollmentId,
                     ReferenceNumber = "-----",
                     PaymentAmount = payment.PerPayment ?? 1900,
+                    MonthPaid = monthName,
+                    YearPaid = DateTime.Now.Year.ToString(),
+                    Date = null
+                };
+                _context.StudentPayments.Add(Payment);
+                await _context.SaveChangesAsync();
+            }
+        }
+        else if (!IsCreated && payment.PaymentType == "Initial5")
+        {
+            if (monthName == "August" || monthName == "September" || monthName == "October" || monthName == "November" || monthName == "December" || monthName == "January" || monthName == "February" || monthName == "March" || monthName == "April" || monthName == "May")
+            {
+                var Payment = new StudentPayment
+                {
+                    UserId = user.EnrollmentId,
+                    ReferenceNumber = "-----",
+                    PaymentAmount = 2800,
                     MonthPaid = monthName,
                     YearPaid = DateTime.Now.Year.ToString(),
                     Date = null
@@ -314,6 +331,7 @@ public class PaymentController : Controller
             var client = new PayPalHttpClient(PayPalConfig.GetEnvironment());
             var response = await client.Execute(orderRequest);
             var result = response.Result<Order>();
+            HttpContext.Session.SetString("PayPalOrderId", result.Id ?? "");
 
             var approvalUrl = result.Links.FirstOrDefault(link => link.Rel == "approve")?.Href;
             if (approvalUrl != null)
@@ -343,20 +361,47 @@ public class PaymentController : Controller
             TempData["ErrorMessage"] = "Invalid payment.";
             return RedirectToAction("PaymentHistory");
         }
-        payment.ReferenceNumber = Guid.NewGuid().ToString();
-        payment.Date = DateTime.Now;
-        payment.Status = "Paid";
-        _context.Update(payment);
-        await _context.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = "Payment successful. Your payment for this month has been paid SUCCESSFULLY";
+        try
+        {
+            var client = new PayPalHttpClient(PayPalConfig.GetEnvironment());
 
-        var student = await _context.Students.FirstOrDefaultAsync(s => s.EnrollmentId == payment.UserId);
-        var subject = "Payment Successful";
-        var body = $"Dear {student!.Firstname} {student.Surname},<br>Your payment has been successfully processed.";
-        await _emailService.SendEmailAsync(student.Email, subject, body);
+            var captureRequest = new OrdersCaptureRequest(HttpContext.Session.GetString("PayPalOrderId") ?? "");
+            captureRequest.RequestBody(new OrderActionRequest());
 
-        return RedirectToAction("PaymentHistory");
+            var response = await client.Execute(captureRequest);
+            var result = response.Result<Order>();
+
+            if (result.Status == "COMPLETED")
+            {
+                payment.ReferenceNumber = Guid.NewGuid().ToString();
+                payment.Date = DateTime.Now;
+                payment.Status = "Paid";
+                _context.Update(payment);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Payment successful. Your payment for this month has been paid SUCCESSFULLY";
+
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.EnrollmentId == payment.UserId);
+                var subject = "Payment Successful";
+                var body = $"Dear {student!.Firstname} {student.Surname},<br>Your payment has been successfully processed.";
+                await _emailService.SendEmailAsync(student.Email, subject, body);
+
+                return RedirectToAction("PaymentHistory");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Payment was not completed.";
+                return RedirectToAction("PaymentHistory");
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error capturing payment: {ex.Message}";
+            return RedirectToAction("PaymentHistory");
+        }
+
+        
     }
 
     public IActionResult PaymentFailed(int paymentId)

@@ -2,6 +2,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InquiryManagementApp.Models
 {
+    public class InquiryView
+    {
+        public IEnumerable<Inquiry> Inquiries { get; set; }
+        public int CurrentPage { get; set; }
+        public int TotalPages { get; set; }
+        public string SearchFilter { get; set; }
+        public string StatusFilter { get; set; } = "";
+        public string RStatusFilter { get; set; } = "";
+    }
+
     public class InquiryCancellationViewModel
     {
         public int InquiryId { get; set; }

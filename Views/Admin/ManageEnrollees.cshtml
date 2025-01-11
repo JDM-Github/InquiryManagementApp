@@ -1,4 +1,4 @@
-@model IEnumerable<InquiryManagementApp.Models.Enrollment>
+@model ManageEnrolledView
 
 @{
     ViewData["Title"] = "Enrolled Students";
@@ -14,7 +14,7 @@
                 MANAGE ENROLLEES</h2>
 
             <div class="d-flex gap-2 w-50">
-                <select class="form-control" id="grade-level-filter">
+                <select class="form-control" id="grade-level-filter" asp-for="GradeFilter" onchange="applyFilters()">
                     <option value="">Select Grade Level</option>
                     @foreach (var gradeLevel in new[] { "NURSERY", "KINDER", "ELEMENTARY GRADE 1", "ELEMENTARY GRADE 2", "ELEMENTARY GRADE 3", "ELEMENTARY GRADE 4", "ELEMENTARY GRADE 5", "ELEMENTARY GRADE 6", "JUNIOR HIGH SCHOOL GRADE 7", 
                     "JUNIOR HIGH SCHOOL GRADE 8", "JUNIOR HIGH SCHOOL GRADE 9", "JUNIOR HIGH SCHOOL GRADE 10", "SENIOR HIGH SCHOOL - 11 ABM", "SENIOR HIGH SCHOOL - 11 HUMSS", "SENIOR HIGH SCHOOL - 12 ABM", "SENIOR HIGH SCHOOL - 12 HUMSS" })
@@ -23,7 +23,7 @@
                     }
                 </select>
 
-                <select class="form-control" id="status-filter">
+                <select class="form-control" id="status-filter" asp-for="StatusFilter" >
                     <option value="">Select Status</option>
                     <option value="Approved">Approved</option>
                     <option value="Pending">Pending</option>
@@ -36,11 +36,14 @@
             <div class="d-flex gap-2">
                 <input 
                     type="text" 
+                    asp-for="SearchFilter"
                     class="form-control w-100 mb-2 shadow-sm" 
                     placeholder="Search..."
+                    id="searchInput"
                     style="border-radius: 5px; font-size: 0.9rem;" />
                 <button 
                     type="button" 
+                    onclick="applyFilters()"
                     class="btn btn-primary shadow-sm mb-2" 
                     style="font-size: 0.9rem; border-radius: 5px;">
                     Search
@@ -60,7 +63,7 @@
                     </tr>
                 </thead>
                 <tbody id="enrollment-table-body">
-                    @if (Model == null || !Model.Any())
+                    @if (Model == null || !Model.Enrolled.Any())
                     {
                         <tr>
                             <td colspan="8" class="text-center text-muted">
@@ -69,7 +72,7 @@
                         </tr>
                     }
                     else {
-                        foreach (var enrollment in Model)
+                        foreach (var enrollment in Model.Enrolled)
                         {
                             <tr>
                                 <td>@enrollment.EnrollmentId</td>
@@ -98,6 +101,19 @@
                     }
                 </tbody>
             </table>
+
+             <div class="d-flex justify-content-center mt-3">
+                <ul class="pagination">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                                href="@Url.Action("ManageEnrollees", new { page = Model.CurrentPage - 1, search = Model.SearchFilter, grade = Model.GradeFilter, status = Model.StatusFilter })">Previous</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="@Url.Action("ManageEnrollees", new { page = Model.CurrentPage + 1, search = Model.SearchFilter, grade = Model.GradeFilter, status = Model.StatusFilter })">Next</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
@@ -136,3 +152,11 @@
         }
     </script>
 }
+<script>
+    function applyFilters() {
+        const search = document.getElementById("searchInput").value;
+        const grade = document.getElementById("grade-level-filter").value;
+        const status = document.getElementById("status-filter").value;
+        window.location.href = `@Url.Action("ManageEnrollees", "Admin")?search=${search}&page=1&grade=${grade}&status=${status}`;
+    }
+</script>

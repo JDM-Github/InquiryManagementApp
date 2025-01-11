@@ -169,11 +169,20 @@ public class HomeController : Controller
         {
             studentPay.PerPayment = 4750;
         }
+        else if (studentPay.PaymentType == "Initial5")
+        {
+            studentPay.PerPayment = 2800;
+        }
         _context.Update(studentPay);
         await _context.SaveChangesAsync();
 
         var allDiscount = studentPay.SiblingDiscount + (studentPay.EarlyBird ? 1 : 0) + (studentPay.CashDiscount ? 1 : 0);
         var firstPayment = 14000 + (studentPay.PerPayment ?? 0) - (allDiscount * 1900);
+
+        if (studentPay.PaymentType == "Initial5")
+        {
+            firstPayment = 5000;
+        }
 
         var orderRequest = new OrdersCreateRequest();
         orderRequest.Prefer("return=representation");
@@ -203,6 +212,7 @@ public class HomeController : Controller
         if (response.StatusCode == System.Net.HttpStatusCode.Created)
         {
             var result = response.Result<Order>();
+            HttpContext.Session.SetString("PayPalOrderId", result.Id ?? "");
             var approveUrl = result.Links.FirstOrDefault(link => link.Rel == "approve")?.Href;
 
             if (!string.IsNullOrEmpty(approveUrl))
@@ -224,42 +234,68 @@ public class HomeController : Controller
             return RedirectToAction("Index");
         }
 
-        enrollees.IsEnrolled = true;
-        enrollees.EnrolledDate = DateTime.Now;
-        _context.Update(enrollees);
-        await _context.SaveChangesAsync();
-
-        var subject = "Enrollment Approved";
-        var body = $"Dear {enrollees.Firstname} {enrollees.Surname},<br>You've successfully enrolled in this school.<p>Your Username: {enrollees.Username}</p><p> Your Password: { enrollees.Username}</p>";
-        await _emailService.SendEmailAsync(enrollees.Email, subject, body);
-
-        var notification = new Notification
+        try
         {
-            Message = $"You've successfully been enrolled.",
-            UserId = enrollees.LRN,
-            CreatedAt = DateTime.Now,
-            IsRead = false
-        };
-        _context.Notifications.Add(notification);
-        await _context.SaveChangesAsync();
+            var client = new PayPalHttpClient(PayPalConfig.GetEnvironment());
 
-        DateTime date = DateTime.Now;
-        string monthName = date.ToString("MMMM");
+            var captureRequest = new OrdersCaptureRequest(HttpContext.Session.GetString("PayPalOrderId") ?? "");
+            captureRequest.RequestBody(new OrderActionRequest());
 
-        var Payment = new StudentPayment
+            var response = await client.Execute(captureRequest);
+            var result = response.Result<Order>();
+
+            if (result.Status == "COMPLETED")
+            {
+                enrollees.IsEnrolled = true;
+                enrollees.EnrolledDate = DateTime.Now;
+                _context.Update(enrollees);
+                await _context.SaveChangesAsync();
+
+                var subject = "Enrollment Approved";
+                var body = $"Dear {enrollees.Firstname} {enrollees.Surname},<br>You've successfully enrolled in this school.<p>Your Username: {enrollees.Username}</p><p> Your Password: {enrollees.Username}</p>";
+                await _emailService.SendEmailAsync(enrollees.Email, subject, body);
+
+                var notification = new Notification
+                {
+                    Message = $"You've successfully been enrolled.",
+                    UserId = enrollees!?.LRN,
+                    CreatedAt = DateTime.Now,
+                    IsRead = false
+                };
+                _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+
+                DateTime date = DateTime.Now;
+                string monthName = date.ToString("MMMM");
+
+                var Payment = new StudentPayment
+                {
+                    UserId = enrollees.EnrollmentId,
+                    ReferenceNumber = "-----",
+                    PaymentAmount = amount,
+                    MonthPaid = monthName,
+                    YearPaid = DateTime.Now.Year.ToString(),
+                    Date = null
+                };
+                _context.StudentPayments.Add(Payment);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Payment successful. Congratulations, you are now enrolled!";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Payment was not completed.";
+                return RedirectToAction("CartFinished");
+            }
+        }
+        catch (Exception ex)
         {
-            UserId = enrollees.EnrollmentId,
-            ReferenceNumber = "-----",
-            PaymentAmount = amount,
-            MonthPaid = monthName,
-            YearPaid = DateTime.Now.Year.ToString(),
-            Date = null
-        };
-        _context.StudentPayments.Add(Payment);
-        await _context.SaveChangesAsync();
+            TempData["ErrorMessage"] = $"Error capturing payment: {ex.Message}";
+            return RedirectToAction("CartFinished");
+        }
 
-        TempData["SuccessMessage"] = "Payment successful. Congratulations, you are now enrolled!";
-        return RedirectToAction("Index");
+        
     }
 
     // Payment failed handler

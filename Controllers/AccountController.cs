@@ -204,6 +204,7 @@ namespace InquiryManagementApp.Controllers
         private void SetSessionVariables(Enrollment enrollment)
         {
             HttpContext.Session.SetInt32("EnrollmentId", enrollment.EnrollmentId);
+            HttpContext.Session.SetString("GradeLevel", enrollment.GradeLevel);
             HttpContext.Session.SetString("LRN", enrollment?.LRN ?? "");
 
         }

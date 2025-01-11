@@ -84,6 +84,7 @@ namespace InquiryManagementApp.Controllers
                     .Where(r => r.GradeLevel == enrollment.GradeLevel)
                     .ToListAsync();
 
+                string studentNumber = enrollment.EnrollmentId.ToString("D4");
                 if (enrollment.LRN == null)
                 {
                     if (enrollment.GradeLevel != "NURSERY" && enrollment.GradeLevel == "KINDER")
@@ -91,13 +92,11 @@ namespace InquiryManagementApp.Controllers
                         TempData["ErrorMessage"] = "LRN is required.";
                         return View(enrollment);
                     }
-                    string schoolId = "123456";
+                    string schoolId = "001994";
                     string schoolYear = DateTime.Now.Year.ToString();
-                    string studentNumber = enrollment.EnrollmentId.ToString("D6");
                     enrollment.LRN = $"{schoolId}{schoolYear}{studentNumber}";
                 }
-
-                enrollment.SetTemporaryCredentials();
+                enrollment.SetTemporaryCredentials(studentNumber);
                 _context.Add(enrollment);
                 await _context.SaveChangesAsync();
 

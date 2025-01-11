@@ -54,6 +54,7 @@
                             <option value="Cash">Cash</option>
                             <option value="Monthly">Monthly</option>
                             <option value="Quarterly">Quarterly</option>
+                            <option value="Initial5">Initial5</option>
                         </select>
                     </div>
 
@@ -74,6 +75,13 @@
     let perPayment = 0;
     function updateCashDiscount() {
         const selectType = document.getElementById("paymentTypeSelect").value;
+        if (selectType === "Initial5") {
+            cashDiscount = 0;
+            tuitionValue = 2800;
+            document.getElementById("amountToPaid").value = `${5000}`;
+            document.getElementById("amountToPaidDiscount").innerHTML = `Discount: 0%`;
+            return;
+        }
         if (selectType === "Cash") {
             cashDiscount = 1;
             tuitionValue = 19000;
@@ -86,6 +94,14 @@
         }
         document.getElementById("amountToPaid").value = `${14000 + tuitionValue - (1900 * (allDiscount + cashDiscount))}`;
         document.getElementById("amountToPaidDiscount").innerHTML = `Discount: ${(allDiscount + cashDiscount) * 10}%`;
+
+        if (selectType === "Initial5") {
+            cashDiscount = 0;
+            tuitionValue = 2800;
+            document.getElementById("amountToPaid").value = `${5000}`;
+            document.getElementById("amountToPaidDiscount").innerHTML = `Discount: 0%`;
+        }
+        
     }
 
     function updatePaymentType() {

@@ -3,6 +3,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InquiryManagementApp.Models
 {
+
+    public class ManageEnrolledView
+    {
+        public IEnumerable<Enrollment> Enrolled { get; set; }
+        public int CurrentPage { get; set; }
+        public int TotalPages { get; set; }
+        public string SearchFilter { get; set; }
+        public string GradeFilter { get; set; }
+        public string StatusFilter { get; set; } = "";
+    }
+
     public class EnrollmentRequirementsViewModel
     {
         public Enrollment Enrollment { get; set; }
@@ -19,11 +30,11 @@ namespace InquiryManagementApp.Models
             Password = $"{Surname}{LRN}";
         }
 
-        public void SetTemporaryCredentials()
+        public void SetTemporaryCredentials(string number = "0")
         {
             TemporaryUsername = $"temp_{LRN}_{DateTime.Now.Year}_{Surname}";
             TemporaryPassword = $"{Firstname}{LRN}{DateTime.Now.Year}{Surname}";
-            Username = $"{LRN}";
+            Username = $"{LRN}{number}";
             Password = $"{Surname}{LRN}";
         }
 
