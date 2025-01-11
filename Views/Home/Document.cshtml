@@ -9,7 +9,8 @@
     <div class="card shadow-lg border-0 rounded-3">
         <div class="card-header d-flex align-items-center"
             style="border-left: 4px solid #FFD700; background-color: #f8f9fa;">
-            <h2 class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #007bff; padding-left: 15px;">REQUIREMENTS</h2>
+            <h2 class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #007bff; padding-left: 15px;">
+                REQUIREMENTS</h2>
         </div>
         <div class="card-body">
             <table class="table table-striped table-bordered table-hover">
@@ -18,6 +19,7 @@
                         <th>Requirement Name</th>
                         <th>Description</th>
                         <th>Status</th>
+                        <th>Requirement Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -38,19 +40,39 @@
                                 }
                             </td>
                             <td>
+                                @if (requirement.IsApproved)
+                                {
+                                    <span class="text-success">Approved</span>
+                                }
+                                else if (requirement.IsRejected)
+                                {
+                                    <span class="text-success">Rejected</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger">------</span>
+                                }
+                            </td>
+                            <td>
                                 @if (!string.IsNullOrEmpty(requirement.UploadedFile))
                                 {
                                     <div class="d-flex justify-content-between gap-2">
-                                        <a target="_blank" asp-action="ViewDocument" asp-route-id="@requirement.Id" class="btn btn-info btn-sm w-100">View</a>
-                                        <a target="_blank" asp-action="DownloadDocument" asp-route-id="@requirement.Id" class="btn btn-success btn-sm w-100">Download</a>
-                                        <a asp-action="DeleteDocument" asp-route-id="@requirement.Id" class="btn btn-danger btn-sm w-100">Delete</a>
+                                        @* <a target="_blank" asp-action="ViewDocument" asp-route-id="@requirement.Id"
+                                            class="btn btn-info btn-sm w-100">View</a> *@
+                                        <a target="_blank" asp-action="DownloadDocument" asp-route-id="@requirement.Id"
+                                            class="btn btn-success btn-sm w-100">Download</a>
+                                        <a asp-action="DeleteDocument" asp-route-id="@requirement.Id"
+                                            class="btn btn-danger btn-sm w-100">Delete</a>
                                     </div>
                                 }
-                                <form method="post" enctype="multipart/form-data" asp-action="UploadDocument"
-                                    asp-route-id="@requirement.Id" class="d-flex mt-2 gap-2">
-                                    <input type="file" name="file" class="form-control form-control-sm mb-2" />
-                                    <button type="submit" class="btn btn-primary btn-sm mb-2">Upload</button>
-                                </form>
+                                @if (!requirement.IsApproved)
+                                {
+                                    <form method="post" enctype="multipart/form-data" asp-action="UploadDocument"
+                                        asp-route-id="@requirement.Id" class="d-flex mt-2 gap-2">
+                                        <input type="file" name="file" class="form-control form-control-sm mb-2" />
+                                        <button type="submit" class="btn btn-primary btn-sm mb-2">Upload</button>
+                                    </form>
+                                }
                             </td>
                         </tr>
                     }

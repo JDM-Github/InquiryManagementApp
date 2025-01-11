@@ -1,4 +1,3 @@
-
 <div class="modal fade" id="walkInPaymentModal" tabindex="-1" aria-labelledby="walkInPaymentModalLabel"
     aria-hidden="true">
     <div class="modal-dialog">
@@ -8,21 +7,189 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="walkInPaymentForm" method="post" asp-action="SubmitWalkInPayment" asp-controller="Payment">
+                <form id="walkInPaymentForm" method="post" asp-action="SubmitWalkInPayment" asp-controller="Admin">
                     <div class="mb-3">
                         <label for="lrn" class="form-label">Student LRN</label>
                         <input type="text" class="form-control" id="lrn" name="EnrollreesId" required />
                     </div>
 
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="earlyBird" name="IsEarlyBird" />
-                        <label for="earlyBird" class="form-check-label">Early Bird</label>
+                    <div id="studentNameDiv" class="mb-3" style="display: none;">
+                        <label class="form-label">Student Name</label>
+                        <input type="text" class="form-control" id="studentName" disabled />
                     </div>
 
-                    <button type="submit" class="btn btn-success">Submit Payment</button>
-                </form>
+                    <div id="balanceOptionDiv" class="mb-3" style="display: none;">
+                        <label class="form-label">Payment Type</label>
+                        <select class="form-control" id="paymentOptionSelect" name="PaymentOption"
+                            onchange="updatePaymentType()">
+                            <option value="tuition">Tuition</option>
+                            <option value="balance">Balance</option>
+                        </select>
+                    </div>
 
+                    <div id="paymentIdDiv" class="mb-3" style="display: none;">
+                        <label class="form-label">Payment Target ID</label>
+                        <input type="text" class="form-control" id="paymentId" name="PaymentID" readonly />
+                    </div>
+                    <div id="paymentTargetDiv" class="mb-3" style="display: none;">
+                        <label class="form-label">Payment Target Month | Year</label>
+                        <input type="text" class="form-control" id="paymentTarget" disabled />
+                    </div>
+
+                    <div id="amountToPaidDiv" class="mb-3" style="display: none;">
+                        <label class="form-label">Amount to Pay</label>
+                        <input type="text" class="form-control" id="amountToPaid" disabled />
+                        <p id="amountToPaidDiscount">Discount: </p>
+                    </div>
+
+                    <div id="userWillPayDiv" class="mb-3" style="display: none;">
+                        <label class="form-label">User Pay</label>
+                        <input type="text" class="form-control" id="userWillPay" name="UserWillPay" />
+                    </div>
+
+                    <div id="paymentTypeDiv" class="mb-3" style="display: none;">
+                        <label class="form-label">Payment Type</label>
+                        <select class="form-control" id="paymentTypeSelect" name="PaymentType"
+                            onchange="updateCashDiscount()">
+                            <option value="Cash">Cash</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Quarterly">Quarterly</option>
+                        </select>
+                    </div>
+
+                    <input type="hidden" name="Target" id="target" value="Tuition" />
+                    <button id="submitButton" type="submit" class="btn btn-primary" disabled>Submit Payment</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    let allDiscount = 0;
+    let cashDiscount = 0;
+    let tuitionValue = 19000;
+    let both = false;
+    let balanceValue = 0;
+    let perPayment = 0;
+    function updateCashDiscount() {
+        const selectType = document.getElementById("paymentTypeSelect").value;
+        if (selectType === "Cash") {
+            cashDiscount = 1;
+            tuitionValue = 19000;
+        } else if (selectType === "Monthly") {
+            cashDiscount = 0;
+            tuitionValue = 1900;
+        } else if (selectType === "Quarterly") {
+            cashDiscount = 0;
+            tuitionValue = 4750;
+        }
+        document.getElementById("amountToPaid").value = `${14000 + tuitionValue - (1900 * (allDiscount + cashDiscount))}`;
+        document.getElementById("amountToPaidDiscount").innerHTML = `Discount: ${(allDiscount + cashDiscount) * 10}%`;
+    }
+
+    function updatePaymentType() {
+        if (both) {
+            const selectType = document.getElementById("paymentOptionSelect").value;
+            if (selectType === "tuition") {
+                document.getElementById("amountToPaid").value = `${perPayment}`;
+                document.getElementById("userWillPayDiv").style.display = "none";
+                document.getElementById("userWillPay").value = `${perPayment}`;
+                document.getElementById("target").value = "Tuition";
+            } else if (selectType === "balance") {
+                document.getElementById("amountToPaid").value = `${balanceValue}`;
+                document.getElementById("userWillPayDiv").style.display = "block";
+                document.getElementById("userWillPay").value = `${balanceValue}`;
+                document.getElementById("target").value = "Balance";
+            }
+        }
+
+    }
+    document.getElementById("lrn").addEventListener("input", function () {
+        var lrn = this.value.trim();
+
+        if (lrn.length > 0) {
+            fetch(`/Admin/GetStudentName?lrn=${lrn}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("studentNameDiv").style.display = "none";
+                    document.getElementById("amountToPaidDiv").style.display = "none";
+                    document.getElementById("paymentTypeDiv").style.display = "none";
+                    document.getElementById("balanceOptionDiv").style.display = "none";
+                    document.getElementById("paymentIdDiv").style.display = "none";
+                    document.getElementById("paymentTargetDiv").style.display = "none";
+                    document.getElementById("userWillPayDiv").style.display = "none";
+                    document.getElementById("amountToPaidDiscount").style.display = "none";
+                    document.getElementById("userWillPay").value = 0;
+                    document.getElementById("submitButton").disabled = false;
+
+                    if (data && data.name) {
+                        document.getElementById("studentNameDiv").style.display = "block";
+                        document.getElementById("studentName").value = data.name;
+                    } else {
+                        document.getElementById("studentNameDiv").style.display = "none";
+                        document.getElementById("submitButton").disabled = true;
+                    }
+
+                    if (!data.alreadyPaid) {
+                        if (data && data.perPayment) {
+                            perPayment = data.perPayment;
+                            document.getElementById("amountToPaidDiv").style.display = "block";
+                            document.getElementById("paymentIdDiv").style.display = "block";
+                            document.getElementById("paymentTargetDiv").style.display = "block";
+                            document.getElementById("amountToPaid").value = data.perPayment;
+                            document.getElementById("paymentId").value = data.paymentId;
+                            document.getElementById("paymentTarget").value = data.paymentTargetMonth + " | " + data.paymentTargetYear;
+                            document.getElementById("userWillPay").value = data.perPayment;
+                            document.getElementById("target").value = "Tuition";
+                        }
+                        else if (data && data.allDiscount >= 0) {
+                            allDiscount = data.allDiscount;
+                            document.getElementById("amountToPaidDiv").style.display = "block";
+                            document.getElementById("userWillPayDiv").style.display = "block";
+                            document.getElementById("amountToPaid").value = `${14000 + tuitionValue - (1900 * (data.allDiscount + 1))}`;
+                            document.getElementById("amountToPaidDiscount").innerHTML = `Discount: ${(data.allDiscount + 1) * 10}%`;
+                            document.getElementById("amountToPaidDiscount").style.display = "block";
+                            document.getElementById("target").value = "First";
+                        }
+
+                        if (data && !data.isEnrolled) {
+                            document.getElementById("paymentTypeDiv").style.display = "block";
+                            document.getElementById("paymentOptionSelect").style.display = "none";
+                        }
+
+                        if (data && data.balance > 0) {
+                            balanceValue = data.balance;
+                            if (data.both) {
+                                both = true;
+                                document.getElementById("balanceOptionDiv").style.display = "block";
+                                document.getElementById("target").value = "Tuition";
+                            } else {
+                                document.getElementById("amountToPaidDiv").style.display = "block";
+                                document.getElementById("userWillPayDiv").style.display = "block";
+                                document.getElementById("amountToPaid").value = data.balance;
+                                document.getElementById("target").value = "Balance";
+                            }
+                        }
+
+                        if (data && data.isEnrolled) {
+                            document.getElementById("paymentOptionSelect").style.display = "none";
+                        }
+                    } else {
+                        document.getElementById("submitButton").disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching student data:", error);
+                });
+        } else {
+            document.getElementById("studentNameDiv").style.display = "none";
+            document.getElementById("amountToPaidDiv").style.display = "none";
+            document.getElementById("paymentTypeDiv").style.display = "none";
+            document.getElementById("balanceOptionDiv").style.display = "none";
+            document.getElementById("paymentIdDiv").style.display = "none";
+            document.getElementById("paymentTargetDiv").style.display = "none";
+            document.getElementById("userWillPayDiv").style.display = "none";
+        }
+    });
+</script>

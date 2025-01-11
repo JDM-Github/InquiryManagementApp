@@ -76,6 +76,29 @@ namespace InquiryManagementApp.Controllers
             return View(viewModel);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Confirm(int id)
+        {
+            var student = await _context.Inquiries.FirstOrDefaultAsync(c => c.InquiryId == id);
+            if (student != null)
+            {
+                if (student.IsConfirmed)
+                {
+                    TempData["ErrorMessage"] = "Inquiry already confirmed.";
+                    return RedirectToAction("Index", "Home");
+                }
+                student.IsConfirmed = true;
+                _context.Update(student);
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Inquiry confirmed successfully.";
+                return RedirectToAction("Index", "Home");
+            }
+            
+            TempData["ErrorMessage"] = "Inquiry not found.";
+            return RedirectToAction("Index", "Home");
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(InquiryCancellationViewModel model)
@@ -131,18 +154,19 @@ namespace InquiryManagementApp.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                
-
                 inquiry.DateCreated = DateTime.Now;
                 _context.Add(inquiry);
                 await _context.SaveChangesAsync();
 
                 string subject = "Inquiry Confirmation";
                 string cancellationLink = Url.Action("Cancel", "Inquiry", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
+                string confirmationLink = Url.Action("Confirm", "Inquiry", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
+                // string cancellationLink = Url.Action("Cancel", "Inquiry", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
                 string body = $@"
                     <p>Dear {inquiry.StudentName},</p>
                     <p>Thank you for reaching out to us. Your inquiry has been successfully recorded. We will get back to you soon.</p>
                     <p>If you need to cancel your inquiry, you can do so by clicking the link below:</p>
+                    <p><a href='{confirmationLink}'>Confirm My Inquiry</a></p>
                     <p><a href='{cancellationLink}'>Cancel My Inquiry</a></p>
                     <p>We appreciate your interest in our services. Please feel free to reply to this email if you have any questions or concerns.</p>
                     <p>Best regards,<br>Your Team</p>
@@ -168,7 +192,7 @@ namespace InquiryManagementApp.Controllers
 
 
                 TempData["SuccessMessage"] = "Successfully Inquired!";
-                return View();
+                return RedirectToAction("Index", "Home");
             }
             TempData["ErrorMessage"] = "Error when Inquiring.";
             return View(inquiry);

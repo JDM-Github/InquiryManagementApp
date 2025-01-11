@@ -74,10 +74,12 @@ namespace InquiryManagementApp.Migrations
                     Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsApproved = table.Column<bool>(type: "bit", nullable: false),
+                    IsConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     IsRejected = table.Column<bool>(type: "bit", nullable: false),
                     IsCancelled = table.Column<bool>(type: "bit", nullable: false),
                     CancellationReason = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CancellationNotes = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    CancellationNotes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -163,7 +165,9 @@ namespace InquiryManagementApp.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UploadedFile = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsRequired = table.Column<bool>(type: "bit", nullable: false),
-                    GradeLevel = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    GradeLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsRejected = table.Column<bool>(type: "bit", nullable: false),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -178,7 +182,7 @@ namespace InquiryManagementApp.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Surname = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Firstname = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Middlename = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Middlename = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GradeLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
@@ -197,6 +201,9 @@ namespace InquiryManagementApp.Migrations
                     SubmissionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsApproved = table.Column<bool>(type: "bit", nullable: false),
                     ApprovedEnrolled = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ApproveId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsEnrolled = table.Column<bool>(type: "bit", nullable: false),
+                    EnrolledDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsRejected = table.Column<bool>(type: "bit", nullable: false),
                     FeePaid = table.Column<double>(type: "float", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
@@ -224,7 +231,9 @@ namespace InquiryManagementApp.Migrations
                     UploadedFile = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsRequired = table.Column<bool>(type: "bit", nullable: false),
                     GradeLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    EnrollmentId = table.Column<int>(type: "int", nullable: false)
+                    EnrollmentId = table.Column<int>(type: "int", nullable: false),
+                    IsRejected = table.Column<bool>(type: "bit", nullable: false),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -232,6 +241,58 @@ namespace InquiryManagementApp.Migrations
                     table.ForeignKey(
                         name: "FK_RequirementModels_Students_EnrollmentId",
                         column: x => x.EnrollmentId,
+                        principalTable: "Students",
+                        principalColumn: "EnrollmentId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StudentPaymentRecords",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    PaymentType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Balance = table.Column<double>(type: "float", nullable: false),
+                    CashDiscount = table.Column<bool>(type: "bit", nullable: false),
+                    EarlyBird = table.Column<bool>(type: "bit", nullable: false),
+                    SiblingDiscount = table.Column<int>(type: "int", nullable: false),
+                    PerPayment = table.Column<double>(type: "float", nullable: true),
+                    PaymentId = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudentPaymentRecords", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_StudentPaymentRecords_Students_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Students",
+                        principalColumn: "EnrollmentId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StudentPayments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    ReferenceNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PaymentAmount = table.Column<double>(type: "float", nullable: false),
+                    MonthPaid = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    YearPaid = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PaymentFor = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudentPayments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_StudentPayments_Students_UserId",
+                        column: x => x.UserId,
                         principalTable: "Students",
                         principalColumn: "EnrollmentId",
                         onDelete: ReferentialAction.Cascade);
@@ -258,48 +319,58 @@ namespace InquiryManagementApp.Migrations
 
             migrationBuilder.InsertData(
                 table: "Requirements",
-                columns: new[] { "Id", "Description", "GradeLevel", "IsRequired", "RequirementName", "UploadedFile" },
+                columns: new[] { "Id", "Description", "GradeLevel", "IsApproved", "IsRejected", "IsRequired", "RequirementName", "UploadedFile" },
                 values: new object[,]
                 {
-                    { 1, "A valid copy of the Birth Certificate.", "NURSERY", true, "Birth Certificate", "" },
-                    { 2, "Last year’s report card.", "KINDER", true, "Report Card", "" },
-                    { 3, "A valid copy of the Birth Certificate.", "KINDER", true, "Birth Certificate", "" },
-                    { 4, "A current medical certificate.", "ELEMENTARY", true, "Medical Certificate", "" },
-                    { 5, "Last year’s report card.", "ELEMENTARY", true, "Report Card", "" },
-                    { 6, "A valid PSA-certified Birth Certificate.", "ELEMENTARY", true, "PSA Birth Certificate", "" },
-                    { 7, "Form 138 (Report Card) for the last grade level.", "JUNIOR HIGH SCHOOL", true, "Form 138 (Report Card)", "" },
-                    { 8, "A valid PSA-certified Birth Certificate.", "JUNIOR HIGH SCHOOL", true, "PSA Birth Certificate", "" },
-                    { 9, "Certificate of Good Moral Character from previous school.", "JUNIOR HIGH SCHOOL", true, "Certificate of Good Moral", "" },
-                    { 10, "Form 137 or the Grade 10 Report Card.", "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", true, "Form 137 (Grade 10 Report Card)", "" },
-                    { 11, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", true, "PSA Birth Certificate", "" },
-                    { 12, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", true, "Certificate of Good Moral", "" },
-                    { 13, "Form 137 or the Grade 10 Report Card.", "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", true, "Form 137 (Grade 10 Report Card)", "" },
-                    { 14, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", true, "PSA Birth Certificate", "" },
-                    { 15, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", true, "Certificate of Good Moral", "" },
-                    { 16, "Form 137 or the Grade 11 Report Card.", "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", true, "Form 137 (Grade 11 Report Card)", "" },
-                    { 17, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", true, "PSA Birth Certificate", "" },
-                    { 18, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", true, "Certificate of Good Moral", "" },
-                    { 19, "Form 137 or the Grade 11 Report Card.", "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", true, "Form 137 (Grade 11 Report Card)", "" },
-                    { 20, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", true, "PSA Birth Certificate", "" },
-                    { 21, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", true, "Certificate of Good Moral", "" },
-                    { 22, "Form 137 or the Grade 10 Report Card.", "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", true, "Form 137 (Grade 10 Report Card)", "" },
-                    { 23, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", true, "PSA Birth Certificate", "" },
-                    { 24, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", true, "Certificate of Good Moral", "" },
-                    { 25, "Form 137 or the Grade 10 Report Card.", "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", true, "Form 137 (Grade 10 Report Card)", "" },
-                    { 26, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", true, "PSA Birth Certificate", "" },
-                    { 27, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", true, "Certificate of Good Moral", "" },
-                    { 28, "Form 137 or the Grade 11 Report Card.", "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", true, "Form 137 (Grade 11 Report Card)", "" },
-                    { 29, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", true, "PSA Birth Certificate", "" },
-                    { 30, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", true, "Certificate of Good Moral", "" },
-                    { 31, "Form 137 or the Grade 11 Report Card.", "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", true, "Form 137 (Grade 11 Report Card)", "" },
-                    { 32, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", true, "PSA Birth Certificate", "" },
-                    { 33, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", true, "Certificate of Good Moral", "" }
+                    { 1, "A valid copy of the Birth Certificate.", "NURSERY", false, false, true, "Birth Certificate", "" },
+                    { 2, "Last year’s report card.", "KINDER", false, false, true, "Report Card", "" },
+                    { 3, "A valid copy of the Birth Certificate.", "KINDER", false, false, true, "Birth Certificate", "" },
+                    { 4, "A current medical certificate.", "ELEMENTARY", false, false, true, "Medical Certificate", "" },
+                    { 5, "Last year’s report card.", "ELEMENTARY", false, false, true, "Report Card", "" },
+                    { 6, "A valid PSA-certified Birth Certificate.", "ELEMENTARY", false, false, true, "PSA Birth Certificate", "" },
+                    { 7, "Form 138 (Report Card) for the last grade level.", "JUNIOR HIGH SCHOOL", false, false, true, "Form 138 (Report Card)", "" },
+                    { 8, "A valid PSA-certified Birth Certificate.", "JUNIOR HIGH SCHOOL", false, false, true, "PSA Birth Certificate", "" },
+                    { 9, "Certificate of Good Moral Character from previous school.", "JUNIOR HIGH SCHOOL", false, false, true, "Certificate of Good Moral", "" },
+                    { 10, "Form 137 or the Grade 10 Report Card.", "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", false, false, true, "Form 137 (Grade 10 Report Card)", "" },
+                    { 11, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", false, false, true, "PSA Birth Certificate", "" },
+                    { 12, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", false, false, true, "Certificate of Good Moral", "" },
+                    { 13, "Form 137 or the Grade 10 Report Card.", "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", false, false, true, "Form 137 (Grade 10 Report Card)", "" },
+                    { 14, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", false, false, true, "PSA Birth Certificate", "" },
+                    { 15, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", false, false, true, "Certificate of Good Moral", "" },
+                    { 16, "Form 137 or the Grade 11 Report Card.", "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", false, false, true, "Form 137 (Grade 11 Report Card)", "" },
+                    { 17, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", false, false, true, "PSA Birth Certificate", "" },
+                    { 18, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", false, false, true, "Certificate of Good Moral", "" },
+                    { 19, "Form 137 or the Grade 11 Report Card.", "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", false, false, true, "Form 137 (Grade 11 Report Card)", "" },
+                    { 20, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", false, false, true, "PSA Birth Certificate", "" },
+                    { 21, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", false, false, true, "Certificate of Good Moral", "" },
+                    { 22, "Form 137 or the Grade 10 Report Card.", "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", false, false, true, "Form 137 (Grade 10 Report Card)", "" },
+                    { 23, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", false, false, true, "PSA Birth Certificate", "" },
+                    { 24, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", false, false, true, "Certificate of Good Moral", "" },
+                    { 25, "Form 137 or the Grade 10 Report Card.", "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", false, false, true, "Form 137 (Grade 10 Report Card)", "" },
+                    { 26, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", false, false, true, "PSA Birth Certificate", "" },
+                    { 27, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", false, false, true, "Certificate of Good Moral", "" },
+                    { 28, "Form 137 or the Grade 11 Report Card.", "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", false, false, true, "Form 137 (Grade 11 Report Card)", "" },
+                    { 29, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", false, false, true, "PSA Birth Certificate", "" },
+                    { 30, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", false, false, true, "Certificate of Good Moral", "" },
+                    { 31, "Form 137 or the Grade 11 Report Card.", "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", false, false, true, "Form 137 (Grade 11 Report Card)", "" },
+                    { 32, "A valid PSA-certified Birth Certificate.", "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", false, false, true, "PSA Birth Certificate", "" },
+                    { 33, "Certificate of Good Moral Character from previous school.", "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", false, false, true, "Certificate of Good Moral", "" }
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_RequirementModels_EnrollmentId",
                 table: "RequirementModels",
                 column: "EnrollmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentPaymentRecords_UserId",
+                table: "StudentPaymentRecords",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentPayments_UserId",
+                table: "StudentPayments",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -334,6 +405,12 @@ namespace InquiryManagementApp.Migrations
 
             migrationBuilder.DropTable(
                 name: "Requirements");
+
+            migrationBuilder.DropTable(
+                name: "StudentPaymentRecords");
+
+            migrationBuilder.DropTable(
+                name: "StudentPayments");
 
             migrationBuilder.DropTable(
                 name: "Students");

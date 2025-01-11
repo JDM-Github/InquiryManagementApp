@@ -16,6 +16,44 @@ namespace InquiryManagementApp.Service
             _logger = logger;
         }
 
+        // public async Task<string> UploadFileToCloudinaryAsync(IFormFile file)
+        // {
+        //     if (file == null || file.Length == 0)
+        //     {
+        //         return "";
+        //     }
+
+        //     try
+        //     {
+        //         using (var stream = file.OpenReadStream())
+        //         {
+        //             var uploadParams = new ImageUploadParams
+        //             {
+        //                 File = new FileDescription(file.FileName, stream),
+        //                 Folder = "your-folder-name"
+        //             };
+
+        //             var uploadResult = await Task.Run(() => _cloudinary.Upload(uploadParams));
+
+        //             if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+        //             {
+        //                 _logger.LogInformation($"File uploaded successfully: {uploadResult.SecureUrl}");
+        //                 return uploadResult.SecureUrl.ToString();
+        //             }
+        //             else
+        //             {
+        //                 _logger.LogError("Error uploading file: " + uploadResult.Error.Message);
+        //                 return "";
+        //             }
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         _logger.LogError("Exception during file upload: " + ex.Message);
+        //         return "";
+        //     }
+        // }
+
         public async Task<string> UploadFileToCloudinaryAsync(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -25,15 +63,32 @@ namespace InquiryManagementApp.Service
 
             try
             {
+                string contentType = file.ContentType;
+
+                bool isDocument = !contentType.StartsWith("image/");
+
                 using (var stream = file.OpenReadStream())
                 {
-                    var uploadParams = new ImageUploadParams
-                    {
-                        File = new FileDescription(file.FileName, stream),
-                        Folder = "your-folder-name"
-                    };
+                    UploadResult uploadResult;
 
-                    var uploadResult = await Task.Run(() => _cloudinary.Upload(uploadParams));
+                    if (isDocument)
+                    {
+                        var uploadParams = new RawUploadParams
+                        {
+                            File = new FileDescription(file.FileName, stream),
+                            Folder = "documents" 
+                        };
+                        uploadResult = await Task.Run(() => _cloudinary.Upload(uploadParams));
+                    }
+                    else
+                    {
+                        var uploadParams = new ImageUploadParams
+                        {
+                            File = new FileDescription(file.FileName, stream),
+                            Folder = "images"
+                        };
+                        uploadResult = await Task.Run(() => _cloudinary.Upload(uploadParams));
+                    }
 
                     if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
                     {
@@ -53,5 +108,6 @@ namespace InquiryManagementApp.Service
                 return "";
             }
         }
+
     }
 }

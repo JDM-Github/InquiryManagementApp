@@ -374,5 +374,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public required DbSet<Requirement> Requirements { get; set; }
     public required DbSet<RequirementModel> RequirementModels { get; set; }
     public required DbSet<RecentActivity> RecentActivities { get; set; }
+
+
     
+    public required DbSet<StudentPaymentRecord> StudentPaymentRecords { get; set; }
+    public required DbSet<StudentPayment> StudentPayments { get; set; }
+
 }

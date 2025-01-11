@@ -1,6 +1,10 @@
+using Helper;
 using InquiryManagementApp.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 using Microsoft.EntityFrameworkCore;
+using PayPalCheckoutSdk.Core;
+using PayPalCheckoutSdk.Orders;
 
 public class AdminController : Controller
 {
@@ -75,21 +79,39 @@ public class AdminController : Controller
 
     public IActionResult ManageEnrolled()
     {
-        var enrollments = _context.Students.Where(e => e.IsApproved && !e.IsDeleted).ToList();
+        var enrollments = _context.Students.Where(e => e.IsEnrolled && !e.IsDeleted).ToList();
         ViewBag.ActiveTab = "ManageEnrolled";
         return View(enrollments);
     }
 
     public IActionResult ManageEnrollees()
     {
-        var enrollments = _context.Students.Where(e => !e.IsRejected && !e.IsWalkin && !e.IsDeleted && !e.IsApproved).ToList();
+        var enrollments = _context.Students.Where(e => !e.IsRejected && !e.IsDeleted).ToList();
         ViewBag.ActiveTab = "ManageEnrollees";
         return View(enrollments);
     }
 
-    public IActionResult ManageInquiries()
+    public async Task<IActionResult> ManageInquiries()
     {
         var inquiries = _context.Inquiries.ToList();
+        foreach (var inquiry in inquiries)
+        {
+            if (!inquiry.IsConfirmed && inquiry.CreatedAt.Date <= DateTime.Now.Date.AddDays(-5))
+            {
+                inquiry.IsCancelled = true;
+                inquiry.CancellationReason = "Not Interested.";
+                inquiry.CancellationNotes = "Automatically cancelled due to lack of confirmation after 5 days.";
+
+                var recent = new RecentActivity
+                {
+                    Activity = $"Inquiry {inquiry.InquiryId} cancelled automatically after 5 days.",
+                    CreatedAt = DateTime.Now
+                };
+                _context.RecentActivities.Add(recent);
+            }
+        }
+
+        await _context.SaveChangesAsync();
         ViewBag.ActiveTab = "ManageInquiries";
         return View(inquiries);
     }
@@ -145,17 +167,27 @@ public class AdminController : Controller
 
     public async Task<IActionResult> AllFees()
     {
-        var cashFee = new CashFee();
+        var cashFee = new CashFeeView();
         return View(cashFee);
     }
 
-    public async Task<IActionResult> ManageTransactions(int page = 1, string search = "")
+    public async Task<IActionResult> ManageTransactions(int page = 1, string search = "", string month = "", string year = "")
     {
         int pageSize = 10;
-        var query = _context.Payments.AsQueryable();
+        var query = _context.StudentPayments.AsQueryable();
+        query = query.Where(f => f.Status == "Paid");
         if (!string.IsNullOrEmpty(search))
         {
             query = query.Where(f => f.ReferenceNumber.Contains(search));
+        }
+
+        if (!string.IsNullOrEmpty(month))
+        {
+            query = query.Where(f => f.MonthPaid == month);
+        }
+        if (!string.IsNullOrEmpty(year))
+        {
+            query = query.Where(f => f.YearPaid == year);
         }
 
         var payments = await query
@@ -170,14 +202,8 @@ public class AdminController : Controller
         var paymentViewModels = payments.Select(payment => new PaymentViewModel
         {
             Payment = payment,
-            Enrollees = enrollments.FirstOrDefault(e => e.EnrollmentId == payment.EnrollreesId)
+            Enrollees = enrollments.FirstOrDefault(e => e.EnrollmentId == payment.UserId)
         }).ToList();
-
-        // bool isPaymentDay = await 
-        var existingSchedule = _context.PaymentSchedules.FirstOrDefault();
-
-        bool isPaymentScheduleActive = existingSchedule != null && existingSchedule!.IsActive &&
-            DateTime.Now >= existingSchedule!.StartDate && DateTime.Now <= existingSchedule.EndDate;
 
         var viewModel = new PaymentsManagementViewModel
         {
@@ -185,11 +211,292 @@ public class AdminController : Controller
             CurrentPage = page,
             TotalPages = totalPages,
             SearchFilter = search,
-            IsPaymentDay = isPaymentScheduleActive
+            MonthFilter = month,
+            YearFilter = year
         };
 
         ViewBag.ActiveTab = "ManageTransactions";
         return View(viewModel);
+    }
+
+    [HttpGet]
+    public async Task<JsonResult> GetStudentName(string lrn)
+    {
+        var student = await _context.Students.FirstOrDefaultAsync(s => s.LRN == lrn && s.IsApproved);
+
+        if (student != null)
+        {
+            if (!student.IsEnrolled)
+            {
+                var payment = await _context.StudentPaymentRecords.FirstOrDefaultAsync(p => p.UserId == student.EnrollmentId);
+
+                var IsEnrollmentActive = false;
+                var schedule = _context.EnrollmentSchedules.FirstOrDefault();
+                if (schedule != null)
+                {
+                    IsEnrollmentActive = DateTime.Now >= schedule.StartDate && DateTime.Now <= schedule.EndDate;
+                }
+
+                var EarlyBird = IsEnrollmentActive;
+                var SiblingDiscount = Math.Min(5, student.NumberOfSibling);
+                var allDiscount = SiblingDiscount + (EarlyBird ? 1 : 0);
+
+                return Json(new
+                {
+                    name = $"{student.Firstname} {student.Surname}",
+                    isEnrolled = false,
+                    balance = payment!.Balance,
+                    allDiscount,
+                    alreadyPaid = false,
+                });
+            }
+            else
+            {
+                var payment = await _context.StudentPaymentRecords.FirstOrDefaultAsync(p => p.UserId == student.EnrollmentId);
+                var spayment = await _context.StudentPayments.FirstOrDefaultAsync(p => p.UserId == student.EnrollmentId && p.Status == "Pending");
+
+                if (spayment == null)
+                {
+                    if (payment?.Balance > 0)
+                    {
+                        return Json(new
+                        {
+                            name = $"{student.Firstname} {student.Surname}",
+                            balance = payment?.Balance ?? 0,
+                            isEnrolled = true,
+                            allDiscount = -1,
+                            alreadyPaid = false,
+                            both = false,
+                        });
+                    }
+                    return Json(new
+                    {
+                        name = $"{student.Firstname} {student.Surname}",
+                        alreadyPaid = true,
+                    });
+                }
+
+                return Json(new
+                {
+                    name = $"{student.Firstname} {student.Surname}",
+                    paymentType = payment?.PaymentType,
+                    perPayment = payment?.PerPayment,
+                    paymentId = spayment?.Id,
+                    paymentTargetMonth = spayment?.MonthPaid,
+                    paymentTargetYear = spayment?.YearPaid,
+                    isEnrolled = true,
+                    balance = payment?.Balance ?? 0,
+                    allDiscount = -1,
+                    alreadyPaid = false,
+                    both = true,
+                });
+            }
+        }
+
+        return Json(null);
+    }
+
+    public async Task<IActionResult> SubmitWalkInPayment(string EnrollreesId, string? PaymentOption = null, int? PaymentID = null, double? UserWillPay = null, string? PaymentType = null, string? Target = null)
+    {
+        if (!string.IsNullOrEmpty(Target))
+        {
+            Console.WriteLine($"Target: {Target}");
+            if (Target == "First")
+            {
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.LRN == EnrollreesId);
+                if (student == null)
+                {
+                    TempData["ErrorMessage"] = "Student not found.";
+                    return RedirectToAction("Index");
+                }
+
+                var studentPay = await _context.StudentPaymentRecords.FirstOrDefaultAsync(s => s.UserId == student.EnrollmentId);
+                if (studentPay == null)
+                {
+                    TempData["ErrorMessage"] = "Payment record not found.";
+                    return RedirectToAction("Index");
+                }
+
+                studentPay.PaymentType = PaymentType;
+                var IsEnrollmentActive = false;
+                var schedule = _context.EnrollmentSchedules.FirstOrDefault();
+                if (schedule != null)
+                {
+                    IsEnrollmentActive = DateTime.Now >= schedule.StartDate && DateTime.Now <= schedule.EndDate;
+                }
+
+                studentPay.EarlyBird = IsEnrollmentActive;
+                studentPay.SiblingDiscount = Math.Min(5, student.NumberOfSibling);
+                if (studentPay.PaymentType == "Monthly")
+                {
+                    studentPay.PerPayment = 1900;
+                }
+                else if (studentPay.PaymentType == "Quarterly")
+                {
+                    studentPay.PerPayment = 4750;
+                }
+                else if (studentPay.PaymentType == "Cash")
+                {
+                    studentPay.PerPayment = 19000;
+                    studentPay.CashDiscount = true;
+                }
+
+                var allDiscount = studentPay.SiblingDiscount + (studentPay.EarlyBird ? 1 : 0) + (studentPay.CashDiscount ? 1 : 0);
+                studentPay.Balance = 14000 + ((studentPay.PerPayment ?? 0) - (allDiscount * 1900)) - UserWillPay ?? 0;
+
+                _context.Update(studentPay);
+                await _context.SaveChangesAsync();
+                var firstPayment = UserWillPay ?? 0;
+
+                student.IsEnrolled = true;
+                student.EnrolledDate = DateTime.Now;
+                _context.Update(student);
+                await _context.SaveChangesAsync();
+
+                var subject = "Enrollment Approved";
+                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully enrolled in this school.<p>Your Temporary Username: {student.TemporaryUsername}</p><p>Your Temporary Password: {student.TemporaryPassword}</p> ";
+                await _emailService.SendEmailAsync(student.Email, subject, body);
+
+                var notification = new Notification
+                {
+                    Message = $"You've successfully been enrolled.",
+                    UserId = student.LRN,
+                    CreatedAt = DateTime.Now,
+                    IsRead = false
+                };
+                _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+
+                DateTime date = DateTime.Now;
+                string monthName = date.ToString("MMMM");
+                var payment = new StudentPayment
+                {
+                    UserId = student.EnrollmentId,
+                    ReferenceNumber = Guid.NewGuid().ToString(),
+                    PaymentAmount = firstPayment,
+                    MonthPaid = monthName,
+                    YearPaid = DateTime.Now.Year.ToString(),
+                    Status = "Paid",
+                    PaymentFor = "First Payment",
+                    Date = DateTime.Now
+                };
+                _context.StudentPayments.Add(payment);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Payment successful. Student {student.Firstname} {student.Surname} has been enrolled!";
+                return RedirectToAction("ManageTransactions");
+            }
+
+            if (Target == "Balance")
+            {
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.LRN == EnrollreesId);
+                if (student == null)
+                {
+                    TempData["ErrorMessage"] = "Student not found.";
+                    return RedirectToAction("Index");
+                }
+
+                var studentPay = await _context.StudentPaymentRecords.FirstOrDefaultAsync(s => s.UserId == student.EnrollmentId);
+                if (studentPay == null)
+                {
+                    TempData["ErrorMessage"] = "Payment record not found.";
+                    return RedirectToAction("Index");
+                }
+
+                studentPay.Balance = studentPay.Balance - UserWillPay ?? 0;
+
+                _context.Update(studentPay);
+                await _context.SaveChangesAsync();
+                var firstPayment = UserWillPay ?? 0;
+
+                var subject = "Balance Paid";
+                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully paid {firstPayment} for your balance. Your remaining balance is {studentPay.Balance}.";
+                await _emailService.SendEmailAsync(student.Email, subject, body);
+
+                var notification = new Notification
+                {
+                    Message = $"You've successfully been paid for your balance. Your remaining balance is {studentPay.Balance}",
+                    UserId = student.LRN,
+                    CreatedAt = DateTime.Now,
+                    IsRead = false
+                };
+                _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+
+                DateTime date = DateTime.Now;
+                string monthName = date.ToString("MMMM");
+
+                var payment = new StudentPayment
+                {
+                    UserId = student.EnrollmentId,
+                    ReferenceNumber = Guid.NewGuid().ToString(),
+                    PaymentAmount = firstPayment,
+                    MonthPaid = monthName,
+                    YearPaid = DateTime.Now.Year.ToString(),
+                    Status = "Paid",
+                    PaymentFor = "Balance",
+                    Date = DateTime.Now
+                };
+                _context.StudentPayments.Add(payment);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Payment successful!";
+                return RedirectToAction("ManageTransactions");
+            }
+
+            if (Target == "Tuition")
+            {
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.LRN == EnrollreesId);
+                if (student == null)
+                {
+                    TempData["ErrorMessage"] = "Student not found.";
+                    return RedirectToAction("Index");
+                }
+
+                var studentPay = await _context.StudentPaymentRecords.FirstOrDefaultAsync(s => s.UserId == student.EnrollmentId);
+                if (studentPay == null)
+                {
+                    TempData["ErrorMessage"] = "Payment record not found.";
+                    return RedirectToAction("Index");
+                }
+
+                var payment = await _context.StudentPayments.FirstOrDefaultAsync(s => s.Id == PaymentID);
+                if (payment == null)
+                {
+                    TempData["ErrorMessage"] = "Invalid payment ID.";
+                    return RedirectToAction("Index");
+                }
+
+                await _context.SaveChangesAsync();
+                var firstPayment = UserWillPay ?? 0;
+
+                var subject = "Payment For Tuition";
+                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully paid {firstPayment} for your tuition.";
+                await _emailService.SendEmailAsync(student.Email, subject, body);
+
+                var notification = new Notification
+                {
+                    Message = $"You've successfully paid {firstPayment} for your tuition.",
+                    UserId = student.LRN,
+                    CreatedAt = DateTime.Now,
+                    IsRead = false
+                };
+                _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+
+                payment.Status = "Paid";
+                payment.Date = DateTime.Now;
+                payment.PaymentAmount = firstPayment;
+                payment.ReferenceNumber = Guid.NewGuid().ToString();
+
+                _context.StudentPayments.Update(payment);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Payment successful!";
+                return RedirectToAction("ManageTransactions");
+            }
+        }
+        return RedirectToAction("ManageTransactions");
     }
 
     public IActionResult Create()
@@ -302,13 +609,39 @@ public class AdminController : Controller
 
         if (!enrollment.IsApproved)
         {
+            var approvedId = Guid.NewGuid().ToString();
+            enrollment.ApproveId = approvedId;
             enrollment.ApprovedEnrolled = DateTime.Now;
             enrollment.IsApproved = true;
+
+            var payment = new StudentPaymentRecord
+            {
+                UserId = enrollment.EnrollmentId,
+                PaymentType = "",
+                // NOTE: Sibling discount will be updated, Can admin automatically know whether they are sibling? 
+                // Maybe they will check before accepting then? Whatever
+                SiblingDiscount = 0,
+            };
+            _context.StudentPaymentRecords.Add(payment);
             await _context.SaveChangesAsync();
 
-            var subject = "Enrollment Approved";
-            var body = $"Dear {enrollment.Firstname} {enrollment.Surname},<br>Your enrollment has been approved. Thank you for completing the necessary requirements. Your new email and password is username: {enrollment.Username}, password: {enrollment.Password}";
+            var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={approvedId}";
+            var subject = "Your Enrollment Has Been Approved!";
+            var body = $@"
+                <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
+                <p>Congratulations! Your enrollment has been approved.</p>
+                <p>Your Temporary Username: {enrollment.TemporaryUsername}</p>
+                <p>Your Temporary Password: {enrollment.TemporaryPassword}</p>
+                <p>To complete your enrollment, please make your payment by clicking on the link below:</p>
+                <p>
+                    <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Complete Payment</a>
+                </p>
+                <p>If you prefer, you may also visit us in person to make the payment.</p>
+                <p>Thank you for choosing our institution. We look forward to having you with us!</p>
+                <p>Best regards,</p>
+                <p><strong>Your Enrollment Team</strong></p>";
             await _emailService.SendEmailAsync(enrollment.Email, subject, body);
+
 
             var notification = new Notification
             {
@@ -317,6 +650,7 @@ public class AdminController : Controller
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };
+
             _context.Notifications.Add(notification);
             await _context.SaveChangesAsync();
 
@@ -328,7 +662,7 @@ public class AdminController : Controller
             _context.RecentActivities.Add(recent);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("ManageEnrolled", "Admin");
+            return RedirectToAction("ManageEnrollees", "Admin");
         }
         return RedirectToAction("ManageAccounts", "Admin");
     }
@@ -403,65 +737,99 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> Enroll(Enrollment enrollment)
     {
-        if (ModelState.IsValid)
+        if (await _context.Students.FirstOrDefaultAsync(s => s.LRN == enrollment.LRN) != null
+            || await _context.Students.FirstOrDefaultAsync(s => s.Email == enrollment.Email) != null)
         {
-            if (await _context.Students.FirstOrDefaultAsync(s => s.LRN == enrollment.LRN) != null
-                || await _context.Students.FirstOrDefaultAsync(s => s.Email == enrollment.Email) != null)
-            {
-                TempData["ErrorMessage"] = "Enrollment already exists.";
-                return RedirectToAction("ManageEnrolled", "Admin");
-            }
-
-            enrollment.IsApproved = true;
-            enrollment.SubmissionDate = DateTime.Now;
-            enrollment.IsWalkin = true;
-            enrollment.SetTemporaryCredentials();
-            enrollment.ApprovedEnrolled = DateTime.Now;
-
-            var notification = new Notification
-            {
-                Message = $"Student {enrollment.Firstname} {enrollment.Surname} has been successfully enrolled and approved.",
-                UserId = enrollment.LRN,
-                CreatedAt = DateTime.Now,
-                IsRead = false
-            };
-
-            var subject = "Enrollment Approved";
-            var body = $"Dear {enrollment.Firstname} {enrollment.Surname},<br>Your enrollment has been approved. Thank you for completing the necessary requirements. Your new email and password is username: {enrollment.Username}, password: {enrollment.Password}";
-            await _emailService.SendEmailAsync(enrollment.Email, subject, body);
-
-            _context.Notifications.Add(notification);
-            _context.Students.Add(enrollment);
-            await _context.SaveChangesAsync();
-
-            var recent = new RecentActivity
-            {
-                Activity = $"New Enrollment {enrollment.Firstname} {enrollment.Surname}",
-                CreatedAt = DateTime.Now
-            };
-            _context.RecentActivities.Add(recent);
-            await _context.SaveChangesAsync();
-
-            var requiredFiles = await _context.Requirements
-                .Where(r => r.GradeLevel == enrollment.GradeLevel)
-                .ToListAsync();
-
-            var requirementModels = requiredFiles.Select(r => new RequirementModel
-            {
-                RequirementName = r.RequirementName,
-                Description = r.Description,
-                UploadedFile = r.UploadedFile,
-                IsRequired = r.IsRequired,
-                GradeLevel = r.GradeLevel,
-                EnrollmentId = enrollment.EnrollmentId
-            }).ToList();
-
-            _context.RequirementModels.AddRange(requirementModels);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Enrollment created successfully.";
+            TempData["ErrorMessage"] = "Enrollment already exists.";
             return RedirectToAction("ManageEnrolled", "Admin");
         }
-        TempData["ErrorMessage"] = "Error creating enrollment.";
+        if (await _context.Accounts.FirstOrDefaultAsync(s => s.Email == enrollment.Email) != null)
+        {
+            TempData["ErrorMessage"] = "Email already exists.";
+            return View(enrollment);
+        }
+        if (enrollment.LRN == null)
+        {
+            if (enrollment.GradeLevel != "NURSERY" && enrollment.GradeLevel == "KINDER")
+            {
+                TempData["ErrorMessage"] = "LRN is required.";
+                return View(enrollment);
+            }
+            string schoolId = "001994";
+            string schoolYear = DateTime.Now.Year.ToString();
+            string studentNumber = enrollment.EnrollmentId.ToString("D4");
+            enrollment.LRN = $"{schoolId}{schoolYear}{studentNumber}";
+        }
+        var approvedId = Guid.NewGuid().ToString();
+        enrollment.ApproveId = approvedId;
+        enrollment.IsApproved = true;
+        enrollment.SubmissionDate = DateTime.Now;
+        enrollment.IsWalkin = true;
+        enrollment.SetTemporaryCredentials();
+        enrollment.ApprovedEnrolled = DateTime.Now;
+        var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={approvedId}";
+        var subject = "Your Enrollment Has Been Approved!";
+        var body = $@"
+                <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
+                <p>Congratulations! Your enrollment has been approved.</p>
+                <p>To complete your enrollment, please make your payment by clicking on the link below:</p>
+                <p>Your Temporary Username: {enrollment.TemporaryUsername}</p>
+                <p>Your Temporary Password: {enrollment.TemporaryPassword}</p>
+                <p>
+                    <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Complete Payment</a>
+                </p>
+                <p>If you prefer, you may also visit us in person to make the payment.</p>
+                <p>Thank you for choosing our institution. We look forward to having you with us!</p>
+                <p>Best regards,</p>
+                <p><strong>Your Enrollment Team</strong></p>";
+        await _emailService.SendEmailAsync(enrollment.Email, subject, body);
+
+        var notification = new Notification
+        {
+            Message = $"Student {enrollment.Firstname} {enrollment.Surname} has been successfully approved.",
+            UserId = enrollment.LRN,
+            CreatedAt = DateTime.Now,
+            IsRead = false
+        };
+
+        _context.Notifications.Add(notification);
+        _context.Students.Add(enrollment);
+        await _context.SaveChangesAsync();
+
+        var payment = new StudentPaymentRecord
+        {
+            UserId = enrollment.EnrollmentId,
+            PaymentType = "",
+            SiblingDiscount = 0,
+        };
+        _context.StudentPaymentRecords.Add(payment);
+        await _context.SaveChangesAsync();
+
+        var recent = new RecentActivity
+        {
+            Activity = $"New Enrollment {enrollment.Firstname} {enrollment.Surname}",
+            CreatedAt = DateTime.Now
+        };
+        _context.RecentActivities.Add(recent);
+        await _context.SaveChangesAsync();
+
+        var requiredFiles = await _context.Requirements
+            .Where(r => r.GradeLevel == enrollment.GradeLevel)
+            .ToListAsync();
+
+        var requirementModels = requiredFiles.Select(r => new RequirementModel
+        {
+            RequirementName = r.RequirementName,
+            Description = r.Description,
+            UploadedFile = r.UploadedFile,
+            IsRequired = r.IsRequired,
+            GradeLevel = r.GradeLevel,
+            EnrollmentId = enrollment.EnrollmentId
+        }).ToList();
+
+        _context.RequirementModels.AddRange(requirementModels);
+        await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = "Enrollment created successfully.";
         return RedirectToAction("ManageEnrolled", "Admin");
     }
 
@@ -555,7 +923,14 @@ public class AdminController : Controller
         _context.Update(inquiry);
         await _context.SaveChangesAsync();
 
-        string subject = "Inquiry Approved";
+        string subject = "Inquiry Rejected";
+        // string body = $@"
+        //     <p>Dear {inquiry.StudentName},</p>
+        //     <p>Your inquiry has been approved.</p>
+        //     <p>You can proceed to the enrollment process by visiting the following link:</p>
+        //     <p><a href='{enrollmentUrl}'>{enrollmentUrl}</a></p>
+        //     <p>Thank you for your interest!</p>
+        //     <p>Best regards,<br>Your Team</p>";
         string body = $@"
             <p>Dear {inquiry.StudentName},</p>
             <p>We regret to inform you that your inquiry has been rejected.</p>
@@ -575,7 +950,7 @@ public class AdminController : Controller
 
         await _emailService.SendEmailAsync(inquiry.EmailAddress, subject, body);
         TempData["SuccessMessage"] = "Inquiry rejected.";
-    return RedirectToAction("ManageInquiries");
+        return RedirectToAction("ManageInquiries");
     }
 
     [HttpPost]
@@ -594,8 +969,9 @@ public class AdminController : Controller
         _context.Update(inquiry);
         await _context.SaveChangesAsync();
 
-        string subject = "Inquiry Rejected";
+        string subject = "Inquiry Approved";
         string enrollmentUrl = Url.Action("Index", "Home", null, Request.Scheme) ?? "";
+
         string body = $@"
             <p>Dear {inquiry.StudentName},</p>
             <p>Your inquiry has been approved.</p>

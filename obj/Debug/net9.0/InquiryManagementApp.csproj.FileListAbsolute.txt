@@ -225,3 +225,5 @@ C:\JDM\InquiryManagementApp\obj\Debug\net9.0\refint\InquiryManagementApp.dll
 C:\JDM\InquiryManagementApp\obj\Debug\net9.0\InquiryManagementApp.pdb
 C:\JDM\InquiryManagementApp\obj\Debug\net9.0\InquiryManagementApp.genruntimeconfig.cache
 C:\JDM\InquiryManagementApp\obj\Debug\net9.0\ref\InquiryManagementApp.dll
+C:\JDM\InquiryManagementApp\bin\Debug\net9.0\PayPalCheckoutSdk.dll
+C:\JDM\InquiryManagementApp\bin\Debug\net9.0\PayPalHttp-Dotnet.dll

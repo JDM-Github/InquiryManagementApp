@@ -180,7 +180,7 @@ namespace InquiryManagementApp.Controllers
                 }
                 if (enrollment2!.Password == password)
                 {
-                    if (enrollment2.IsApproved)
+                    if (enrollment2.IsEnrolled)
                     {
                         HttpContext.Session.SetString("isAdmin", "2");
                         SetSessionVariables(enrollment2);
@@ -203,21 +203,8 @@ namespace InquiryManagementApp.Controllers
 
         private void SetSessionVariables(Enrollment enrollment)
         {
-            HttpContext.Session.SetString("TempUsername", enrollment.TemporaryUsername);
-            HttpContext.Session.SetString("TempPassword", enrollment.TemporaryPassword);
             HttpContext.Session.SetInt32("EnrollmentId", enrollment.EnrollmentId);
-            HttpContext.Session.SetString("Surname", enrollment.Surname);
-            HttpContext.Session.SetString("Email", enrollment.Email);
-            HttpContext.Session.SetString("Firstname", enrollment.Firstname);
-            HttpContext.Session.SetString("Middlename", enrollment.Middlename);
-            HttpContext.Session.SetString("Gender", enrollment.Gender);
-            HttpContext.Session.SetString("GradeLevel", enrollment.GradeLevel);
-            HttpContext.Session.SetString("Address", enrollment.Address);
-            HttpContext.Session.SetString("LRN", enrollment.LRN);
-            HttpContext.Session.SetString("DateOfBirth", enrollment.DateOfBirth.ToString());
-            HttpContext.Session.SetString("Mother", enrollment.MotherFirstName + " " + enrollment.MotherLastName);
-            HttpContext.Session.SetString("Father", enrollment.FatherFirstName + " " + enrollment.FatherLastName);
-            HttpContext.Session.SetString("IsApproved", enrollment.IsApproved ? "Approved" : "Not Approved");
+            HttpContext.Session.SetString("LRN", enrollment?.LRN ?? "");
 
         }
 

@@ -1,4 +1,4 @@
-@model CashFee
+@model CashFeeView
 
 <div class="container-fluid mt-4 d-flex gap-3"
     style="margin-top: 65px !important; margin-bottom: 10px; min-height: 90vh;">
@@ -13,53 +13,242 @@
         </div>
 
         <div class="card-body">
-            @* PUT HERE *@
-            <div class="mb-4">
-                <h5 class="text-primary">CASH FEES DETAILS</h5>
-            </div>
-
             <div class="mb-3 d-flex align-items-center justify-content-between">
                 <label class="form-label text-muted mb-0" style="flex: 1;">Tuition Fee:</label>
-                <input type="text" class="form-control" value="@Model.TuitionFee.ToString("C2")" readonly
+                <input type="text" class="form-control" value="@CashFeeView.TuitionFee.ToString("C2")" readonly
                     style="flex: 2;">
             </div>
 
             <div class="mb-3 d-flex align-items-center justify-content-between">
                 <label class="form-label text-muted mb-0" style="flex: 1;">Miscellaneous:</label>
-                <input type="text" class="form-control" value="@Model.Miscellaneous.ToString("C2")" readonly
+                <input type="text" class="form-control" value="@CashFeeView.Miscellaneous.ToString("C2")" readonly
+                    style="flex: 2;">
+            </div>
+            <div class="mb-3 d-flex align-items-center justify-content-between">
+                <label class="form-label text-muted mb-0" style="flex: 1;">Total:</label>
+                <input type="text" class="form-control"
+                    value="@((CashFeeView.TuitionFee + CashFeeView.Miscellaneous).ToString("C2"))" readonly
                     style="flex: 2;">
             </div>
 
-            <div class="mb-3 d-flex align-items-center justify-content-between">
-                <label class="form-label text-muted mb-0" style="flex: 1;">Discount:</label>
-                <input type="text" class="form-control" value="@((Model.TuitionFee / Model.Discount).ToString("C2"))"
-                    readonly style="flex: 2;">
+            <div class="card shadow border-0 rounded-4 p-3">
+                <div class="card-header text-primary fw-bold text-center">
+                    <h5 class="mb-0 fw-bold">CASH FEES DETAILS</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Tuition Fee:</span>
+                        <span class="fw-bold">@CashFeeView.TuitionFee.ToString("C2")</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Cash Discount:</span>
+                        <span class="fw-bold">@((CashFeeView.TuitionFee / 10).ToString("C2"))</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Total After Discount:</span>
+                        <span class="fw-bold">@(((CashFeeView.TuitionFee + CashFeeView.Miscellaneous) -
+                            (CashFeeView.TuitionFee / 10)).ToString("C2"))</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Early Bird Discount:</span>
+                        <span class="fw-bold">@((CashFeeView.TuitionFee / 10).ToString("C2"))</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Total for All Discounts:</span>
+                        <span class="fw-bold">@(((CashFeeView.TuitionFee + CashFeeView.Miscellaneous) -
+                            (CashFeeView.TuitionFee / 10 * 2)).ToString("C2"))</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3 d-flex align-items-center justify-content-between">
-                <label class="form-label text-muted mb-0" style="flex: 1;">Sub Total:</label>
-                <input type="text" class="form-control"
-                    value="@((Model.TuitionFee + Model.Miscellaneous).ToString("C2"))" readonly style="flex: 2;">
+
+
+            <div class="card shadow border-0 rounded-4 p-3 mt-3">
+                <div class="card-header text-primary fw-bold text-center">
+                    <h5 class="mb-0 fw-bold">QUARTERLY FEES DETAILS</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Tuition Fee:</span>
+                        <span class="fw-bold">@CashFeeView.QuarterlyFee.ToString("C2")</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Total:</span>
+                        <span class="fw-bold">@(((CashFeeView.QuarterlyFee + CashFeeView.Miscellaneous)).ToString("C2"))</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Early Bird Discount:</span>
+                        <span class="fw-bold">@((CashFeeView.TuitionFee / 10).ToString("C2"))</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Total For All Discounts:</span>
+                        <span class="fw-bold">@(((CashFeeView.QuarterlyFee + CashFeeView.Miscellaneous) -
+                            (CashFeeView.TuitionFee / 10)).ToString("C2"))</span>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="text-primary">Quarterly Breakdown</h6>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">October:</span>
+                        <span class="fw-bold">@CashFeeView.QuarterlyFee.ToString("C2")</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">January:</span>
+                        <span class="fw-bold">@CashFeeView.QuarterlyFee.ToString("C2")</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">April:</span>
+                        <span class="fw-bold">@CashFeeView.QuarterlyFee.ToString("C2")</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3 d-flex align-items-center justify-content-between">
-                <label class="form-label text-muted mb-0" style="flex: 1;">Total After Discount:</label>
-                <input type="text" class="form-control"
-                    value="@(((Model.TuitionFee + Model.Miscellaneous) - (Model.TuitionFee / Model.Discount)).ToString("C2"))"
-                    readonly style="flex: 2;">
+            <div class="card shadow border-0 rounded-4 p-3 mt-3">
+                <div class="card-header text-primary fw-bold text-center">
+                    <h5 class="mb-0 fw-bold">MONTHLY FEES DETAILS</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Tuition Fee:</span>
+                        <span class="fw-bold">@CashFeeView.MonthlyFee.ToString("C2")</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Total:</span>
+                        <span class="fw-bold">@(((CashFeeView.MonthlyFee +
+                            CashFeeView.Miscellaneous)).ToString("C2"))</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Early Bird Discount:</span>
+                        <span class="fw-bold">@((CashFeeView.TuitionFee / 10).ToString("C2"))</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Total For All Discounts:</span>
+                        <span class="fw-bold">@(((CashFeeView.MonthlyFee + CashFeeView.Miscellaneous) -
+                            (CashFeeView.TuitionFee / 10)).ToString("C2"))</span>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="text-primary">Monthly Breakdown</h6>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">September:</span>
+                        <span class="fw-bold">@CashFeeView.MonthlyFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">October:</span>
+                        <span class="fw-bold">@CashFeeView.MonthlyFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">November:</span>
+                        <span class="fw-bold">@CashFeeView.MonthlyFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">December:</span>
+                        <span class="fw-bold">@CashFeeView.MonthlyFee.ToString("C2")</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">January:</span>
+                        <span class="fw-bold">@CashFeeView.MonthlyFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">February:</span>
+                        <span class="fw-bold">@CashFeeView.MonthlyFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">March:</span>
+                        <span class="fw-bold">@CashFeeView.MonthlyFee.ToString("C2")</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">April:</span>
+                        <span class="fw-bold">@CashFeeView.MonthlyFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">May:</span>
+                        <span class="fw-bold">@CashFeeView.MonthlyFee.ToString("C2")</span>
+                    </div>
+                </div>
             </div>
-            <hr>
-            <div class="mb-3 d-flex align-items-center justify-content-between">
-                <label class="form-label text-muted mb-0" style="flex: 1;">Early Bird Discount:</label>
-                <input type="text" class="form-control" value="@((Model.TuitionFee / Model.Discount).ToString("C2"))"
-                    readonly style="flex: 2;">
+
+
+            <div class="card shadow border-0 rounded-4 p-3 mt-3">
+                <div class="card-header text-primary fw-bold text-center">
+                    <h5 class="mb-0 fw-bold">INITIAL 5 PROMO</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">Upon Enrollment:</span>
+                        <span class="fw-bold">@CashFeeView.UponEnrollment.ToString("C2")</span>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="text-primary">Monthly Breakdown</h6>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">August:</span>
+                        <span class="fw-bold">@CashFeeView.PromoFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">September:</span>
+                        <span class="fw-bold">@CashFeeView.PromoFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">October:</span>
+                        <span class="fw-bold">@CashFeeView.PromoFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">November:</span>
+                        <span class="fw-bold">@CashFeeView.PromoFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">December:</span>
+                        <span class="fw-bold">@CashFeeView.PromoFee.ToString("C2")</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">January:</span>
+                        <span class="fw-bold">@CashFeeView.PromoFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">February:</span>
+                        <span class="fw-bold">@CashFeeView.PromoFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">March:</span>
+                        <span class="fw-bold">@CashFeeView.PromoFee.ToString("C2")</span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">April:</span>
+                        <span class="fw-bold">@CashFeeView.PromoFee.ToString("C2")</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span class="text-muted">May:</span>
+                        <span class="fw-bold">@CashFeeView.PromoFee.ToString("C2")</span>
+                    </div>
+                </div>
             </div>
-            <div class="mb-3 d-flex align-items-center justify-content-between">
-                <label class="form-label text-muted mb-0" style="flex: 1;">Total For All Discount:</label>
-                <input type="text" class="form-control"
-                    value="@(((Model.TuitionFee + Model.Miscellaneous) - (Model.TuitionFee / Model.Discount * 2)).ToString("C2"))"
-                    readonly style="flex: 2;">
-            </div>
+
 
         </div>
     </div>

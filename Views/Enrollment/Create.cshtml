@@ -16,15 +16,7 @@
                     <ol class="list-group list-group-numbered">
                         <li class="list-group-item">Click the <b>Enroll Now</b> button.</li>
                         <li class="list-group-item">Complete the form with the required information.</li>
-                        @* <li class="list-group-item">
-                            Update the necessary documents:
-                            <ul>
-                                <li>Form 10 (Original Class Card)</li>
-                                <li>Form 9 (Original Transcript of Records)</li>
-                                <li>PSA (2 Photocopies)</li>
-                                <li>Good Moral Certificate</li>
-                            </ul>
-                        </li> *@
+
                         <li class="list-group-item">After sending enrollment form, a message will indicate that your
                             application is awaiting approval from the registrar. Please allow some time for this
                             process.</li>
@@ -190,7 +182,7 @@
 
                             <div class="mb-3">
                                 <label asp-for="LRN" class="form-label fw-bold">LRN (Learner Reference Number)</label>
-                                <input asp-for="LRN" class="form-control" placeholder="Enter your LRN" required />
+                                <input asp-for="LRN" class="form-control" placeholder="Enter your LRN" />
                                 <span asp-validation-for="LRN" class="text-danger"></span>
                             </div>
                         </div>

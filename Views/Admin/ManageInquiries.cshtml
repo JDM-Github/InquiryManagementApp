@@ -36,6 +36,7 @@
                         <th scope="col">EMAIL</th>
                         <th scope="col">SOURCE</th>
                         <th scope="col">STATUS</th>
+                        <th scope="col">R.STATUS</th>
                         <th scope="col">DATE</th>
                         <th scope="col">ACTIONS</th>
                     </tr>
@@ -76,6 +77,15 @@
                                     else
                                     {
                                         <span class="badge bg-warning">Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (inquiry.IsConfirmed)
+                                    {
+                                        <span class="badge bg-success">Confirmed</span>
+                                    }
+                                    else {
+                                        <span class="badge bg-secondary">------</span>
                                     }
                                 </td>
                                 <td>@inquiry.DateCreated.ToString("MMMM dd, yyyy")</td>

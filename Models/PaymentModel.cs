@@ -8,15 +8,15 @@ namespace InquiryManagementApp.Models
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }
         public string SearchFilter { get; set; }
-        public bool IsPaymentDay { get; set; }
+        public string YearFilter { get; set; }
+        public string MonthFilter { get; set; }
 
     }
 
     public class PaymentViewModel
     {
-        public Payment Payment { get; set; }
+        public StudentPayment Payment { get; set; }
         public Enrollment? Enrollees { get; set; }
-
     }
 
     public class PaymentSchedule {

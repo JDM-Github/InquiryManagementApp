@@ -101,7 +101,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="post" action="@Url.Action("Enroll", "Admin")">
+                @* <form method="post" action="@Url.Action("Enroll", "Admin")">
                     <div class="mb-3">
                         <label for="Surname" class="form-label">Surname</label>
                         <input type="text" class="form-control" id="Surname" name="Surname" required />
@@ -155,57 +155,26 @@
                         <label for="Address" class="form-label">Address</label>
                         <input type="text" class="form-control" id="Address" name="Address" required />
                     </div>
+                    
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="HaveSiblingInSchool" name="HaveSiblingInSchool" />
+                        <label for="HaveSiblingInSchool" class="form-check-label">Do you have siblings in
+                            this school?</label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="NumberOfSibling" class="form-label">Number of Siblings:</label>
+                        <input type="number" class="form-control" id="NumberOfSibling"
+                            name="NumberOfSibling" min="0" value="0" />
+                    </div>
                     <div class="mb-3">
                         <label for="LRN" class="form-label">LRN (Learner Reference Number)</label>
-                        <input type="text" class="form-control" id="LRN" name="LRN" required />
+                        <input type="text" class="form-control" id="LRN" name="LRN" />
                     </div>
-                    @* <div class="mb-3">
-                        <label for="FatherLastName" class="form-label">Father's Last Name</label>
-                        <input type="text" class="form-control" id="FatherLastName" name="FatherLastName" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="FatherFirstName" class="form-label">Father's First Name</label>
-                        <input type="text" class="form-control" id="FatherFirstName" name="FatherFirstName" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="FatherOccupation" class="form-label">Father's Occupation</label>
-                        <input type="text" class="form-control" id="FatherOccupation" name="FatherOccupation" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="MotherLastName" class="form-label">Mother's Last Name</label>
-                        <input type="text" class="form-control" id="MotherLastName" name="MotherLastName" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="MotherFirstName" class="form-label">Mother's First Name</label>
-                        <input type="text" class="form-control" id="MotherFirstName" name="MotherFirstName" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="MotherOccupation" class="form-label">Mother's Occupation</label>
-                        <input type="text" class="form-control" id="MotherOccupation" name="MotherOccupation" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="MotherMaidenName" class="form-label">Mother's Maiden Name</label>
-                        <input type="text" class="form-control" id="MotherMaidenName" name="MotherMaidenName" />
-                    </div> *@
-                    @* <div class="mb-3">
-                        <label for="Form10" class="form-label">Form 10</label>
-                        <input type="text" class="form-control" id="Form10" name="Form10" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="Form9" class="form-label">Form 9</label>
-                        <input type="text" class="form-control" id="Form9" name="Form9" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="PSA" class="form-label">PSA</label>
-                        <input type="text" class="form-control" id="PSA" name="PSA" />
-                    </div> *@
-                    @* <div class="mb-3">
-                        <label for="GoodMoralCertificate" class="form-label">Good Moral Certificate</label>
-                        <input type="text" class="form-control" id="GoodMoralCertificate" name="GoodMoralCertificate" />
-                    </div> *@
-
                     <button type="submit" class="btn btn-primary">Enroll</button>
-                </form>
+                </form> *@
+                @await Html.PartialAsync("Modal/_AddEnrollees", new Enrollment())
             </div>
         </div>
     </div>

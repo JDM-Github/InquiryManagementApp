@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InquiryManagementApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250110043925_InitialUpdate")]
+    [Migration("20250111100249_InitialUpdate")]
     partial class InitialUpdate
     {
         /// <inheritdoc />
@@ -75,6 +75,9 @@ namespace InquiryManagementApp.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
+                    b.Property<string>("ApproveId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("ApprovedEnrolled")
                         .HasColumnType("datetime2");
 
@@ -85,6 +88,9 @@ namespace InquiryManagementApp.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("EnrolledDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("FatherFirstName")
                         .IsRequired()
@@ -127,6 +133,9 @@ namespace InquiryManagementApp.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsEnrolled")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsRejected")
                         .HasColumnType("bit");
 
@@ -139,7 +148,6 @@ namespace InquiryManagementApp.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Middlename")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -340,6 +348,9 @@ namespace InquiryManagementApp.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
@@ -357,6 +368,9 @@ namespace InquiryManagementApp.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsCancelled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsConfirmed")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsRejected")
@@ -524,6 +538,12 @@ namespace InquiryManagementApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRejected")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsRequired")
                         .HasColumnType("bit");
 
@@ -545,6 +565,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 1,
                             Description = "A valid copy of the Birth Certificate.",
                             GradeLevel = "NURSERY",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Birth Certificate",
                             UploadedFile = ""
@@ -554,6 +576,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 2,
                             Description = "Last year’s report card.",
                             GradeLevel = "KINDER",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Report Card",
                             UploadedFile = ""
@@ -563,6 +587,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 3,
                             Description = "A valid copy of the Birth Certificate.",
                             GradeLevel = "KINDER",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Birth Certificate",
                             UploadedFile = ""
@@ -572,6 +598,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 4,
                             Description = "A current medical certificate.",
                             GradeLevel = "ELEMENTARY",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Medical Certificate",
                             UploadedFile = ""
@@ -581,6 +609,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 5,
                             Description = "Last year’s report card.",
                             GradeLevel = "ELEMENTARY",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Report Card",
                             UploadedFile = ""
@@ -590,6 +620,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 6,
                             Description = "A valid PSA-certified Birth Certificate.",
                             GradeLevel = "ELEMENTARY",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "PSA Birth Certificate",
                             UploadedFile = ""
@@ -599,6 +631,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 7,
                             Description = "Form 138 (Report Card) for the last grade level.",
                             GradeLevel = "JUNIOR HIGH SCHOOL",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Form 138 (Report Card)",
                             UploadedFile = ""
@@ -608,6 +642,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 8,
                             Description = "A valid PSA-certified Birth Certificate.",
                             GradeLevel = "JUNIOR HIGH SCHOOL",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "PSA Birth Certificate",
                             UploadedFile = ""
@@ -617,6 +653,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 9,
                             Description = "Certificate of Good Moral Character from previous school.",
                             GradeLevel = "JUNIOR HIGH SCHOOL",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Certificate of Good Moral",
                             UploadedFile = ""
@@ -626,6 +664,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 10,
                             Description = "Form 137 or the Grade 10 Report Card.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Form 137 (Grade 10 Report Card)",
                             UploadedFile = ""
@@ -635,6 +675,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 11,
                             Description = "A valid PSA-certified Birth Certificate.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "PSA Birth Certificate",
                             UploadedFile = ""
@@ -644,6 +686,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 12,
                             Description = "Certificate of Good Moral Character from previous school.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Certificate of Good Moral",
                             UploadedFile = ""
@@ -653,6 +697,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 13,
                             Description = "Form 137 or the Grade 10 Report Card.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Form 137 (Grade 10 Report Card)",
                             UploadedFile = ""
@@ -662,6 +708,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 14,
                             Description = "A valid PSA-certified Birth Certificate.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "PSA Birth Certificate",
                             UploadedFile = ""
@@ -671,6 +719,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 15,
                             Description = "Certificate of Good Moral Character from previous school.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Certificate of Good Moral",
                             UploadedFile = ""
@@ -680,6 +730,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 16,
                             Description = "Form 137 or the Grade 11 Report Card.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Form 137 (Grade 11 Report Card)",
                             UploadedFile = ""
@@ -689,6 +741,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 17,
                             Description = "A valid PSA-certified Birth Certificate.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "PSA Birth Certificate",
                             UploadedFile = ""
@@ -698,6 +752,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 18,
                             Description = "Certificate of Good Moral Character from previous school.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Certificate of Good Moral",
                             UploadedFile = ""
@@ -707,6 +763,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 19,
                             Description = "Form 137 or the Grade 11 Report Card.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Form 137 (Grade 11 Report Card)",
                             UploadedFile = ""
@@ -716,6 +774,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 20,
                             Description = "A valid PSA-certified Birth Certificate.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "PSA Birth Certificate",
                             UploadedFile = ""
@@ -725,6 +785,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 21,
                             Description = "Certificate of Good Moral Character from previous school.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Certificate of Good Moral",
                             UploadedFile = ""
@@ -734,6 +796,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 22,
                             Description = "Form 137 or the Grade 10 Report Card.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Form 137 (Grade 10 Report Card)",
                             UploadedFile = ""
@@ -743,6 +807,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 23,
                             Description = "A valid PSA-certified Birth Certificate.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "PSA Birth Certificate",
                             UploadedFile = ""
@@ -752,6 +818,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 24,
                             Description = "Certificate of Good Moral Character from previous school.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Certificate of Good Moral",
                             UploadedFile = ""
@@ -761,6 +829,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 25,
                             Description = "Form 137 or the Grade 10 Report Card.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Form 137 (Grade 10 Report Card)",
                             UploadedFile = ""
@@ -770,6 +840,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 26,
                             Description = "A valid PSA-certified Birth Certificate.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "PSA Birth Certificate",
                             UploadedFile = ""
@@ -779,6 +851,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 27,
                             Description = "Certificate of Good Moral Character from previous school.",
                             GradeLevel = "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Certificate of Good Moral",
                             UploadedFile = ""
@@ -788,6 +862,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 28,
                             Description = "Form 137 or the Grade 11 Report Card.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Form 137 (Grade 11 Report Card)",
                             UploadedFile = ""
@@ -797,6 +873,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 29,
                             Description = "A valid PSA-certified Birth Certificate.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "PSA Birth Certificate",
                             UploadedFile = ""
@@ -806,6 +884,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 30,
                             Description = "Certificate of Good Moral Character from previous school.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Certificate of Good Moral",
                             UploadedFile = ""
@@ -815,6 +895,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 31,
                             Description = "Form 137 or the Grade 11 Report Card.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Form 137 (Grade 11 Report Card)",
                             UploadedFile = ""
@@ -824,6 +906,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 32,
                             Description = "A valid PSA-certified Birth Certificate.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "PSA Birth Certificate",
                             UploadedFile = ""
@@ -833,6 +917,8 @@ namespace InquiryManagementApp.Migrations
                             Id = 33,
                             Description = "Certificate of Good Moral Character from previous school.",
                             GradeLevel = "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)",
+                            IsApproved = false,
+                            IsRejected = false,
                             IsRequired = true,
                             RequirementName = "Certificate of Good Moral",
                             UploadedFile = ""
@@ -858,6 +944,12 @@ namespace InquiryManagementApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRejected")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsRequired")
                         .HasColumnType("bit");
 
@@ -876,6 +968,90 @@ namespace InquiryManagementApp.Migrations
                     b.ToTable("RequirementModels");
                 });
 
+            modelBuilder.Entity("InquiryManagementApp.Models.StudentPayment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MonthPaid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("PaymentAmount")
+                        .HasColumnType("float");
+
+                    b.Property<string>("PaymentFor")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReferenceNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("YearPaid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("StudentPayments");
+                });
+
+            modelBuilder.Entity("InquiryManagementApp.Models.StudentPaymentRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("Balance")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("CashDiscount")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EarlyBird")
+                        .HasColumnType("bit");
+
+                    b.PrimitiveCollection<string>("PaymentId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("PerPayment")
+                        .HasColumnType("float");
+
+                    b.Property<int>("SiblingDiscount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("StudentPaymentRecords");
+                });
+
             modelBuilder.Entity("InquiryManagementApp.Models.RequirementModel", b =>
                 {
                     b.HasOne("InquiryManagementApp.Models.Enrollment", "Enrollment")
@@ -885,6 +1061,28 @@ namespace InquiryManagementApp.Migrations
                         .IsRequired();
 
                     b.Navigation("Enrollment");
+                });
+
+            modelBuilder.Entity("InquiryManagementApp.Models.StudentPayment", b =>
+                {
+                    b.HasOne("InquiryManagementApp.Models.Enrollment", "Student")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("InquiryManagementApp.Models.StudentPaymentRecord", b =>
+                {
+                    b.HasOne("InquiryManagementApp.Models.Enrollment", "Student")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Student");
                 });
 #pragma warning restore 612, 618
         }

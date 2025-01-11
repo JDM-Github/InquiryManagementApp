@@ -44,9 +44,12 @@ namespace InquiryManagementApp.Models
 
 
         public bool IsApproved { get; set; } = false;
+        public bool IsConfirmed { get; set; } = false;
         public bool IsRejected { get; set; } = false;
         public bool IsCancelled { get; set; } = false;
         public string CancellationReason { get; set; } = "";
         public string? CancellationNotes { get; set; } = "";
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

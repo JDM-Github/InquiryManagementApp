@@ -3,6 +3,11 @@ using InquiryManagementApp.Models;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
+using System.Net.Mime;
+using System.Net.Http.Headers;
+using PayPalCheckoutSdk.Orders;
+using PayPalCheckoutSdk.Core;
+using Helper;
 
 public class PaymentController : Controller
 {
@@ -19,14 +24,20 @@ public class PaymentController : Controller
         _emailService = emailService;
     }
 
+    public async Task<bool> IsAlreadyCreated(int userId, string month)
+    {
+        string currentYear = DateTime.Now.Year.ToString();
+        return await _context.StudentPayments
+                .AnyAsync(payment =>
+                    payment.UserId == userId &&
+                    payment.MonthPaid == month &&
+                    payment.YearPaid == currentYear);
+    }
+
+
     public async Task<IActionResult> PaymentHistory()
     {
         var userIdString = HttpContext.Session.GetString("LRN");
-        var existingSchedule = _context.PaymentSchedules.FirstOrDefault();
-
-        bool isPaymentScheduleActive = existingSchedule != null && existingSchedule!.IsActive &&
-            DateTime.Now >= existingSchedule!.StartDate && DateTime.Now <= existingSchedule.EndDate;
-
         if (userIdString == null)
         {
             TempData["ErrorMessage"] = "You must be logged in to view payments.";
@@ -39,207 +50,508 @@ public class PaymentController : Controller
             return RedirectToAction("Login", "Account");
         }
 
-        var payments = await _context.Payments
-            .Where(p => p.EnrollreesId == user.EnrollmentId)
+        var payments = await _context.StudentPayments
+            .Where(p => p.UserId == user.EnrollmentId)
             .OrderDescending()
             .ToListAsync();
 
-        var fee = await _context.Fees.FirstOrDefaultAsync(f => f.Level == user!.GradeLevel);
-        bool isAlreadyPaid = payments.Any(p => p.PaymentId.ToString() == existingSchedule!.CurrentPaymentId && p.Status == "Paid");
-        ViewBag.IsPaymentScheduleActive = isPaymentScheduleActive;
-        ViewBag.IsAlreadyPaid = isAlreadyPaid;
-        ViewBag.Fee = fee!.Fee;
+        var payment = await _context.StudentPaymentRecords.FirstOrDefaultAsync(p => p.UserId == user.EnrollmentId);
+        if (payment == null)
+        {
+            ViewBag.IsAlreadyPaid = false;
+            ViewBag.IsPaymentScheduleActive = false;;
+            TempData["ErrorMessage"] = "Payment record not found.";
+            return View(payments);
+        }
+        DateTime date = DateTime.Now;
+        string monthName = date.ToString("MMMM");
+        bool IsCreated = await IsAlreadyCreated(user.EnrollmentId, monthName);
+
+        if (!IsCreated && payment.PaymentType == "Quarterly")
+        {
+            if (monthName == "October" || monthName == "January" || monthName == "April")
+            {
+                var Payment = new StudentPayment {
+                    UserId = user.EnrollmentId,
+                    ReferenceNumber = "-----",
+                    PaymentAmount = payment.PerPayment ?? 4750,
+                    MonthPaid = monthName,
+                    YearPaid = DateTime.Now.Year.ToString(),
+                    Date = null
+                };
+                _context.StudentPayments.Add(Payment);
+                await _context.SaveChangesAsync();
+            }
+        }
+        else if (!IsCreated && payment.PaymentType == "Monthly")
+        {
+            if (monthName == "September" || monthName == "October" || monthName == "November" || monthName == "December" || monthName == "January" || monthName == "February" || monthName == "March" || monthName == "April")
+            {
+                var Payment = new StudentPayment
+                {
+                    UserId = user.EnrollmentId,
+                    ReferenceNumber = "-----",
+                    PaymentAmount = payment.PerPayment ?? 1900,
+                    MonthPaid = monthName,
+                    YearPaid = DateTime.Now.Year.ToString(),
+                    Date = null
+                };
+                _context.StudentPayments.Add(Payment);
+                await _context.SaveChangesAsync();
+            }
+        }
+        ViewBag.UserId = user.EnrollmentId;
+        ViewBag.PaymentId = payment.Id;
+        ViewBag.PaymentType = payment.PaymentType;
+        ViewBag.RemainingBalance = payment.Balance;
+
         return View(payments);
     }
 
-
-    public async Task<IActionResult> Pay()
+    public async Task<IActionResult> SubmitBalancePayment(int userId, int paymentId, double AmountToPay)
     {
-        var userId = HttpContext.Session.GetInt32("EnrollmentId");
-        var user = await _context.Students.FirstOrDefaultAsync(e => e.EnrollmentId == userId);
-        if (user == null)
+        Console.WriteLine(paymentId);
+        var payment = await _context.StudentPaymentRecords.FirstOrDefaultAsync(p => p.Id == paymentId);
+        if (payment == null)
         {
-            TempData["ErrorMessage"] = "User not found.";
+            TempData["ErrorMessage"] = "Invalid payment record.";
             return RedirectToAction("PaymentHistory");
         }
 
-
-        var paymentSchedule = PaymentSchedule.CurrentPaymentSchedule;
-        var currentPaymentId = paymentSchedule!.CurrentPaymentId;
-
-        var existingPayment = _context.Payments
-            .FirstOrDefault(p => p.EnrollreesId == userId && p.PaymentId.ToString() == currentPaymentId
-                && p.Status == "Paid" || p.Status == "Pending");
-
-        if (existingPayment != null)
+        if (payment.Balance <= 0)
         {
-            TempData["ErrorMessage"] = "You have already made the payment for this schedule.";
+            TempData["ErrorMessage"] = "Balance is already paid.";
             return RedirectToAction("PaymentHistory");
         }
 
-        var referenceNumber = Guid.NewGuid().ToString();
-        var successUrl = $"{Request.Scheme}://{Request.Host}/Payment/PaymentSuccess?reference={referenceNumber}";
-        var cancelUrl = $"{Request.Scheme}://{Request.Host}/Payment/PaymentCancelled?reference={referenceNumber}";
-
-        var fee = await _context.Fees.FirstOrDefaultAsync(f => f.Level == user!.GradeLevel);
-        var adjustedLineItems = new List<object>
+        var firstPayment = AmountToPay;
+        if (firstPayment > payment.Balance)
         {
-            new
-            {
-                currency = "PHP",
-                images = new string[] { "https://cdn-icons-png.flaticon.com/512/5166/5166991.png" },
-                amount = (int)(fee!.Fee * 100),
-                name = "Payment Fee",
-                quantity = 1,
-                description = "Payment fee for tuition"
-            }
-        };
-        var lineItems = adjustedLineItems.ToArray();
-        var payload = new
+            firstPayment = payment.Balance;
+        }
+        var orderRequest = new OrdersCreateRequest();
+        orderRequest.Prefer("return=representation");
+        orderRequest.RequestBody(new OrderRequest
         {
-            data = new
+            CheckoutPaymentIntent = "CAPTURE",
+            ApplicationContext = new ApplicationContext
             {
-                attributes = new
+                ReturnUrl = Url.Action("PaymentBalanceSuccess", "Payment", new { userId, paymentId = payment.Id, amount = firstPayment }, Request.Scheme),
+                CancelUrl = Url.Action("PaymentBalanceFailed", "Payment", new { userId, paymentId = payment.Id, amount = firstPayment }, Request.Scheme)
+            },
+            PurchaseUnits = new List<PurchaseUnitRequest>
+            {
+                new PurchaseUnitRequest
                 {
-                    billing = new
+                    AmountWithBreakdown = new AmountWithBreakdown
                     {
-                        address = new
-                        {
-                            line1 = user!.Address,
-                            country = "PH"
-                        },
-                        name = user.Firstname + " " + user.Middlename + " " + user.Surname,
-                        email = user.Email,
-                        phone = ""
+                        CurrencyCode = "PHP",
+                        Value = firstPayment.ToString("F2")
                     },
-                    send_email_receipt = true,
-                    show_description = true,
-                    show_line_items = true,
-                    payment_method_types = new string[] { "qrph", "billease", "card", "dob", "dob_ubp", "brankas_bdo", "gcash", "brankas_landbank", "brankas_metrobank", "grab_pay", "paymaya" },
-                    line_items = lineItems,
-                    description = "Payment for school tuition",
-                    reference_number = referenceNumber,
-                    statement_descriptor = "Inquiry Management",
-                    success_url = successUrl,
-                    cancel_url = cancelUrl,
+                    Description = "Balance Fee"
                 }
             }
-        };
-
-        var jsonPayload = JsonConvert.SerializeObject(payload);
-        var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+        });
 
         try
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(_configuration["PayMongo:SecretKey"])));
-            var response = await _httpClient.PostAsync("https://api.paymongo.com/v1/checkout_sessions", content);
-            if (response.IsSuccessStatusCode)
+            var client = new PayPalHttpClient(PayPalConfig.GetEnvironment());
+            var response = await client.Execute(orderRequest);
+            var result = response.Result<Order>();
+
+            var approvalUrl = result.Links.FirstOrDefault(link => link.Rel == "approve")?.Href;
+            if (approvalUrl != null)
             {
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                var jsonDeserialized = JsonConvert.DeserializeObject<dynamic>(responseContent);
-                var paymentLink = jsonDeserialized?.data?.attributes?.checkout_url;
-
-                var payment = new Payment
-                {
-                    Date = DateTime.Now,
-                    PaymentId = currentPaymentId!,
-                    PaidAmount = fee.Fee,
-                    ReferenceNumber = referenceNumber,
-                    PaymentMethod = "Paymongo",
-                    PaymentLink = paymentLink!.ToString(),
-                    Status = "Pending",
-                    EnrollreesId = user.EnrollmentId,
-                    TransactionId = jsonDeserialized!.data!.id,
-                    ExpirationTime = DateTime.UtcNow.AddMinutes(15)
-                };
-
-                _context.Payments.Add(payment);
-                _context.SaveChanges();
-                return Redirect(paymentLink.ToString());
+                return Redirect(approvalUrl);
             }
             else
             {
-                TempData["ErrorMessage"] = "Failed to create payment link.";
+                TempData["ErrorMessage"] = "Payment approval URL not found.";
                 return RedirectToAction("PaymentHistory");
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "An error occurred while processing your payment.";
+            TempData["ErrorMessage"] = $"Error during payment: {ex.Message}";
             return RedirectToAction("PaymentHistory");
         }
     }
 
-    public async Task<IActionResult> PaymentSuccess(string reference)
+    public async Task<IActionResult> PaymentBalanceSuccess(int userId, string paymentId, double amount)
     {
-        var transaction = await _context.Payments
-            .FirstOrDefaultAsync(t => t.ReferenceNumber == reference);
-
-        if (transaction == null)
+        var student = await _context.Students.FirstOrDefaultAsync(e => e.EnrollmentId == userId);
+        if (student == null)
         {
-            TempData["ErrorMessage"] = "Payment not found.";
+            TempData["ErrorMessage"] = "Student not found.";
             return RedirectToAction("PaymentHistory");
         }
+        var payment = await _context.StudentPaymentRecords.FirstOrDefaultAsync(p => p.Id == int.Parse(paymentId));
 
-        transaction.Status = "Paid";
-        transaction.PaymentMethod = "Paymongo";
-
-        var user = await _context.Students.FirstOrDefaultAsync(c => c.EnrollmentId == transaction.EnrollreesId);
-
-        _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(_configuration["PayMongo:SecretKey"])));
-        var response = await _httpClient.GetAsync(
-            "https://api.paymongo.com/v1/checkout_sessions/" + transaction.TransactionId.ToString());
-
-        if (response.IsSuccessStatusCode)
-        {
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var jsonDeserialized = JsonConvert.DeserializeObject<dynamic>(responseContent);
-            transaction.PaymentMethod = ((string)jsonDeserialized!.data!.attributes!.payment_method_used).ToUpper();
-        }
-
+        payment!.Balance = payment.Balance - amount;
+        _context.Update(payment);
         await _context.SaveChangesAsync();
+
+        var subject = "Balance Paid";
+        var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully paid {amount} for your balance. Your remaining balance is {payment.Balance}.";
+        await _emailService.SendEmailAsync(student.Email, subject, body);
+
         var notification = new Notification
         {
-            Message = $"You successfully paid the tuition in this semester. You paid {transaction.PaidAmount}.",
-            UserId = user!.LRN,
+            Message = $"You've successfully been paid for your balance. Your remaining balance is {payment.Balance}",
+            UserId = student.LRN,
             CreatedAt = DateTime.Now,
             IsRead = false
         };
-        var recent = new RecentActivity
-        {
-            Activity = $"User {user.Firstname} {user.Surname} paid {transaction.PaidAmount}",
-            CreatedAt = DateTime.Now
-        };
-        _context.RecentActivities.Add(recent);
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = "Payment successful!";
+        DateTime date = DateTime.Now;
+        string monthName = date.ToString("MMMM");
+
+        var payment2 = new StudentPayment
+        {
+            UserId = student.EnrollmentId,
+            ReferenceNumber = Guid.NewGuid().ToString(),
+            PaymentAmount = amount,
+            MonthPaid = monthName,
+            YearPaid = DateTime.Now.Year.ToString(),
+            Status = "Paid",
+            PaymentFor = "Balance",
+            Date = DateTime.Now
+        };
+        _context.StudentPayments.Add(payment2);
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Payment Successful!";
         return RedirectToAction("PaymentHistory");
     }
 
-    public async Task<IActionResult> PaymentCancelled(string reference)
+    public IActionResult PaymentBalanceFailed(int paymentId, double amount)
     {
-        var transaction = await _context.Payments
-            .FirstOrDefaultAsync(t => t.ReferenceNumber == reference);
+        TempData["ErrorMessage"] = "Payment failed. Please try again later.";
+        return RedirectToAction("Index");
+    }
 
-        if (transaction == null || transaction.Status == "Expired")
+    // public async Task<string> GetAccessToken()
+    // {
+    //     try
+    //     {
+    //         var url = "https://api.sandbox.paypal.com/v1/oauth2/token";
+    //         var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(
+    //             $"{_configuration["PaypalAccount:ClientId"]}:{_configuration["PaypalAccount:Secret"]}"));
+
+    //         using (var client = new HttpClient())
+    //         {
+    //             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
+    //             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")); 
+
+    //             var content = new FormUrlEncodedContent(new[]
+    //             {
+    //             new KeyValuePair<string, string>("grant_type", "client_credentials")
+    //         });
+
+    //             var response = await client.PostAsync(url, content);
+
+    //             if (!response.IsSuccessStatusCode)
+    //             {
+    //                 var errorContent = await response.Content.ReadAsStringAsync();
+    //                 Console.WriteLine($"Error fetching access token: {errorContent}");
+    //                 throw new Exception($"Failed to fetch access token. Status Code: {response.StatusCode}");
+    //             }
+
+    //             var responseContent = await response.Content.ReadAsStringAsync();
+    //             var data = JsonConvert.DeserializeObject<dynamic>(responseContent);
+
+    //             Console.WriteLine($"Access Token: {data.access_token}");
+    //             return data.access_token;
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine($"Error in GetAccessToken: {ex.Message}");
+    //         throw; 
+    //     }
+    // }
+
+
+    public async Task<IActionResult> Pay(int paymentId)
+    {
+        var payment = await _context.StudentPayments.FirstOrDefaultAsync(p => p.Id == paymentId);
+
+        if (payment == null || payment.Status != "Pending")
         {
-            TempData["ErrorMessage"] = "This transaction has expired.";
+            TempData["ErrorMessage"] = "Invalid payment or already processed.";
+            return RedirectToAction("Index");
+        }
+
+        var firstPayment = payment.PaymentAmount;
+        var orderRequest = new OrdersCreateRequest();
+        orderRequest.Prefer("return=representation");
+        orderRequest.RequestBody(new OrderRequest
+        {
+            CheckoutPaymentIntent = "CAPTURE",
+            ApplicationContext = new ApplicationContext
+            {
+                ReturnUrl = Url.Action("PaymentSuccess", "Payment", new { paymentId = payment.Id }, Request.Scheme),
+                CancelUrl = Url.Action("PaymentFailed", "Payment", new { paymentId = payment.Id }, Request.Scheme)
+            },
+            PurchaseUnits = new List<PurchaseUnitRequest>
+            {
+                new PurchaseUnitRequest
+                {
+                    AmountWithBreakdown = new AmountWithBreakdown
+                    {
+                        CurrencyCode = "PHP",
+                        Value = firstPayment.ToString("F2")
+                    },
+                    Description = "Enrollment Fee"
+                }
+            }
+        });
+
+        try
+        {
+            var client = new PayPalHttpClient(PayPalConfig.GetEnvironment());
+            var response = await client.Execute(orderRequest);
+            var result = response.Result<Order>();
+
+            var approvalUrl = result.Links.FirstOrDefault(link => link.Rel == "approve")?.Href;
+            if (approvalUrl != null)
+            {
+                return Redirect(approvalUrl);
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Payment approval URL not found.";
+                return RedirectToAction("PaymentHistory");
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error during payment: {ex.Message}";
             return RedirectToAction("PaymentHistory");
         }
-        transaction.Status = "Cancelled";
+    }
+
+    // Action for when payment is successful
+    public async Task<IActionResult> PaymentSuccess(string paymentId)
+    {
+        var payment = await _context.StudentPayments.FirstOrDefaultAsync(p => p.Id == int.Parse(paymentId));
+
+        if (payment == null || payment.Status != "Pending")
+        {
+            TempData["ErrorMessage"] = "Invalid payment.";
+            return RedirectToAction("PaymentHistory");
+        }
+        payment.ReferenceNumber = Guid.NewGuid().ToString();
+        payment.Date = DateTime.Now;
+        payment.Status = "Paid";
+        _context.Update(payment);
         await _context.SaveChangesAsync();
-        TempData["ErrorMessage"] = "Payment was cancelled. Please try again.";
+
+        TempData["SuccessMessage"] = "Payment successful. Your payment for this month has been paid SUCCESSFULLY";
+
+        var student = await _context.Students.FirstOrDefaultAsync(s => s.EnrollmentId == payment.UserId);
+        var subject = "Payment Successful";
+        var body = $"Dear {student!.Firstname} {student.Surname},<br>Your payment has been successfully processed.";
+        await _emailService.SendEmailAsync(student.Email, subject, body);
+
         return RedirectToAction("PaymentHistory");
     }
+
+    public IActionResult PaymentFailed(int paymentId)
+    {
+        TempData["ErrorMessage"] = "Payment failed. Please try again later.";
+        return RedirectToAction("Index");
+    }
+
+
+
+    // public async Task<IActionResult> Pay()
+    // {
+    //     var userId = HttpContext.Session.GetInt32("EnrollmentId");
+    //     var user = await _context.Students.FirstOrDefaultAsync(e => e.EnrollmentId == userId);
+    //     if (user == null)
+    //     {
+    //         TempData["ErrorMessage"] = "User not found.";
+    //         return RedirectToAction("PaymentHistory");
+    //     }
+
+    //     var paymentSchedule = PaymentSchedule.CurrentPaymentSchedule;
+    //     var currentPaymentId = paymentSchedule!.CurrentPaymentId;
+
+    //     var existingPayment = _context.Payments
+    //         .FirstOrDefault(p => p.EnrollreesId == userId && p.PaymentId.ToString() == currentPaymentId
+    //             && p.Status == "Paid" || p.Status == "Pending");
+
+    //     if (existingPayment != null)
+    //     {
+    //         TempData["ErrorMessage"] = "You have already made the payment for this schedule.";
+    //         return RedirectToAction("PaymentHistory");
+    //     }
+
+    //     var referenceNumber = Guid.NewGuid().ToString();
+    //     var successUrl = $"{Request.Scheme}://{Request.Host}/Payment/PaymentSuccess?reference={referenceNumber}";
+    //     var cancelUrl = $"{Request.Scheme}://{Request.Host}/Payment/PaymentCancelled?reference={referenceNumber}";
+
+    //     var fee = await _context.Fees.FirstOrDefaultAsync(f => f.Level == user!.GradeLevel);
+    //     var adjustedLineItems = new List<object>
+    //     {
+    //         new
+    //         {
+    //             currency = "PHP",
+    //             images = new string[] { "https://cdn-icons-png.flaticon.com/512/5166/5166991.png" },
+    //             amount = (int)(fee!.Fee * 100),
+    //             name = "Payment Fee",
+    //             quantity = 1,
+    //             description = "Payment fee for tuition"
+    //         }
+    //     };
+    //     var lineItems = adjustedLineItems.ToArray();
+    //     var payload = new
+    //     {
+    //         data = new
+    //         {
+    //             attributes = new
+    //             {
+    //                 billing = new
+    //                 {
+    //                     address = new
+    //                     {
+    //                         line1 = user!.Address,
+    //                         country = "PH"
+    //                     },
+    //                     name = user.Firstname + " " + user.Middlename + " " + user.Surname,
+    //                     email = user.Email,
+    //                     phone = ""
+    //                 },
+    //                 send_email_receipt = true,
+    //                 show_description = true,
+    //                 show_line_items = true,
+    //                 payment_method_types = new string[] { "qrph", "billease", "card", "dob", "dob_ubp", "brankas_bdo", "gcash", "brankas_landbank", "brankas_metrobank", "grab_pay", "paymaya" },
+    //                 line_items = lineItems,
+    //                 description = "Payment for school tuition",
+    //                 reference_number = referenceNumber,
+    //                 statement_descriptor = "Inquiry Management",
+    //                 success_url = successUrl,
+    //                 cancel_url = cancelUrl,
+    //             }
+    //         }
+    //     };
+
+    //     var jsonPayload = JsonConvert.SerializeObject(payload);
+    //     var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+    //     try
+    //     {
+    //         _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(_configuration["PayMongo:SecretKey"])));
+    //         var response = await _httpClient.PostAsync("https://api-m.sandbox.paypal.com/v2/checkout/orders", content);
+    //         if (response.IsSuccessStatusCode)
+    //         {
+    //             var responseContent = await response.Content.ReadAsStringAsync();
+
+    //             var jsonDeserialized = JsonConvert.DeserializeObject<dynamic>(responseContent);
+    //             var paymentLink = jsonDeserialized?.data?.attributes?.checkout_url;
+
+    //             var payment = new Payment
+    //             {
+    //                 Date = DateTime.Now,
+    //                 PaymentId = currentPaymentId!,
+    //                 PaidAmount = fee.Fee,
+    //                 ReferenceNumber = referenceNumber,
+    //                 PaymentMethod = "Paymongo",
+    //                 PaymentLink = paymentLink!.ToString(),
+    //                 Status = "Pending",
+    //                 EnrollreesId = user.EnrollmentId,
+    //                 TransactionId = jsonDeserialized!.data!.id,
+    //                 ExpirationTime = DateTime.UtcNow.AddMinutes(15)
+    //             };
+
+    //             _context.Payments.Add(payment);
+    //             _context.SaveChanges();
+    //             return Redirect(paymentLink.ToString());
+    //         }
+    //         else
+    //         {
+    //             TempData["ErrorMessage"] = "Failed to create payment link.";
+    //             return RedirectToAction("PaymentHistory");
+    //         }
+    //     }
+    //     catch (Exception)
+    //     {
+    //         TempData["ErrorMessage"] = "An error occurred while processing your payment.";
+    //         return RedirectToAction("PaymentHistory");
+    //     }
+    // }
+
+    // public async Task<IActionResult> PaymentSuccess(string reference)
+    // {
+    //     var transaction = await _context.Payments
+    //         .FirstOrDefaultAsync(t => t.ReferenceNumber == reference);
+
+    //     if (transaction == null)
+    //     {
+    //         TempData["ErrorMessage"] = "Payment not found.";
+    //         return RedirectToAction("PaymentHistory");
+    //     }
+
+    //     transaction.Status = "Paid";
+    //     transaction.PaymentMethod = "Paymongo";
+
+    //     var user = await _context.Students.FirstOrDefaultAsync(c => c.EnrollmentId == transaction.EnrollreesId);
+
+    //     _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(_configuration["PayMongo:SecretKey"])));
+    //     var response = await _httpClient.GetAsync(
+    //         "https://api.paymongo.com/v1/checkout_sessions/" + transaction.TransactionId.ToString());
+
+    //     if (response.IsSuccessStatusCode)
+    //     {
+    //         var responseContent = await response.Content.ReadAsStringAsync();
+    //         var jsonDeserialized = JsonConvert.DeserializeObject<dynamic>(responseContent);
+    //         transaction.PaymentMethod = ((string)jsonDeserialized!.data!.attributes!.payment_method_used).ToUpper();
+    //     }
+
+    //     await _context.SaveChangesAsync();
+    //     var notification = new Notification
+    //     {
+    //         Message = $"You successfully paid the tuition in this semester. You paid {transaction.PaidAmount}.",
+    //         UserId = user!.LRN,
+    //         CreatedAt = DateTime.Now,
+    //         IsRead = false
+    //     };
+    //     var recent = new RecentActivity
+    //     {
+    //         Activity = $"User {user.Firstname} {user.Surname} paid {transaction.PaidAmount}",
+    //         CreatedAt = DateTime.Now
+    //     };
+    //     _context.RecentActivities.Add(recent);
+    //     _context.Notifications.Add(notification);
+    //     await _context.SaveChangesAsync();
+
+    //     TempData["SuccessMessage"] = "Payment successful!";
+    //     return RedirectToAction("PaymentHistory");
+    // }
+
+    // public async Task<IActionResult> PaymentCancelled(string reference)
+    // {
+    //     var transaction = await _context.Payments
+    //         .FirstOrDefaultAsync(t => t.ReferenceNumber == reference);
+
+    //     if (transaction == null || transaction.Status == "Expired")
+    //     {
+    //         TempData["ErrorMessage"] = "This transaction has expired.";
+    //         return RedirectToAction("PaymentHistory");
+    //     }
+    //     transaction.Status = "Cancelled";
+    //     await _context.SaveChangesAsync();
+    //     TempData["ErrorMessage"] = "Payment was cancelled. Please try again.";
+    //     return RedirectToAction("PaymentHistory");
+    // }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SubmitWalkInPayment(string EnrollreesId, bool IsEarlyBird)
     {
-
         var student = await _context.Students
             .FirstOrDefaultAsync(e => e.LRN == EnrollreesId && e.IsApproved == true);
 

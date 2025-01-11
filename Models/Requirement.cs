@@ -18,6 +18,8 @@ namespace InquiryManagementApp.Models
 
         [ForeignKey("EnrollmentId")]
         public Enrollment Enrollment { get; set; }
+        public bool IsRejected { get; set; } = false;
+        public bool IsApproved { get; set; } = false;
     }
 
     public class Requirement
@@ -31,5 +33,7 @@ namespace InquiryManagementApp.Models
 
         public bool IsRequired { get; set; } = true;
         public string GradeLevel { get; set; }
+        public bool IsRejected { get; set; } = false;
+        public bool IsApproved { get; set; } = false;
     }
 }

@@ -36,7 +36,7 @@ namespace InquiryManagementApp.Models
         [StringLength(50)]
         public string Firstname { get; set; }
         [StringLength(50)]
-        public string Middlename { get; set; } = "";
+        public string? Middlename { get; set; } = "";
         [Required]
         public string Gender { get; set; }
         public string GradeLevel { get; set; }
@@ -51,7 +51,7 @@ namespace InquiryManagementApp.Models
         public string Address { get; set; } = "";
         [Required]
         [StringLength(20)]
-        public string LRN { get; set; }
+        public string? LRN { get; set; } = null;
         public string FatherLastName { get; set; } = "";
         public string FatherFirstName { get; set; } = "";
         public string FatherOccupation { get; set; } = "";
@@ -67,6 +67,11 @@ namespace InquiryManagementApp.Models
 
         public bool IsApproved { get; set; } = false;
         public DateTime? ApprovedEnrolled { get; set; } = null;
+        public String? ApproveId { get; set; } = null;
+
+        public bool IsEnrolled { get; set; } = false;
+        public DateTime? EnrolledDate { get; set; } = null;
+
         public bool IsRejected { get; set; } = false;
         public double FeePaid { get; set; } = 0;
 
@@ -83,4 +88,5 @@ namespace InquiryManagementApp.Models
         public int NumberOfSibling { get; set; } = 0;
     }
 }
+
 

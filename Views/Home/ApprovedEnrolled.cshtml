@@ -1,0 +1,94 @@
+@model StudentPaymentView
+
+<div class="container d-flex justify-content-center align-items-center" style="height: 80vh">
+    <div style="min-width: 400px; width: 100%; max-width: 100px;">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-primary text-white text-center">
+                <h3>Enrollment Payment</h3>
+                <p class="mb-0">Please fill out the form for enrollment payment.</p>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="PayEnrollment" method="post">
+                    <input type="hidden" asp-for="ApprovedId" />
+
+                    <div class="mb-3">
+                        <label asp-for="PaymentType" class="form-label">Select Payment Type</label>
+                        <select asp-for="PaymentType" class="form-select" required onchange="calculateTotal()">
+                            <option value="">Select a type of payment</option>
+                            <option value="Quarterly">Quarterly</option>
+                            <option value="Monthly">Monthly</option>
+                        </select>
+                        <span asp-validation-for="PaymentType" class="text-danger"></span>
+                    </div>
+
+                    @* <div class="mb-3">
+                        <label class="form-label">Tuition Fee (PHP)</label>
+                        <input type="text" id="tuitionFee" class="form-control" value="14000" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Miscellaneous Fee (PHP)</label>
+                        <input type="text" id="miscFee" class="form-control" value="1900" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Total Tuition + Miscellaneous (PHP)</label>
+                        <input type="text" id="totalAmount" class="form-control" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Early Bird Discount (10%)</label>
+                        <input type="checkbox" id="earlyBirdDiscount" onchange="calculateTotal()" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Sibling Discount (10%)</label>
+                        <input type="number" id="siblingDiscount" class="form-control" value="0" min="0" max="5"
+                            onchange="calculateTotal()" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Cash Payment Discount (10%)</label>
+                        <input type="checkbox" id="cashDiscount" onchange="calculateTotal()" />
+                        <p class="text-muted">You need to pay in walk-in for this discount.</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Total Payment Due (PHP)</label>
+                        <input type="text" id="totalPayment" class="form-control" disabled />
+                    </div> *@
+
+                    <button type="submit" class="btn btn-primary">Submit Payment</button>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function calculateTotal() {
+            let paymentType = document.querySelector('[name="PaymentType"]').value;
+            let tuitionFee = 14000;
+            let miscFee = 1900;
+            let totalAmount = tuitionFee + miscFee;
+
+            let earlyBirdDiscount = document.getElementById("earlyBirdDiscount").checked ? 0.10 : 0;
+            let siblingDiscount = parseInt(document.getElementById("siblingDiscount").value) * 0.10;
+            siblingDiscount = siblingDiscount > 0.50 ? 0.50 : siblingDiscount;
+            let cashDiscount = document.getElementById("cashDiscount").checked ? 0.10 : 0;
+
+            let totalDiscount = earlyBirdDiscount + siblingDiscount + cashDiscount;
+
+            let totalPayment = totalAmount - (totalAmount * totalDiscount);
+
+            document.getElementById("totalAmount").value = totalAmount.toFixed(2);
+            document.getElementById("totalPayment").value = totalPayment.toFixed(2);
+        }
+
+        window.onload = function () {
+            calculateTotal();
+        };
+    </script>
+}

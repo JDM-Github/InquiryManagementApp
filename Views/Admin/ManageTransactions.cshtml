@@ -10,17 +10,33 @@
                 TRANSACTION HISTORY</h2>
 
             <div class="d-flex gap-2 w-50">
-                @* <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal"
-                    data-bs-target="#paymentScheduleModal">
-                    Set Payment Schedule
-                </button> *@
-                @* @if (Model.IsPaymentDay)
-                { *@
-                    <button type="button" class="btn btn-success w-100" data-bs-toggle="modal"
-                        data-bs-target="#walkInPaymentModal">
-                        Walk-in Payment
-                    </button>
-                @* } *@
+                <select class="form-control" id="month-filter" asp-for="MonthFilter" onchange="applyFilters()">
+                    <option value="">Select Month</option>
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                    <option value="April">April</option>
+                    <option value="May">May</option>
+                    <option value="June">June</option>
+                    <option value="July">July</option>
+                    <option value="August">August</option>
+                    <option value="September">September</option>
+                    <option value="October">October</option>
+                    <option value="November">November</option>
+                    <option value="December">December</option>
+                </select>
+
+                <select class="form-control" id="year-filter" asp-for="YearFilter" onchange="applyFilters()">
+                    <option value="">Select Year</option>
+                    @for (int i = DateTime.Now.Year; i >= 2024; i--)
+                    {
+                        <option value="@i">@i</option>
+                    }
+                </select>
+                <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal"
+                    data-bs-target="#walkInPaymentModal">
+                    Walk-in Payment
+                </button>
             </div>
         </div>
 
@@ -36,13 +52,17 @@
             <table class="table table-striped table-bordered table-hover w-100">
                 <thead style="background-color: yellow;">
                     <tr style="font-size: 0.9rem !important; ">
-                        <th scope="col">DATE</th>
+
                         <th scope="col">PAYMENT ID</th>
+                        <th scope="col">MONTH</th>
+                        <th scope="col">YEAR</th>
                         <th scope="col">STUDENT LRN</th>
-                        <th scope="col">P. AMOUNT</th>
-                        <th scope="col">REF NUMBER</th>
-                        <th scope="col">P. METHOD</th>
+                        <th scope="col">EMAIL</th>
+                        <th scope="col">REFERENCE NUMBER</th>
+                        <th scope="col">AMOUNT TO PAID</th>
+                        <th scope="col">FOR</th>
                         <th scope="col">STATUS</th>
+                        <th scope="col">DATE</th>
                         <th scope="col">ACTIONS</th>
                     </tr>
                 </thead>
@@ -50,7 +70,7 @@
                     @if (Model == null || !Model.Payments.Any())
                     {
                         <tr>
-                            <td colspan="9" class="text-center text-muted">
+                            <td colspan="11" class="text-center text-muted">
                                 No transactions data available.
                             </td>
                         </tr>
@@ -60,13 +80,25 @@
                         foreach (var payment in Model.Payments)
                         {
                             <tr>
-                                <td>@payment.Payment.Date.ToShortDateString()</td>
-                                <td>@payment.Payment.PaymentId</td>
-                                <td>@payment.Enrollees!.LRN</td>
-                                <td>@payment.Payment.PaidAmount</td>
+                                <td>@payment.Payment.Id</td>
+                                <td>@payment.Payment.MonthPaid</td>
+                                <td>@payment.Payment.YearPaid</td>
+                                <td>@(payment.Enrollees?.LRN ?? "------")</td>
+                                <td>@(payment.Enrollees?.Email ?? "------")</td>
                                 <td>@payment.Payment.ReferenceNumber</td>
-                                <td>@payment.Payment.PaymentMethod</td>
-                                <td>@payment.Payment.Status</td>
+                                <td>@payment.Payment.PaymentFor</td>
+                                <td>@payment.Payment.PaymentAmount.ToString("C")</td>
+                                <td>
+                                    @if (payment.Payment.Status == "Paid")
+                                    {
+                                        <span class="text-success w-100">PAID</span>
+                                    }
+                                    else
+                                    {
+                                        @payment.Payment.Status
+                                    }
+                                </td>
+                                <td>@(payment.Payment.Date?.ToShortDateString() ?? "------")</td>
                                 <td>
                                     <button class="btn btn-info btn-sm" data-bs-toggle="modal"
                                         data-bs-target="#details-@payment.Payment.Id">Details</button>
@@ -79,16 +111,16 @@
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="details-@payment.Payment.Id-Label">Payment Details for
-                                                @payment.Payment.PaymentId</h5>
+                                                @payment.Payment.Id</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                 aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
-                                            <p><strong>Date:</strong> @payment.Payment.Date.ToShortDateString()</p>
-                                            <p><strong>Payment ID:</strong> @payment.Payment.PaymentId</p>
-                                            <p><strong>Paid Amount:</strong> @payment.Payment.PaidAmount</p>
+                                            <p><strong>Date:</strong> @(payment.Payment.Date?.ToShortDateString() ?? "------")</p>
+                                            <p><strong>Payment ID:</strong> @payment.Payment.Id</p>
+                                            <p><strong>Paid Amount:</strong> @payment.Payment.PaymentAmount</p>
                                             <p><strong>Reference Number:</strong> @payment.Payment.ReferenceNumber</p>
-                                            <p><strong>Payment Method:</strong> @payment.Payment.PaymentMethod</p>
+                                            <p><strong>Payment For:</strong> @payment.Payment.PaymentFor</p>
                                             <p><strong>Status:</strong> @payment.Payment.Status</p>
                                         </div>
                                     </div>
@@ -103,11 +135,11 @@
                 <ul class="pagination">
                     <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
                         <a class="page-link"
-                            href="@Url.Action("ManageTransactions", new { page = Model.CurrentPage - 1, search = Model.SearchFilter })">Previous</a>
+                            href="@Url.Action("ManageTransactions", new { page = Model.CurrentPage - 1, search = Model.SearchFilter, month = Model.MonthFilter, year = Model.YearFilter })">Previous</a>
                     </li>
                     <li class="page-item">
                         <a class="page-link"
-                            href="@Url.Action("ManageTransactions", new { page = Model.CurrentPage + 1, search = Model.SearchFilter })">Next</a>
+                            href="@Url.Action("ManageTransactions", new { page = Model.CurrentPage + 1, search = Model.SearchFilter, month = Model.MonthFilter, year = Model.YearFilter })">Next</a>
                     </li>
                 </ul>
             </div>
@@ -119,6 +151,8 @@
 <script>
     function applyFilters() {
         const search = document.getElementById("searchInput").value;
-        window.location.href = `@Url.Action("ManageTransactions", "Admin")?search=${search}&page=1`;
+        const month = document.getElementById("month-filter").value;
+        const year = document.getElementById("year-filter").value;
+        window.location.href = `@Url.Action("ManageTransactions", "Admin")?search=${search}&page=1&month=${month}&year=${year}`;
     }
 </script>

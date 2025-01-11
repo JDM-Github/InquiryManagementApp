@@ -36,7 +36,7 @@ namespace InquiryManagementApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("Surname, Firstname, Middlename, Gender, GradeLevel, Email, DateOfBirth, Age, Address, LRN, FatherLastName, FatherFirstName, FatherOccupation, FatherMaidenName, MotherLastName, MotherFirstName, MotherOccupation, MotherMaidenName")]
+            [Bind("Surname, Firstname, Middlename, Gender, GradeLevel, Email, DateOfBirth, Age, Address, LRN, FatherLastName, FatherFirstName, FatherOccupation, FatherMaidenName, MotherLastName, MotherFirstName, MotherOccupation, MotherMaidenName, HaveSiblingInSchool, NumberOfSibling")]
             Enrollment enrollment)
         {
             if (ModelState.IsValid)
@@ -63,6 +63,16 @@ namespace InquiryManagementApp.Controllers
                     return View(enrollment);
                 }
 
+                inquired.IsApproved = true;
+                _context.Inquiries.Update(inquired);
+                await _context.SaveChangesAsync();
+
+                if (await _context.Accounts.FirstOrDefaultAsync(s => s.Email == enrollment.Email) != null)
+                {
+                    TempData["ErrorMessage"] = "Email already exists.";
+                    return View(enrollment);
+                }
+
                 if (await _context.Students.FirstOrDefaultAsync(s => s.LRN == enrollment.LRN) != null
                  || await _context.Students.FirstOrDefaultAsync(s => s.Email == enrollment.Email) != null)
                 {
@@ -73,6 +83,19 @@ namespace InquiryManagementApp.Controllers
                 var requiredFiles = await _context.Requirements
                     .Where(r => r.GradeLevel == enrollment.GradeLevel)
                     .ToListAsync();
+
+                if (enrollment.LRN == null)
+                {
+                    if (enrollment.GradeLevel != "NURSERY" && enrollment.GradeLevel == "KINDER")
+                    {
+                        TempData["ErrorMessage"] = "LRN is required.";
+                        return View(enrollment);
+                    }
+                    string schoolId = "123456";
+                    string schoolYear = DateTime.Now.Year.ToString();
+                    string studentNumber = enrollment.EnrollmentId.ToString("D6");
+                    enrollment.LRN = $"{schoolId}{schoolYear}{studentNumber}";
+                }
 
                 enrollment.SetTemporaryCredentials();
                 _context.Add(enrollment);
