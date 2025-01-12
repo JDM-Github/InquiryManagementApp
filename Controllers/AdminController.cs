@@ -212,7 +212,7 @@ public class AdminController : Controller
         // var inquiries = _context.Inquiries.ToList();
         foreach (var inquiry in inquiries)
         {
-            if (!inquiry.IsConfirmed && inquiry.CreatedAt.Date <= DateTime.Now.Date.AddDays(-5))
+            if (!inquiry.IsConfirmed && inquiry.CreatedAt.Date <= DateTime.Now.Date.AddMinutes(-2))
             {
                 inquiry.IsCancelled = true;
                 inquiry.CancellationReason = "Not Interested.";

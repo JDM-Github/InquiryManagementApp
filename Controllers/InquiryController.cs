@@ -94,7 +94,7 @@ namespace InquiryManagementApp.Controllers
                 TempData["SuccessMessage"] = "Inquiry confirmed successfully.";
                 return RedirectToAction("Index", "Home");
             }
-            
+
             TempData["ErrorMessage"] = "Inquiry not found.";
             return RedirectToAction("Index", "Home");
         }
@@ -219,27 +219,23 @@ namespace InquiryManagementApp.Controllers
         [HttpPost]
         public IActionResult EditInquiry(Inquiry inquiry)
         {
-            if (ModelState.IsValid)
-            {
-                var existingInquiry = _context.Inquiries.Find(inquiry.InquiryId);
-                if (existingInquiry != null)
-                {
-                    existingInquiry.StudentName = inquiry.StudentName;
-                    existingInquiry.GuardianName = inquiry.GuardianName;
-                    existingInquiry.ContactNumber = inquiry.ContactNumber;
-                    existingInquiry.SourceOfInformation = inquiry.SourceOfInformation;
-                    existingInquiry.Notes = inquiry.Notes;
 
-                    _context.SaveChanges();
-                }
-                TempData["SuccessMessage"] = "Inquiry updated successfully.";
-                return RedirectToAction("ManageInquiries", "Admin");
+            var existingInquiry = _context.Inquiries.Find(inquiry.InquiryId);
+            if (existingInquiry != null)
+            {
+                existingInquiry.StudentName = inquiry.StudentName;
+                existingInquiry.GuardianName = inquiry.GuardianName;
+                existingInquiry.ContactNumber = inquiry.ContactNumber;
+                existingInquiry.SourceOfInformation = inquiry.SourceOfInformation;
+                existingInquiry.Notes = inquiry.Notes;
+
+                _context.SaveChanges();
             }
-            TempData["ErrorMessage"] = "Error updating inquiry.";
+            TempData["SuccessMessage"] = "Inquiry updated successfully.";
             return RedirectToAction("ManageInquiries", "Admin");
         }
 
     }
 
-    
+
 }
