@@ -29,7 +29,9 @@
                     <option value="Pending">Pending</option>
                     <option value="Rejected">Rejected</option>
                 </select>
-            </div>
+
+                <a asp-action="Walkin" asp-controller="Enrollment" class="btn btn-primary">ENROLL</a>
+            </div>  
         </div>
             
         <div class="card-body">
@@ -56,7 +58,7 @@
                         <th scope="col">NAME</th>
                         <th scope="col">GRADE LEVEL</th>
                         <th scope="col">DOB</th>
-                        <th scope="col">LRN</th>
+                        <th scope="col">STUDENT ID</th>
                         <th scope="col">SUBMISSION DATE</th>
                         <th scope="col">STATUS</th>
                         <th scope="col">ACTIONS</th>
@@ -79,24 +81,73 @@
                                 <td>@enrollment.Surname, @enrollment.Firstname</td>
                                 <td>@enrollment.GradeLevel</td>
                                 <td>@enrollment.DateOfBirth.ToString("MMMM dd, yyyy")</td>
-                                <td>@enrollment.LRN</td>
+                                <td>@(enrollment.StudentID != null ? enrollment.StudentID : "NOT SET")</td>
                                 <td>@enrollment.SubmissionDate.ToString("MMMM dd, yyyy")</td>
                                 <td>@(enrollment.IsApproved ? "Approved" : "Pending")</td>
                                 <td>
-                                    <a class="btn btn-info btn-sm" href="@Url.Action("ViewAccount", "Home", new { userId = enrollment.LRN })">Details</a>
+                                    <div class="d-flex w-100 gap-2">
+                                    <a class="btn btn-info btn-sm w-100" href="@Url.Action("ViewAccount", "Home", new { userId = enrollment.EnrollmentId })">DETAILS</a>
                                     @if (!enrollment.IsApproved)
                                     {
-                                        <form asp-controller="Admin" asp-action="Approve" method="post" style="display:inline;">
-                                            <input type="hidden" name="id" value="@enrollment.EnrollmentId" />
-                                            <button type="submit" class="btn btn-warning btn-sm">Approve</button>
-                                        </form>
-                                        <form asp-controller="Admin" asp-action="Reject" method="post" style="display:inline;">
-                                            <input type="hidden" name="id" value="@enrollment.EnrollmentId" />
-                                            <button type="submit" class="btn btn-warning btn-sm">Reject</button>
-                                        </form>
+                                        <button type="button" class="btn btn-warning btn-sm w-100" data-bs-toggle="modal" data-bs-target="#approveModal-@enrollment.EnrollmentId">
+                                            APPROVE
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm w-100" data-bs-toggle="modal" data-bs-target="#rejectModal-@enrollment.EnrollmentId">
+                                            REJECT
+                                        </button>
                                     }
+                                    </div>
                                 </td>
                             </tr>
+
+                             <div class="modal fade" id="approveModal-@enrollment.EnrollmentId" tabindex="-1"
+                                aria-labelledby="approveModalLabel-@enrollment.EnrollmentId" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-primary" style="text-align: center;">
+                                            <h5 class="modal-title w-100 text-white fw-bold">
+                                                    APPROVE ENROLLMENT
+                                                </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to approve the enrollment for @enrollment.Firstname @enrollment.Surname?
+                                        </div>
+                                        <div class="modal-footer" style="background-color: #eee;">
+                                            <form asp-controller="Admin" asp-action="Approve" method="post" style="display:inline;">
+                                                <input type="hidden" name="id" value="@enrollment.EnrollmentId" />
+                                                <button type="submit" class="btn btn-primary">Approve</button>
+                                            </form>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="rejectModal-@enrollment.EnrollmentId" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel-@enrollment.EnrollmentId" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-primary" style="text-align: center;">
+                                            <h5 class="modal-title w-100 text-white fw-bold">
+                                                    REJECT ENROLLMENT
+                                                </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to reject the enrollment for @enrollment.Firstname @enrollment.Surname?
+                                        </div>
+                                        <div class="modal-footer" style="background-color: #eee;">
+                                            <form asp-controller="Admin" asp-action="Reject" method="post" style="display:inline;">
+                                                <input type="hidden" name="id" value="@enrollment.EnrollmentId" />
+                                                <button type="submit" class="btn btn-danger">Reject</button>
+                                            </form>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         }
                     }
                 </tbody>
@@ -119,39 +170,6 @@
 </div>
 
 
-
-@section Scripts {
-    <script>
-        document.getElementById('grade-level-filter').addEventListener('change', filterTable);
-        document.getElementById('status-filter').addEventListener('change', filterTable);
-        document.getElementById('search-input').addEventListener('input', filterTable);
-
-        function filterTable() {
-            let gradeLevel = document.getElementById('grade-level-filter').value.toLowerCase();
-            let status = document.getElementById('status-filter').value.toLowerCase();
-            let searchText = document.getElementById('search-input').value.toLowerCase();
-
-            let rows = document.querySelectorAll('#enrollment-table-body tr');
-
-            rows.forEach(row => {
-                let gradeLevelCell = row.cells[2].innerText.toLowerCase();
-                let statusCell = row.cells[6].innerText.toLowerCase();
-                let nameCell = row.cells[1].innerText.toLowerCase();
-                let idCell = row.cells[0].innerText.toLowerCase();
-
-                let isGradeLevelMatch = gradeLevel ? gradeLevelCell.includes(gradeLevel) : true;
-                let isStatusMatch = status ? statusCell.includes(status) : true;
-                let isSearchMatch = searchText ? (nameCell.includes(searchText) || idCell.includes(searchText)) : true;
-
-                if (isGradeLevelMatch && isStatusMatch && isSearchMatch) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-    </script>
-}
 <script>
     function applyFilters() {
         const search = document.getElementById("searchInput").value;

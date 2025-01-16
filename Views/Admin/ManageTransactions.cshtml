@@ -1,7 +1,8 @@
 @model PaymentsManagementViewModel
 
 
-<div class="container-fluid mt-4 d-flex gap-3" style="margin-top: 65px !important; margin-bottom: 10px; min-height: 90vh;">
+<div class="container-fluid mt-4 d-flex gap-3"
+    style="margin-top: 65px !important; margin-bottom: 10px; min-height: 90vh;">
     @await Html.PartialAsync("Layout/Navigation")
     <div class="card shadow-lg border-0 rounded-3 mt-2 w-100">
         <div class="card-header d-flex align-items-center justify-content-between"
@@ -43,7 +44,7 @@
         <div class="card-body">
             <div class="d-flex gap-2">
                 <input type="text" class="form-control w-100 mb-2 shadow-sm" id="searchInput" placeholder="Search..."
-                    style="border-radius: 5px; font-size: 0.9rem;" value="@Model.SearchFilter"/>
+                    style="border-radius: 5px; font-size: 0.9rem;" value="@Model.SearchFilter" />
                 <button type="button" class="btn btn-primary shadow-sm mb-2"
                     style="font-size: 0.9rem; border-radius: 5px;" onclick="applyFilters()">
                     Search
@@ -53,15 +54,15 @@
                 <thead style="background-color: yellow;">
                     <tr style="font-size: 0.9rem !important; ">
 
-                        <th scope="col">PAYMENT ID</th>
+                        <th scope="col">ID</th>
                         <th scope="col">MONTH</th>
                         <th scope="col">YEAR</th>
-                        <th scope="col">STUDENT LRN</th>
+                        @* <th scope="col">STUDENT LRN</th> *@
                         <th scope="col">EMAIL</th>
                         <th scope="col">REFERENCE NUMBER</th>
-                        <th scope="col">AMOUNT TO PAID</th>
                         <th scope="col">FOR</th>
-                        <th scope="col">STATUS</th>
+                        <th scope="col">AMOUNT TO PAID</th>
+                        @* <th scope="col">STATUS</th> *@
                         <th scope="col">DATE</th>
                         <th scope="col">ACTIONS</th>
                     </tr>
@@ -83,12 +84,12 @@
                                 <td>@payment.Payment.Id</td>
                                 <td>@payment.Payment.MonthPaid</td>
                                 <td>@payment.Payment.YearPaid</td>
-                                <td>@(payment.Enrollees?.LRN ?? "------")</td>
+                                @* <td>@(payment.Enrollees?.LRN ?? "------")</td> *@
                                 <td>@(payment.Enrollees?.Email ?? "------")</td>
                                 <td>@payment.Payment.ReferenceNumber</td>
                                 <td>@payment.Payment.PaymentFor</td>
                                 <td>@payment.Payment.PaymentAmount.ToString("C")</td>
-                                <td>
+                                @* <td>
                                     @if (payment.Payment.Status == "Paid")
                                     {
                                         <span class="text-success w-100">PAID</span>
@@ -97,11 +98,13 @@
                                     {
                                         @payment.Payment.Status
                                     }
-                                </td>
+                                </td> *@
                                 <td>@(payment.Payment.Date?.ToShortDateString() ?? "------")</td>
                                 <td>
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal"
-                                        data-bs-target="#details-@payment.Payment.Id">Details</button>
+                                    <div class="w-100 d-flex gap-2">
+                                        <button class="btn btn-info btn-sm w-100" data-bs-toggle="modal"
+                                            data-bs-target="#details-@payment.Payment.Id">Details</button>
+                                    </div>
                                 </td>
                             </tr>
 
@@ -109,19 +112,26 @@
                                 aria-labelledby="details-@payment.Payment.Id-Label" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="details-@payment.Payment.Id-Label">Payment Details for
-                                                @payment.Payment.Id</h5>
+                                        <div class="modal-header bg-primary" style="text-align: center;">
+                                            <h5 class="modal-title w-100 text-white fw-bold">
+                                                PAYMENT DETAILS
+                                            </h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                 aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
-                                            <p><strong>Date:</strong> @(payment.Payment.Date?.ToShortDateString() ?? "------")</p>
+                                            <p><strong>Date:</strong> @(payment.Payment.Date?.ToShortDateString() ?? "------")
+                                            </p>
                                             <p><strong>Payment ID:</strong> @payment.Payment.Id</p>
                                             <p><strong>Paid Amount:</strong> @payment.Payment.PaymentAmount</p>
                                             <p><strong>Reference Number:</strong> @payment.Payment.ReferenceNumber</p>
                                             <p><strong>Payment For:</strong> @payment.Payment.PaymentFor</p>
                                             <p><strong>Status:</strong> @payment.Payment.Status</p>
+                                        </div>
+
+                                        <div class="modal-footer" style="background-color: #eee;">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
                                         </div>
                                     </div>
                                 </div>

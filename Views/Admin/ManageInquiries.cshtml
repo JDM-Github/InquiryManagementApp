@@ -16,17 +16,15 @@
                 MANAGE INQUIRIES</h2>
             <div class="d-flex gap-2 w-50">
                 <select class="form-control" id="status-filter" asp-for="StatusFilter" onchange="applyFilters()">
-                    <option value="">Select Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
+                    <option value="">Select Answered</option>
+                    <option value="Answered">ANSWERED</option>
+                    <option value="NAnswered">N. ANSWERED</option>
                 </select>
 
                 <select class="form-control" id="rstatus-filter" asp-for="RStatusFilter" onchange="applyFilters()">
-                    <option value="">Select R. Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Cancelled">Cancelled</option>
+                    <option value="">Select Status</option>
+                    <option value="Inquiry">Inquiry</option>
+                    <option value="Enrolled">Enrolled</option>
                 </select>
             </div>
 
@@ -35,7 +33,8 @@
         <div class="card-body">
             <div class="d-flex gap-2">
                 <input type="text" asp-for="SearchFilter" class="form-control w-100 mb-2 shadow-sm"
-                    placeholder="Search..." id="searchInput" style="border-radius: 5px; font-size: 0.9rem;" />
+                    onchange="applyFilters()" placeholder="Search..." id="searchInput"
+                    style="border-radius: 5px; font-size: 0.9rem;" />
                 <button type="button" onclick="applyFilters()" class="btn btn-primary shadow-sm mb-2"
                     style="font-size: 0.9rem; border-radius: 5px;">
                     Search
@@ -44,14 +43,13 @@
             <table class="table table-striped table-bordered table-hover w-100">
                 <thead style="background-color: yellow;">
                     <tr style="font-size: 0.9rem !important;">
+                        <th scope="col">#</th>
                         <th scope="col">ID</th>
                         <th scope="col">S. NAME</th>
                         <th scope="col">GUARDIAN</th>
                         <th scope="col">CONTACT NO.</th>
                         <th scope="col">EMAIL</th>
-                        <th scope="col">SOURCE</th>
                         <th scope="col">STATUS</th>
-                        <th scope="col">R.STATUS</th>
                         <th scope="col">DATE</th>
                         <th scope="col">ACTIONS</th>
                     </tr>
@@ -70,76 +68,51 @@
                         foreach (var inquiry in Model.Inquiries)
                         {
                             <tr>
+                                <td class="text-center">
+                                    @if (inquiry.IsInquired)
+                                    {
+                                        <span class="text-success"><i class="bi bi-check-circle"></i></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger"><i class="bi bi-x-circle"></i></span>
+                                    }
+                                </td>
                                 <td>@inquiry.InquiryId</td>
                                 <td>@inquiry.StudentName</td>
                                 <td>@inquiry.GuardianName</td>
                                 <td>@inquiry.ContactNumber</td>
                                 <td>@inquiry.EmailAddress</td>
-                                <td>@inquiry.SourceOfInformation</td>
                                 <td>
-                                    @if (inquiry.IsApproved)
+                                    @if (inquiry.IsEnrolled)
                                     {
-                                        <span class="badge bg-success">Approved</span>
-                                    }
-                                    else if (inquiry.IsRejected)
-                                    {
-                                        <span class="badge bg-danger">Rejected</span>
-                                    }
-                                    else if (inquiry.IsCancelled)
-                                    {
-                                        <span class="badge bg-secondary">Cancelled</span>
+                                        <span>Enrolled</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-warning">Pending</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (inquiry.IsConfirmed)
-                                    {
-                                        <span class="badge bg-success">Confirmed</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">------</span>
+                                        <span>Inquire</span>
                                     }
                                 </td>
                                 <td>@inquiry.DateCreated.ToString("MMMM dd, yyyy")</td>
                                 <td>
-                                    <button class="btn btn-info btn-sm view-details" data-bs-toggle="modal"
-                                        data-bs-target="#detailsModal-@inquiry.InquiryId">
-                                        <i class="bi bi-info-circle"></i> Details
-                                    </button>
 
-                                    @if (!inquiry.IsApproved && !inquiry.IsRejected && !inquiry.IsCancelled)
-                                    {
-                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                            data-bs-target="#sendNoteModal-@inquiry.InquiryId">
-                                            <i class="bi bi-pencil"></i> Send Note
+                                    <div class="d-flex w-100 gap-2">
+                                        @if (!inquiry.IsInquired)
+                                        {
+                                            <button class="btn btn-warning btn-sm w-100" data-bs-toggle="modal"
+                                                data-bs-target="#sendNoteModal-@inquiry.InquiryId">
+                                                <i class="bi bi-pencil"></i> INQUIRE
+                                            </button>
+                                        }
+                                        <button class="btn btn-info btn-sm w-100" data-bs-toggle="modal"
+                                            data-bs-target="#detailsModal-@inquiry.InquiryId">
+                                            <i class="bi bi-info-circle"></i> DETAILS
                                         </button>
-
-                                        <button class="btn btn-success btn-sm" data-bs-toggle="modal"
-                                            data-bs-target="#approveModal-@inquiry.InquiryId">
-                                            <i class="bi bi-check-circle"></i> Approve
-                                        </button>
-
-                                        <button class="btn btn-danger btn-sm" data-bs-toggle="modal"
-                                            data-bs-target="#rejectModal-@inquiry.InquiryId">
-                                            <i class="bi bi-x-circle"></i> Reject
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button class="btn btn-success btn-sm" data-bs-toggle="modal"
-                                            data-bs-target="#editModal-@inquiry.InquiryId">
-                                            <i class="bi bi-check-circle"></i> Edit
-                                        </button>
-
-                                        <button class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                        <button class="btn btn-danger btn-sm w-100" data-bs-toggle="modal"
                                             data-bs-target="#deleteModal-@inquiry.InquiryId">
-                                            <i class="bi bi-x-circle"></i> Delete
+                                            <i class="bi bi-x-circle"></i> DELETE
                                         </button>
-                                    }
+                                    </div>
                                 </td>
                             </tr>
 
@@ -147,86 +120,94 @@
                                 aria-labelledby="detailsModal-@inquiry.InquiryId-Label" aria-hidden="true">
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="detailsModal-@inquiry.InquiryId-Label">Inquiry
-                                                Details</h5>
+                                        <div class="modal-header" style="background-color: #007bff; text-align: center;">
+                                            <h5 class="modal-title w-100 text-white fw-bold">INQUIRE DETAILS</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                 aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
-                                            <div class="container">
-                                                <div class="row mb-2">
-                                                    <div class="col-sm-4"><strong>Inquiry ID:</strong></div>
-                                                    <div class="col-sm-8">@inquiry.InquiryId</div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Inquiry ID</label>
+                                                <input type="text" class="form-control rounded-3 border border-primary"
+                                                    value="@inquiry.InquiryId" readonly />
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-4">
+                                                    <label asp-for="@inquiry.Surname" class="form-label fw-bold">Surname</label>
+                                                    <input asp-for="@inquiry.Surname"
+                                                        class="form-control rounded-3 border border-primary"
+                                                        placeholder="Enter your surname" readonly />
+                                                    <span asp-validation-for="@inquiry.Surname" class="text-danger"></span>
                                                 </div>
-                                                <div class="row mb-2">
-                                                    <div class="col-sm-4"><strong>Student Name:</strong></div>
-                                                    <div class="col-sm-8">@inquiry.StudentName</div>
+                                                <div class="col-4">
+                                                    <label asp-for="@inquiry.Firstname" class="form-label fw-bold">First
+                                                        Name</label>
+                                                    <input asp-for="@inquiry.Firstname"
+                                                        class="form-control rounded-3 border border-primary"
+                                                        placeholder="Enter your first name" readonly />
                                                 </div>
-                                                <div class="row mb-2">
-                                                    <div class="col-sm-4"><strong>Guardian Name:</strong></div>
-                                                    <div class="col-sm-8">@inquiry.GuardianName</div>
+                                                <div class="col-4">
+                                                    <label asp-for="@inquiry.Middlename" class="form-label fw-bold">Middle
+                                                        Name</label>
+                                                    <input asp-for="@inquiry.Middlename"
+                                                        class="form-control rounded-3 border border-primary"
+                                                        placeholder="Enter your middle name" readonly />
                                                 </div>
-                                                <div class="row mb-2">
-                                                    <div class="col-sm-4"><strong>Contact Number:</strong></div>
-                                                    <div class="col-sm-8">@inquiry.ContactNumber</div>
-                                                </div>
-                                                <div class="row mb-2">
-                                                    <div class="col-sm-4"><strong>Email Address:</strong></div>
-                                                    <div class="col-sm-8">@inquiry.EmailAddress</div>
-                                                </div>
-                                                <div class="row mb-2">
-                                                    <div class="col-sm-4"><strong>Source of Information:</strong></div>
-                                                    <div class="col-sm-8">@inquiry.SourceOfInformation</div>
-                                                </div>
-                                                <div class="row mb-2">
-                                                    <div class="col-sm-4"><strong>Additional Notes:</strong></div>
-                                                    <div class="col-sm-8">@inquiry.Notes</div>
-                                                </div>
-                                                <div class="row mb-2">
-                                                    <div class="col-sm-4"><strong>Date Created:</strong></div>
-                                                    <div class="col-sm-8">@inquiry.DateCreated.ToString("MMMM dd, yyyy")
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-2">
-                                                    <div class="col-sm-4"><strong>Status:</strong></div>
-                                                    <div class="col-sm-8">
-                                                        @if (inquiry.IsCancelled)
-                                                        {
-                                                            <span class="badge bg-secondary">Cancelled</span>
-                                                        }
-                                                        else if (inquiry.IsApproved)
-                                                        {
-                                                            <span class="badge bg-success">Approved</span>
-                                                        }
-                                                        else if (inquiry.IsRejected)
-                                                        {
-                                                            <span class="badge bg-danger">Rejected</span>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span class="badge bg-warning">Pending</span>
-                                                        }
-                                                    </div>
-                                                </div>
-                                                @if (inquiry.IsCancelled)
-                                                {
-                                                    <hr>
-                                                    <div class="row mb-2">
-                                                        <div class="col-sm-4"><strong>Cancellation Reason:</strong></div>
-                                                        <div class="col-sm-8">
-                                                            <span>@inquiry.CancellationReason</span>
-                                                        </div>
-                                                        <div class="col-sm-4"><strong>Cancellation Notes</strong></div>
-                                                        <div class="col-sm-8">
-                                                            <span>@inquiry.CancellationNotes</span>
-                                                        </div>
-                                                    </div>
-                                                }
-
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Gender</label>
+                                                <input type="text" class="form-control rounded-3 border border-primary"
+                                                    value="@inquiry.Gender" readonly />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label asp-for="@inquiry.DateOfBirth" class="form-label fw-bold">Date of
+                                                    Birth</label>
+                                                <input asp-for="@inquiry.DateOfBirth" type="date"
+                                                    class="form-control rounded-3 border border-primary" id="dateOfBirth"
+                                                    readonly />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Guardian Name</label>
+                                                <input type="text" class="form-control rounded-3 border border-primary"
+                                                    value="@inquiry.GuardianName" readonly />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Grade Level</label>
+                                                <input type="text" class="form-control rounded-3 border border-primary"
+                                                    value="@inquiry.GradeLevel" readonly />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Contact Number</label>
+                                                <input type="text" class="form-control rounded-3 border border-primary"
+                                                    value="@inquiry.ContactNumber" readonly />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Email Address</label>
+                                                <input type="email" class="form-control rounded-3 border border-primary"
+                                                    value="@inquiry.EmailAddress" readonly />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Source of Information</label>
+                                                <input type="text" class="form-control rounded-3 border border-primary"
+                                                    value="@inquiry.SourceOfInformation" readonly />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Additional Notes</label>
+                                                <textarea class="form-control rounded-3 border border-primary" rows="3"
+                                                    readonly>@inquiry.Notes</textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Status</label>
+                                                <input type="text" class="form-control rounded-3 border border-primary"
+                                                    value="@(inquiry.IsEnrolled ? "Enrolled" : "Inquire")" readonly />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Date Created</label>
+                                                <input type="text" class="form-control rounded-3 border border-primary"
+                                                    value="@inquiry.DateCreated.ToString("MMMM dd, yyyy")" readonly />
                                             </div>
                                         </div>
-                                        <div class="modal-footer">
+                                        <div class="modal-footer" style="background-color: #eee;">
                                             <button type="button" class="btn btn-secondary"
                                                 data-bs-dismiss="modal">Close</button>
                                         </div>
@@ -234,7 +215,7 @@
                                 </div>
                             </div>
 
-                            <div class="modal fade" id="editModal-@inquiry.InquiryId" tabindex="-1"
+                            @* <div class="modal fade" id="editModal-@inquiry.InquiryId" tabindex="-1"
                                 aria-labelledby="editModalLabel-@inquiry.InquiryId" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -247,7 +228,6 @@
                                             <form asp-controller="Inquiry"   asp-action="EditInquiry" method="post">
                                                 <input type="hidden" name="InquiryId" value="@inquiry.InquiryId" />
 
-                                                <!-- Student Name -->
                                                 <div class="mb-3">
                                                     <label for="StudentName-@inquiry.InquiryId" class="form-label">Student
                                                         Name</label>
@@ -255,7 +235,6 @@
                                                         name="StudentName" value="@inquiry.StudentName" required />
                                                 </div>
 
-                                                <!-- Guardian Name -->
                                                 <div class="mb-3">
                                                     <label for="GuardianName-@inquiry.InquiryId" class="form-label">Guardian
                                                         Name</label>
@@ -263,7 +242,6 @@
                                                         name="GuardianName" value="@inquiry.GuardianName" required />
                                                 </div>
 
-                                                <!-- Contact Number -->
                                                 <div class="mb-3">
                                                     <label for="ContactNumber-@inquiry.InquiryId" class="form-label">Contact
                                                         Number</label>
@@ -272,7 +250,6 @@
                                                         value="@inquiry.ContactNumber" required />
                                                 </div>
 
-                                                <!-- Source of Information -->
                                                 <div class="mb-3">
                                                     <label for="SourceOfInformation-@inquiry.InquiryId"
                                                         class="form-label">Source of Information</label>
@@ -281,7 +258,6 @@
                                                         value="@inquiry.SourceOfInformation" />
                                                 </div>
 
-                                                <!-- Notes -->
                                                 <div class="mb-3">
                                                     <label for="Notes-@inquiry.InquiryId" class="form-label">Notes</label>
                                                     <textarea class="form-control" id="Notes-@inquiry.InquiryId" name="Notes"
@@ -297,46 +273,34 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> *@
 
 
                             <div class="modal fade" id="sendNoteModal-@inquiry.InquiryId" tabindex="-1"
                                 aria-labelledby="sendNoteModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
-                                        <form asp-action="SendNote" asp-route-id="@inquiry.InquiryId" method="post">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="sendNoteModalLabel">Send Note</h5>
+                                        <form asp-action="SendInquire" asp-route-id="@inquiry.InquiryId" method="post">
+                                            <div class="modal-header" style="background-color: #007bff; text-align: center;">
+                                                <h5 class="modal-title w-100 text-white fw-bold">INQUIRE</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="mb-3">
-                                                    <label for="noteContent-@inquiry.InquiryId" class="form-label">Note
-                                                        Content</label>
-                                                    <textarea id="noteContent-@inquiry.InquiryId" name="NoteContent"
-                                                        class="form-control" rows="4" required></textarea>
+                                                    <label for="Notes-@inquiry.InquiryId" class="form-label">INQUIRE
+                                                        NOTE</label>
+                                                    <textarea class="form-control rounded-3 border border-primary"
+                                                        id="Notes-@inquiry.InquiryId" name="Notes" rows="3"
+                                                        rows="3" disabled>@inquiry.Notes</textarea>
                                                 </div>
                                                 <div class="mb-3">
-                                                    <label class="form-label">Action</label>
-                                                    <div>
-                                                        <input type="radio" id="actionNone-@inquiry.InquiryId" name="Action"
-                                                            value="None" checked />
-                                                        <label for="actionNone-@inquiry.InquiryId">None</label>
-                                                    </div>
-                                                    <div>
-                                                        <input type="radio" id="actionVerify-@inquiry.InquiryId" name="Action"
-                                                            value="Verify" />
-                                                        <label for="actionVerify-@inquiry.InquiryId">Verify Inquiry</label>
-                                                    </div>
-                                                    <div>
-                                                        <input type="radio" id="actionReject-@inquiry.InquiryId" name="Action"
-                                                            value="Reject" />
-                                                        <label for="actionReject-@inquiry.InquiryId">Reject Inquiry</label>
-                                                    </div>
+                                                    <textarea id="noteContent-@inquiry.InquiryId" name="InquireContent"
+                                                        class="form-control rounded-3 border border-primary" rows="6"
+                                                        required></textarea>
                                                 </div>
                                             </div>
-                                            <div class="modal-footer">
+                                            <div class="modal-footer" style="background-color: #eee;">
                                                 <button type="button" class="btn btn-secondary"
                                                     data-bs-dismiss="modal">Cancel</button>
                                                 <button type="submit" class="btn btn-primary">Send Note</button>
@@ -397,16 +361,19 @@
                                 aria-labelledby="deleteModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
-                                        <form asp-action="DeleteInquiry" asp-controller="Inquiry" asp-route-id="@inquiry.InquiryId" method="post">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                                        <form asp-action="DeleteInquiry" asp-controller="Inquiry"
+                                            asp-route-id="@inquiry.InquiryId" method="post">
+                                            <div class="modal-header bg-primary" style="text-align: center;">
+                                                <h5 class="modal-title w-100 text-white fw-bold">
+                                                    DELETE INQUIRY
+                                                </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <p>Are you sure you want to delete this inquiry?</p>
                                             </div>
-                                            <div class="modal-footer">
+                                            <div class="modal-footer" style="background-color: #eee;">
                                                 <button type="button" class="btn btn-secondary"
                                                     data-bs-dismiss="modal">Cancel</button>
                                                 <button type="submit" class="btn btn-danger">Delete</button>
@@ -426,9 +393,9 @@
                         <a class="page-link"
                             href="@Url.Action("ManageInquiries", new { page = Model.CurrentPage - 1, search = Model.SearchFilter, status = Model.StatusFilter, rstatus = Model.RStatusFilter })">Previous</a>
                     </li>
-                    <li class="page-item">
+                    <li class="page-item @(Model!.CurrentPage == Model.TotalPages ? "disabled" : "")">
                         <a class="page-link"
-                            href="@Url.Action("ManageInquiries", new { page = Model.CurrentPage + 1, search = Model.SearchFilter, status = Model.StatusFilter, rstatus = Model.RStatusFilter })">Next</a>
+                            href="@Url.Action("ManageInquiries", new { page = Math.Min(Model.TotalPages, Model.CurrentPage + 1), search = Model.SearchFilter, status = Model.StatusFilter, rstatus = Model.RStatusFilter })">Next</a>
                     </li>
                 </ul>
             </div>
@@ -441,7 +408,6 @@
 <script>
     function applyFilters() {
         const search = document.getElementById("searchInput").value;
-    @* const grade = document.getElementById("grade-level-filter").value; *@
         const status = document.getElementById("status-filter").value;
         const rstatus = document.getElementById("rstatus-filter").value;
         window.location.href = `@Url.Action("ManageInquiries", "Admin")?search=${search}&page=1&status=${status}&rstatus=${rstatus}`;

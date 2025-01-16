@@ -94,29 +94,29 @@ public class FeeController : Controller
         return Ok(fees);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Edit(int id, string Level, double Fee)
-    {
-        var fee = await _context.Fees.FirstOrDefaultAsync(f => f.Id == id);
-        if (fee == null)
-        {
-            TempData["ErrorMessage"] = "Fee not found.";
-            return RedirectToAction("ManageFees", "Admin");
-        }
+    // [HttpPost]
+    // public async Task<IActionResult> Edit(int id, string Level, double Fee)
+    // {
+    //     var fee = await _context.Fees.FirstOrDefaultAsync(f => f.Id == id);
+    //     if (fee == null)
+    //     {
+    //         TempData["ErrorMessage"] = "Fee not found.";
+    //         return RedirectToAction("ManageFees", "Admin");
+    //     }
 
-        fee.Level = Level;
-        fee.Fee = Fee;
-        await _context.SaveChangesAsync();
+    //     fee.Level = Level;
+    //     fee.Fee = Fee;
+    //     await _context.SaveChangesAsync();
 
-        var recent = new RecentActivity
-        {
-            Activity = $"Fee details updated for {fee.Level}: {fee.Fee}",
-            CreatedAt = DateTime.Now
-        };
-        _context.RecentActivities.Add(recent);
-        await _context.SaveChangesAsync();
+    //     var recent = new RecentActivity
+    //     {
+    //         Activity = $"Fee details updated for {fee.Level}: {fee.Fee}",
+    //         CreatedAt = DateTime.Now
+    //     };
+    //     _context.RecentActivities.Add(recent);
+    //     await _context.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = "Fee details updated successfully!";
-        return RedirectToAction("ManageFees", "Admin");
-    }
+    //     TempData["SuccessMessage"] = "Fee details updated successfully!";
+    //     return RedirectToAction("ManageFees", "Admin");
+    // }
 }

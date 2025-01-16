@@ -6,41 +6,61 @@
 <div class="container d-flex justify-content-center align-items-center" style="height: 80vh; margin-top: 50px;">
     <div class="card shadow-lg border-0 rounded-4" style="max-width: 400px; width: 100%;">
         <div class="card-header bg-primary text-white text-center">
-            <h3>Create Account</h3>
+            <h3><b>CREATE ACCOUNT</b></h3>
             <p class="mb-0">Please fill out the form below to create your account.</p>
         </div>
         <div class="card-body p-4">
             <form method="POST" asp-controller="Admin" asp-action="Create">
                 <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
+                    <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="username" name="Username" asp-for="Username"
-                        placeholder="Enter your username" required />
+                        placeholder="Enter your username" required minlength="5" />
                     <span asp-validation-for="Username" class="text-danger"></span>
+                    <span class="form-text text-muted">
+                        Username must be at least 5 characters long.
+                    </span>
                 </div>
 
                 <div class="mb-3">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                     <input type="email" class="form-control" id="email" name="Email" asp-for="Email"
                         placeholder="Enter your email" required />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" name="Password" asp-for="Password"
-                        placeholder="Enter your password" required />
+                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="password" name="Password" asp-for="Password"
+                            placeholder="Enter your password" required />
+                        <button type="button" class="btn btn-outline-secondary" id="password-button"
+                            onclick="togglePasswordVisibility('password')">
+                            Show
+                        </button>
+                    </div>
                     <span asp-validation-for="Password" class="text-danger"></span>
+                    <span class="form-text text-muted">
+                        Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a
+                        number, and a special character.
+                    </span>
                 </div>
 
                 <div class="mb-3">
-                    <label for="confirmPassword" class="form-label">Confirm Password</label>
-                    <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword"
-                        placeholder="Confirm your password" required />
+                    <label for="confirmPassword" class="form-label">Confirm Password <span
+                            class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword"
+                            placeholder="Confirm your password" required />
+                        <button type="button" class="btn btn-outline-secondary" id="confirmPassword-button"
+                            onclick="togglePasswordVisibility('confirmPassword')">
+                            Show
+                        </button>
+                    </div>
                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Roles</label>
+                    <label class="form-label">Roles <span class="text-danger">*</span></label>
                     <div>
                         <input type="radio" id="isAdmin" name="Role" value="Admin" asp-for="Role" /> Admin
                     </div>
@@ -48,13 +68,6 @@
                         <input type="radio" id="isMarketing" name="Role" value="Marketing" asp-for="Role" /> Marketing
                     </div>
                 </div>
-
-
-                @if (ViewBag.ErrorMessage != null)
-                {
-                    <div class="alert alert-danger text-center">@ViewBag.ErrorMessage</div>
-                }
-
                 <button type="submit" class="btn btn-warning w-100">Create Account</button>
             </form>
         </div>
@@ -64,4 +77,12 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePasswordVisibility(inputId) {
+            const inputField = document.getElementById(inputId);
+            const isPassword = inputField.type === 'password';
+            inputField.type = isPassword ? 'text' : 'password';
+            document.getElementById(inputId + '-button').innerHTML = isPassword ? 'Hide' : 'Show';
+        }
+    </script>
 }

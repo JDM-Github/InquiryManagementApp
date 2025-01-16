@@ -27,7 +27,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-md-3">
                     <div class="card shadow-lg border-0"
                         style="background-color: #FFFFFF; color: #0D206A; min-height: 120px; max-height: 120px; display: flex; flex-direction: column;">
@@ -47,11 +47,11 @@
                         style="background-color: #FFFFFF; color: #0D206A; min-height: 120px; max-height: 120px; display: flex; flex-direction: column;">
                         <div class="card-header"
                             style="background-color: #FFD700; color: white; height: 30%; display: flex; align-items: center; justify-content: center;">
-                            <h5 class="card-title fw-bold" style="font-size: 1.4rem; margin-bottom: 0;">Total Approved
+                            <h5 class="card-title fw-bold" style="font-size: 1.4rem; margin-bottom: 0;">Total Enrolled
                             </h5>
                         </div>
                         <div class="card-body">
-                            <p class="card-text small">Number of approved enrollments</p>
+                            <p class="card-text small">Number of enrolled students</p>
                             <h2 class="fw-bold">@Model.TotalApproved</h2>
                         </div>
                     </div>
@@ -77,7 +77,7 @@
             <div class="row mt-3">
                 <div class="col-md-6">
                     <div class="card shadow-lg border-0">
-                        
+
                         <div class="card-header fw-bold" style="background-color: #FFD700; color:#0D206A">
                             Enrollment Trends
                             @if (Context.Session.GetString("isAdmin") == "1")
@@ -105,26 +105,29 @@
                 <div class="col-md-6">
                     <div class="card shadow-lg border-0">
                         <div class="card-header fw-bold" style="background-color: #FFD700; color:#0D206A">
-                            Inquiry Reasons For Not Proceeding
+                            Inquiry VS Enrolled
                         </div>
-                        <div class="chart-container" style="position: relative; height: 300px; display: flex; align-items: center; justify-content: center;">
+                        <div class="chart-container"
+                            style="position: relative; height: 300px; display: flex; align-items: center; justify-content: center;">
                             <canvas id="reasonsChart" style="height: 200px;"></canvas>
                         </div>
-                    </div>  
+                    </div>
                 </div>
             </div>
-            
+
 
             <div class="modal fade" id="enrollmentScheduleModal" tabindex="-1"
                 aria-labelledby="enrollmentScheduleModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="enrollmentScheduleModalLabel">Set Enrollment Schedule</h5>
+                        <div class="modal-header bg-primary" style="text-align: center;">
+                            <h5 class="modal-title w-100 text-white fw-bold">
+                                SET ENROLLMENT
+                            </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body">
-                            <form method="POST" asp-action="SetEnrollmentSchedule">
+                        <form method="POST" asp-action="SetEnrollmentSchedule">
+                            <div class="modal-body">
                                 <div class="mb-3">
                                     <label for="startDate" class="form-label">Start Date</label>
                                     <input type="date" class="form-control" id="startDate" name="StartDate" required>
@@ -133,9 +136,12 @@
                                     <label for="endDate" class="form-label">End Date</label>
                                     <input type="date" class="form-control" id="endDate" name="EndDate" required>
                                 </div>
-                                <button type="submit" class="btn btn-primary w-100">Set Schedule</button>
-                            </form>
-                        </div>
+                            </div>
+                            <div class="modal-footer" style="background-color: #eee;">
+                                <button type="submit" class="btn btn-primary w-100">SET SCHEDULE</button>
+                            </div>
+                        </form>
+
                     </div>
                 </div>
             </div>
@@ -148,13 +154,13 @@
                         </div>
                         <div class="card-body">
                             <ul class="list-group" style="min-height: 300px;">
-                            @foreach (var activity in Model.RecentActivities)
-                            {
-                                <li class="list-group-item">
-                                    <strong>@activity.Activity</strong> -
-                                    <span>@activity.CreatedAt.ToString("MM/dd/yyyy HH:mm:ss")</span>
-                                </li>
-                            }
+                                @foreach (var activity in Model.RecentActivities)
+                                {
+                                    <li class="list-group-item">
+                                        <strong>@activity.Activity</strong> -
+                                        <span>@activity.CreatedAt.ToString("MM/dd/yyyy HH:mm:ss")</span>
+                                    </li>
+                                }
                             </ul>
                         </div>
                     </div>
@@ -172,7 +178,7 @@
         var reasonsData = {
             labels: Object.keys(cancellationReasons),
             datasets: [{
-                label: 'Reasons for Not Proceeding',
+                label: 'Inquiry VS Enrolled',
                 data: Object.values(cancellationReasons),
                 backgroundColor: [
                     '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'
@@ -234,7 +240,7 @@
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 var label = context.label || '';
                                 var value = context.raw || 0;
                                 return label + ': ' + value;

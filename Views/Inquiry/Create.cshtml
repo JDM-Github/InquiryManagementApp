@@ -10,47 +10,124 @@
                 </div>
                 <div class="card-body p-4">
                     <form asp-action="Create" class="needs-validation" novalidate>
-                        <div class="mb-4">
-                            <label asp-for="StudentName" class="form-label fw-bold">Student Name</label>
-                            <input asp-for="StudentName" class="form-control rounded-3 border border-primary"
-                                placeholder="Enter your full name" required />
-                            <span asp-validation-for="StudentName" class="text-danger small"></span>
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label asp-for="Surname" class="form-label fw-bold">Surname <span
+                                        class="text-danger">*</span></label>
+                                <input asp-for="Surname" class="form-control rounded-3 border border-primary"
+                                    placeholder="Enter your surname" required />
+                                <span asp-validation-for="Surname" class="text-danger"></span>
+                            </div>
+                            <div class="col-4">
+                                <label asp-for="Firstname" class="form-label fw-bold">First Name <span
+                                        class="text-danger">*</span></label>
+                                <input asp-for="Firstname" class="form-control rounded-3 border border-primary"
+                                    placeholder="Enter your first name" required />
+                                <span asp-validation-for="Firstname" class="text-danger"></span>
+                            </div>
+                            <div class="col-4">
+                                <label asp-for="Middlename" class="form-label fw-bold">Middle Name</label>
+                                <input asp-for="Middlename" class="form-control rounded-3 border border-primary"
+                                    placeholder="Enter your middle name" />
+                                <span asp-validation-for="Middlename" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Gender <span class="text-danger">*</span></label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input rounded-3 border border-primary" type="radio"
+                                    asp-for="Gender" value="Male" />
+                                <label class="form-check-label">Male</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input rounded-3 border border-primary" type="radio"
+                                    asp-for="Gender" value="Female" />
+                                <label class="form-check-label">Female</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DateOfBirth" class="form-label fw-bold">Date of Birth <span
+                                    class="text-danger">*</span></label>
+                            <input asp-for="DateOfBirth" type="date"
+                                class="form-control rounded-3 border border-primary" id="dateOfBirth" required />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                         </div>
 
                         <div class="mb-4">
-                            <label asp-for="GuardianName" class="form-label fw-bold">Guardian Name</label>
+                            <label asp-for="GuardianName" class="form-label fw-bold">Guardian Name <span
+                                    class="text-danger">*</span></label>
                             <input asp-for="GuardianName" class="form-control rounded-3 border border-primary"
                                 placeholder="Enter your guardian's full name" required />
                             <span asp-validation-for="GuardianName" class="text-danger small"></span>
                         </div>
 
+                        <div class="mb-3">
+                            <label asp-for="GradeLevel" class="form-label fw-bold">Grade Level <span
+                                    class="text-danger">*</span></label>
+                            <select asp-for="GradeLevel" class="form-select rounded-3 border border-primary" required>
+                                <option value="NURSERY">NURSERY</option>
+                                <option value="KINDER">KINDER</option>
+                                <option value="ELEMENTARY">ELEMENTARY GRADE 1</option>
+                                <option value="ELEMENTARY">ELEMENTARY GRADE 2</option>
+                                <option value="ELEMENTARY">ELEMENTARY GRADE 3</option>
+                                <option value="ELEMENTARY">ELEMENTARY GRADE 4</option>
+                                <option value="ELEMENTARY">ELEMENTARY GRADE 5</option>
+                                <option value="ELEMENTARY">ELEMENTARY GRADE 6</option>
+                                <option value="JUNIOR HIGH SCHOOL">JUNIOR HIGH SCHOOL GRADE 7</option>
+                                <option value="JUNIOR HIGH SCHOOL">JUNIOR HIGH SCHOOL GRADE 8</option>
+                                <option value="JUNIOR HIGH SCHOOL">JUNIOR HIGH SCHOOL GRADE 9</option>
+                                <option value="JUNIOR HIGH SCHOOL">JUNIOR HIGH SCHOOL GRADE 10</option>
+
+                                <option value="SENIOR HIGH SCHOOL 11 ABM (1ST SEM)">SENIOR HIGH SCHOOL 11 ABM (1ST
+                                    SEM)</option>
+                                <option value="SENIOR HIGH SCHOOL 11 ABM (2ND SEM)">SENIOR HIGH SCHOOL 11 ABM (2ND
+                                    SEM)</option>
+
+                                <option value="SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)">SENIOR HIGH SCHOOL 11 HUMSS
+                                    (1ST SEM)</option>
+                                <option value="SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)">SENIOR HIGH SCHOOL 11 HUMSS
+                                    (2ND SEM)</option>
+                            </select>
+                            <span asp-validation-for="GradeLevel" class="text-danger"></span>
+                        </div>
+
                         <div class="mb-4">
-                            <label asp-for="ContactNumber" class="form-label fw-bold">Contact Number</label>
+                            <label asp-for="ContactNumber" class="form-label fw-bold">Contact Number <span
+                                    class="text-danger">*</span></label>
                             <input asp-for="ContactNumber" type="tel"
                                 class="form-control rounded-3 border border-primary"
-                                placeholder="Enter your contact number" required />
+                                placeholder="Enter your contact number" required pattern="^[0-9]\d{1,14}$" />
                             <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+                            <span class="form-text text-muted">Contact number should be a valid phone number (e.g.,
+                                01234567890).</span>
                         </div>
 
                         <div class="mb-4">
-                            <label asp-for="EmailAddress" class="form-label fw-bold">Email Address</label>
+                            <label asp-for="EmailAddress" class="form-label fw-bold">Email Address <span
+                                    class="text-danger">*</span></label>
                             <input asp-for="EmailAddress" type="email"
                                 class="form-control rounded-3 border border-primary"
-                                placeholder="Enter your email address" required />
+                                placeholder="Enter your email address" required
+                                pattern="^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" />
                             <span asp-validation-for="EmailAddress" class="text-danger small"></span>
+                            <span class="form-text text-muted">Enter a valid email address (e.g.,
+                                example@mail.com).</span>
                         </div>
 
-                        <!-- Source of Information -->
+
                         <div class="mb-4">
                             <label asp-for="SourceOfInformation" class="form-label fw-bold">How did you hear about
-                                us?</label>
+                                us? <span class="text-danger">*</span></label>
                             <select asp-for="SourceOfInformation" class="form-select rounded-3 border border-primary"
                                 required>
-                                <option value="">Select an option</option>
+                                <option value="" disabled>Select an option</option>
                                 <option value="Friend/Family">Friend/Family</option>
                                 <option value="Social Media">Social Media</option>
                                 <option value="Website">Website</option>
                                 <option value="Advertisement">Advertisement</option>
+                                <option value="Nothing">Nothing</option>
                                 <option value="Other">Other</option>
                             </select>
                             <span asp-validation-for="SourceOfInformation" class="text-danger small"></span>
@@ -59,6 +136,7 @@
                         <div class="mb-4">
                             <label asp-for="Notes" class="form-label fw-bold">Additional Notes</label>
                             <textarea asp-for="Notes" class="form-control rounded-3 border border-primary" rows="4"
+                                maxlength="499"
                                 placeholder="Enter any additional notes or comments (optional)"></textarea>
                             <span asp-validation-for="Notes" class="text-danger small"></span>
                         </div>

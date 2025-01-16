@@ -1,0 +1,39 @@
+@model StudentViewModel
+
+<div class="container my-5 py-5 min-vh-100">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3><strong>STUDENT INFORMATION</strong></h3>
+                </div>
+                <div class="card-body">
+                    <div>
+                        <div class="mb-3">
+                            <div class="row">
+                                <div class="col-12">
+                                    <p><strong>Student ID:</strong> @Model.StudentID</p>
+                                    <p><strong>First Name:</strong> @Model.FirstName</p>
+                                    <p><strong>Middle Name:</strong> @Model.MiddleName</p>
+                                    <p><strong>Surname:</strong> @Model.Surname</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <p><strong>Grade Level:</strong> @Model.GradeLevel</p>
+                                    <p><strong>Birthday:</strong> @Model.Birthday.ToString("MMMM dd, yyyy")</p>
+                                    <p><strong>Email:</strong> @Model.Email</p>
+                                    <p><strong>Address:</strong> @Model.Address</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="ManageEnrollees" asp-controller="Admin" class="btn btn-secondary">Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

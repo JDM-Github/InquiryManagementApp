@@ -37,13 +37,13 @@ public class PaymentController : Controller
 
     public async Task<IActionResult> PaymentHistory()
     {
-        var userIdString = HttpContext.Session.GetString("LRN");
-        if (userIdString == null)
+        var userIdString = HttpContext.Session.GetInt32("EnrollmentId");
+        if (!userIdString.HasValue)
         {
             TempData["ErrorMessage"] = "You must be logged in to view payments.";
             return RedirectToAction("Login", "Account");
         }
-        var user = await _context.Students.FirstOrDefaultAsync(e => e.LRN == userIdString);
+        var user = await _context.Students.FirstOrDefaultAsync(e => e.EnrollmentId == userIdString);
         if (user == null)
         {
             TempData["ErrorMessage"] = "User not found.";
@@ -56,6 +56,7 @@ public class PaymentController : Controller
             .ToListAsync();
 
         var payment = await _context.StudentPaymentRecords.FirstOrDefaultAsync(p => p.UserId == user.EnrollmentId);
+
         if (payment == null)
         {
             ViewBag.IsAlreadyPaid = false;
@@ -119,15 +120,14 @@ public class PaymentController : Controller
         }
         ViewBag.UserId = user.EnrollmentId;
         ViewBag.PaymentId = payment.Id;
-        ViewBag.PaymentType = payment.PaymentType;
-        ViewBag.RemainingBalance = payment.Balance;
+        ViewBag.PaymentType = user.PaymentType;
+        ViewBag.RemainingBalance = user.BalanceToPay;
 
         return View(payments);
     }
 
     public async Task<IActionResult> SubmitBalancePayment(int userId, int paymentId, double AmountToPay)
     {
-        Console.WriteLine(paymentId);
         var payment = await _context.StudentPaymentRecords.FirstOrDefaultAsync(p => p.Id == paymentId);
         if (payment == null)
         {
@@ -135,16 +135,22 @@ public class PaymentController : Controller
             return RedirectToAction("PaymentHistory");
         }
 
-        if (payment.Balance <= 0)
+        var student = await _context.Students.FirstOrDefaultAsync(p => p.EnrollmentId == userId);
+        if (student == null)
+        {
+            TempData["ErrorMessage"] = "Invalid student record.";
+            return RedirectToAction("PaymentHistory");
+        }
+        if (student.BalanceToPay <= 0)
         {
             TempData["ErrorMessage"] = "Balance is already paid.";
             return RedirectToAction("PaymentHistory");
         }
 
         var firstPayment = AmountToPay;
-        if (firstPayment > payment.Balance)
+        if (firstPayment > student.BalanceToPay)
         {
-            firstPayment = payment.Balance;
+            firstPayment = student.BalanceToPay;
         }
         var orderRequest = new OrdersCreateRequest();
         orderRequest.Prefer("return=representation");
@@ -176,6 +182,8 @@ public class PaymentController : Controller
             var response = await client.Execute(orderRequest);
             var result = response.Result<Order>();
 
+            HttpContext.Session.SetString("PayPalOrderId", result.Id ?? "");
+
             var approvalUrl = result.Links.FirstOrDefault(link => link.Rel == "approve")?.Href;
             if (approvalUrl != null)
             {
@@ -204,43 +212,67 @@ public class PaymentController : Controller
         }
         var payment = await _context.StudentPaymentRecords.FirstOrDefaultAsync(p => p.Id == int.Parse(paymentId));
 
-        payment!.Balance = payment.Balance - amount;
-        _context.Update(payment);
-        await _context.SaveChangesAsync();
-
-        var subject = "Balance Paid";
-        var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully paid {amount} for your balance. Your remaining balance is {payment.Balance}.";
-        await _emailService.SendEmailAsync(student.Email, subject, body);
-
-        var notification = new Notification
+        try
         {
-            Message = $"You've successfully been paid for your balance. Your remaining balance is {payment.Balance}",
-            UserId = student.LRN,
-            CreatedAt = DateTime.Now,
-            IsRead = false
-        };
-        _context.Notifications.Add(notification);
-        await _context.SaveChangesAsync();
+            var client = new PayPalHttpClient(PayPalConfig.GetEnvironment());
 
-        DateTime date = DateTime.Now;
-        string monthName = date.ToString("MMMM");
+            var captureRequest = new OrdersCaptureRequest(HttpContext.Session.GetString("PayPalOrderId") ?? "");
+            captureRequest.RequestBody(new OrderActionRequest());
 
-        var payment2 = new StudentPayment
+            var response = await client.Execute(captureRequest);
+            var result = response.Result<Order>();
+
+            if (result.Status == "COMPLETED")
+            {
+                student.BalanceToPay = student.BalanceToPay - amount;
+                _context.Update(student);
+                await _context.SaveChangesAsync();
+
+                var subject = "Balance Paid";
+                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully paid {amount} for your balance. Your remaining balance is {student.BalanceToPay}.";
+                await _emailService.SendEmailAsync(student.Email, subject, body);
+
+                var notification = new Notification
+                {
+                    Message = $"You've successfully been paid for your balance. Your remaining balance is {student.BalanceToPay}",
+                    UserId = student.LRN ?? "",
+                    CreatedAt = DateTime.Now,
+                    IsRead = false
+                };
+                _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+
+                DateTime date = DateTime.Now;
+                string monthName = date.ToString("MMMM");
+
+                var payment2 = new StudentPayment
+                {
+                    UserId = student.EnrollmentId,
+                    ReferenceNumber = Guid.NewGuid().ToString(),
+                    PaymentAmount = amount,
+                    MonthPaid = monthName,
+                    YearPaid = DateTime.Now.Year.ToString(),
+                    Status = "Paid",
+                    PaymentFor = "Balance",
+                    Date = DateTime.Now
+                };
+                _context.StudentPayments.Add(payment2);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Payment Successful!";
+                return RedirectToAction("PaymentHistory");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Payment was not completed.";
+                return RedirectToAction("PaymentHistory");
+            }
+        }
+        catch (Exception ex)
         {
-            UserId = student.EnrollmentId,
-            ReferenceNumber = Guid.NewGuid().ToString(),
-            PaymentAmount = amount,
-            MonthPaid = monthName,
-            YearPaid = DateTime.Now.Year.ToString(),
-            Status = "Paid",
-            PaymentFor = "Balance",
-            Date = DateTime.Now
-        };
-        _context.StudentPayments.Add(payment2);
-        await _context.SaveChangesAsync();
-
-        TempData["SuccessMessage"] = "Payment Successful!";
-        return RedirectToAction("PaymentHistory");
+            TempData["ErrorMessage"] = $"Error capturing payment: {ex.Message}";
+            return RedirectToAction("PaymentHistory");
+        }
     }
 
     public IActionResult PaymentBalanceFailed(int paymentId, double amount)

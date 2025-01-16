@@ -23,10 +23,14 @@ namespace InquiryManagementApp.Models
     {
         [Key]
         public int InquiryId { get; set; }
+        public string StudentName { get; set; } = "";
+        public string Surname { get; set; }
+        public string Firstname { get; set; }
+        public string? Middlename { get; set; } = "";
 
-        [Required]
-        [StringLength(100)]
-        public string StudentName { get; set; }
+        public DateTime DateOfBirth { get; set; } = DateTime.Now;
+        public string Gender { get; set; } = "Male";
+
 
         [Required]
         [StringLength(100)]
@@ -47,19 +51,26 @@ namespace InquiryManagementApp.Models
 
         public DateTime DateCreated { get; set; } = DateTime.Now;
 
+        public string GradeLevel { get; set; }
+
 
         [StringLength(500, ErrorMessage = "Notes cannot exceed 500 characters.")]
         public string? Notes { get; set; }
         public string? Reason { get; set; } = null;
 
-
         public bool IsApproved { get; set; } = false;
+        public bool IsInquired { get; set; } = false;
+        public bool IsEnrolled { get; set; } = false;
+        public string InquiredString { get; set; } = "";
+
         public bool IsConfirmed { get; set; } = false;
         public bool IsRejected { get; set; } = false;
         public bool IsCancelled { get; set; } = false;
         public string CancellationReason { get; set; } = "";
         public string? CancellationNotes { get; set; } = "";
 
+        // public bool 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }
+

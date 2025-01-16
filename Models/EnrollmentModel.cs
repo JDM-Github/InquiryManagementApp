@@ -20,24 +20,21 @@ namespace InquiryManagementApp.Models
         public List<RequirementModel> Requirements { get; set; }
     }
 
+    public class StudentViewModel
+    {
+        public int EnrollmentId { get; set; }
+        public string StudentID { get; set; }
+        public string FirstName { get; set; }
+        public string MiddleName { get; set; }
+        public string Surname { get; set; }
+        public string GradeLevel { get; set; }
+        public DateTime Birthday { get; set; }
+        public string Email { get; set; }
+        public string Address { get; set; }
+    }
+
     public class Enrollment
     {
-        public Enrollment()
-        {
-            TemporaryUsername = $"temp_{LRN}_{DateTime.Now.Year}_{Surname}";
-            TemporaryPassword = $"{Firstname}{LRN}{DateTime.Now.Year}{Surname}";
-            Username = $"{LRN}";
-            Password = $"{Surname}{LRN}";
-        }
-
-        public void SetTemporaryCredentials(string number = "0")
-        {
-            TemporaryUsername = $"temp_{LRN}_{DateTime.Now.Year}_{Surname}";
-            TemporaryPassword = $"{Firstname}{LRN}{DateTime.Now.Year}{Surname}";
-            Username = $"{LRN}{number}";
-            Password = $"{Surname}{LRN}";
-        }
-
         [Key]
         public int EnrollmentId { get; set; }
         [Required]
@@ -53,16 +50,20 @@ namespace InquiryManagementApp.Models
         public string GradeLevel { get; set; }
         [Required]
         [StringLength(50)]
-        public string Email { get; set; }
+        public string Email { get; set; } = "";
         [Required]
         [DataType(DataType.Date)]
-        public DateTime DateOfBirth { get; set; }
-        public int Age { get; set; }
+        public DateTime DateOfBirth { get; set; } = DateTime.Now;
+        public int Age { get; set; } = 0;
+        
         [Required]
         public string Address { get; set; } = "";
+
         [Required]
         [StringLength(20)]
         public string? LRN { get; set; } = null;
+        public string? StudentID { get; set; } = null;
+
         public string FatherLastName { get; set; } = "";
         public string FatherFirstName { get; set; } = "";
         public string FatherOccupation { get; set; } = "";
@@ -88,15 +89,20 @@ namespace InquiryManagementApp.Models
 
         public bool IsDeleted { get; set; } = false;
 
-        public string TemporaryUsername { get; set; }
-        public string TemporaryPassword { get; set; }
+        public string TemporaryUsername { get; set; } = "";
+        public string TemporaryPassword { get; set; } = "";
 
-        public string Username { get; set; }
-        public string Password { get; set; }
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
 
         public bool IsWalkin { get; set; } = false;
-        public bool HaveSiblingInSchool { get; set; } = false;
+        public bool IsEarlyBird { get; set; } = false;
+        public bool IsCashPayment { get; set; } = false;
         public int NumberOfSibling { get; set; } = 0;
+        public string PaymentType { get; set; } = "Cash";
+        public double PayPerDate { get; set; } = 0;
+        public double TotalToPay { get; set; } = 0;
+        public double BalanceToPay { get; set; } = 0;
     }
 }
 

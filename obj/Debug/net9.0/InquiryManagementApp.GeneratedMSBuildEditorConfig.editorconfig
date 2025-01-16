@@ -124,6 +124,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW5yb2xsbWVudFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/JDM/InquiryManagementApp/Views/Enrollment/StudentInformation.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW5yb2xsbWVudFxTdHVkZW50SW5mb3JtYXRpb24uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/JDM/InquiryManagementApp/Views/Enrollment/Walkin.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW5yb2xsbWVudFxXYWxraW4uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/JDM/InquiryManagementApp/Views/Fee/Add.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmVlXEFkZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

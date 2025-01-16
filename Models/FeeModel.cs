@@ -16,6 +16,12 @@ namespace InquiryManagementApp.Models
 
     }
 
+    public class Fee {
+        public int Id { get; set; }
+        public double TuitionFee { get; set; } = 19000;
+        public double Miscellaneous { get; set; } = 14000;
+    }
+
     public class StudentPaymentView {
         public string ApprovedId { get; set; } = "";
         public string PaymentType { get; set; }

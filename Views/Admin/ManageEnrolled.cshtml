@@ -23,10 +23,10 @@
                     }
                 </select>
 
-                <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal"
+                @* <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal"
                     data-bs-target="#enrollModal">
                     ENROLL
-                </button>
+                </button> *@
             </div>
         </div>
 
@@ -80,7 +80,7 @@
                                 <td>@enrollment.SubmissionDate.ToString("MMMM dd, yyyy")</td>
                                 <td>
                                     <div class="w-100 d-flex gap-2">
-                                    <a class="btn btn-info btn-sm w-100" href="@Url.Action("ViewAccount", "Home", new { userId = enrollment.LRN })">Details</a>
+                                    <a class="btn btn-info btn-sm w-100" href="@Url.Action("ViewAccount", "Home", new { userId = enrollment.EnrollmentId })">Details</a>
                                     <button type="button" class="btn btn-warning btn-sm w-100" data-bs-toggle="modal"       data-bs-target="#confirmModal-@enrollment.EnrollmentId">
                                         Delete
                                     </button>
@@ -91,14 +91,17 @@
                             <div class="modal fade" id="confirmModal-@enrollment.EnrollmentId" tabindex="-1" aria-labelledby="confirmModal-@enrollment.EnrollmentId-Label" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="confirmModal-@enrollment.EnrollmentId-Label">Confirm Deletion</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
+                                <div class="modal-header bg-primary" style="text-align: center;">
+                                                <h5 class="modal-title w-100 text-white fw-bold">
+                                                    CONFIRM DELETION
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
                                 <div class="modal-body">
                                     Are you sure you want to delete this enrollment? This action cannot be undone.
                                 </div>
-                                <div class="modal-footer">
+                                <div class="modal-footer" style="background-color: #eee;">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                     <form id="deleteForm" asp-controller="Admin" asp-action="DeleteEnrollment" method="post" style="display:inline;">
                                     <input type="hidden" name="id" id="enrollmentId" value="@enrollment.EnrollmentId" />

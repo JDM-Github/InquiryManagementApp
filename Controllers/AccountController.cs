@@ -434,7 +434,7 @@ namespace InquiryManagementApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProfileInfo(string FatherFirstName, string FatherLastName, string FatherOccupation, string MotherFirstName, string MotherLastName, string MotherOccupation, string MotherMaidenName)
+        public async Task<IActionResult> EditProfileInfo(string? FatherFirstName, string? FatherLastName, string? FatherOccupation, string? MotherFirstName, string? MotherLastName, string? MotherOccupation, string? MotherMaidenName)
         {
             var userId = HttpContext.Session.GetString("LRN");
 
@@ -451,18 +451,18 @@ namespace InquiryManagementApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            account.FatherFirstName = FatherFirstName;
-            account.FatherLastName = FatherLastName;
-            account.FatherOccupation = FatherOccupation;
-            account.MotherFirstName = MotherFirstName;
-            account.MotherLastName = MotherLastName;
-            account.MotherOccupation = MotherOccupation;
-            account.MotherMaidenName = MotherMaidenName;
+            account.FatherFirstName = FatherFirstName ?? "";
+            account.FatherLastName = FatherLastName ?? "";
+            account.FatherOccupation = FatherOccupation ?? "";
+            account.MotherFirstName = MotherFirstName ?? "";
+            account.MotherLastName = MotherLastName ?? "";
+            account.MotherOccupation = MotherOccupation ?? "";
+            account.MotherMaidenName = MotherMaidenName ?? "";
 
             var notification = new Notification
             {
                 Message = $"Your profile has been updated.",
-                UserId = account!.LRN,
+                UserId = account.LRN ?? "",
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };

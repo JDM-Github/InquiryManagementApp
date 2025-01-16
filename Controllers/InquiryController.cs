@@ -26,7 +26,7 @@ namespace InquiryManagementApp.Controllers
         // GET: Inquiry/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new Inquiry());
         }
 
         [HttpPost]
@@ -132,45 +132,82 @@ namespace InquiryManagementApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("StudentName,GuardianName,ContactNumber,EmailAddress,SourceOfInformation,Notes")] Inquiry inquiry)
+        public async Task<IActionResult> Create(Inquiry inquiry)
         {
             if (ModelState.IsValid)
             {
+                if (!System.Text.RegularExpressions.Regex.IsMatch(inquiry.ContactNumber, @"^[0-9]\d{1,14}$"))
+                {
+                    TempData["ErrorMessage"] = "Invalid contact number format.";
+                    return View(inquiry);
+                }
+
+                if (!System.Text.RegularExpressions.Regex.IsMatch(inquiry.EmailAddress, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
+                {
+                    TempData["ErrorMessage"] = "Invalid email address format.";
+                    return View(inquiry);
+                }
+
                 var admins = await _context.Accounts.FirstOrDefaultAsync(a => a.Email == inquiry.EmailAddress);
                 if (admins != null)
                 {
                     TempData["ErrorMessage"] = "Email already exists.";
                     return View(inquiry);
                 }
-                var anotherInquiry = await _context.Inquiries.FirstOrDefaultAsync(c => c.EmailAddress == inquiry.EmailAddress);
-                if (anotherInquiry != null)
+                if (await _context.Inquiries.FirstOrDefaultAsync(a => a.ContactNumber == inquiry.ContactNumber) != null)
                 {
-                    if (!anotherInquiry.IsCancelled)
-                    {
-                        TempData["ErrorMessage"] = "Email already inquired.";
-                        return View(inquiry);
-                    }
-                    _context.Inquiries.Remove(anotherInquiry);
-                    await _context.SaveChangesAsync();
+                    TempData["ErrorMessage"] = "Contact number is already being used.";
+                    return View(inquiry);
                 }
 
+                if (await _context.Inquiries.FirstOrDefaultAsync(a => a.EmailAddress == inquiry.EmailAddress) != null
+                 || await _context.Students .FirstOrDefaultAsync(a => a.Email        == inquiry.EmailAddress) != null
+                 || await _context.Accounts .FirstOrDefaultAsync(a => a.Email        == inquiry.EmailAddress) != null)
+                {
+                    TempData["ErrorMessage"] = "Email is already being used.";
+                    return View(inquiry);
+                }
+
+                if (inquiry.DateOfBirth.AddYears(4) > DateTime.Now)
+                {
+                    TempData["ErrorMessage"] = "Student must be at least 4 years old.";
+                    return View(inquiry);
+                }
+                if (inquiry.DateOfBirth.AddYears(80) <= DateTime.Now)
+                {
+                    TempData["ErrorMessage"] = "Invalid year.";
+                    return View(inquiry);
+                }
+
+                inquiry.StudentName = inquiry.Firstname + " " + (inquiry.Middlename?.First() + "." ?? "") + " "+ inquiry.Surname;
                 inquiry.DateCreated = DateTime.Now;
                 _context.Add(inquiry);
                 await _context.SaveChangesAsync();
 
                 string subject = "Inquiry Confirmation";
-                string cancellationLink = Url.Action("Cancel", "Inquiry", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
-                string confirmationLink = Url.Action("Confirm", "Inquiry", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
-                // string cancellationLink = Url.Action("Cancel", "Inquiry", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
+                string confirmationLink = Url.Action("Create", "Enrollment", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
                 string body = $@"
-                    <p>Dear {inquiry.StudentName},</p>
-                    <p>Thank you for reaching out to us. Your inquiry has been successfully recorded. We will get back to you soon.</p>
-                    <p>If you need to cancel your inquiry, you can do so by clicking the link below:</p>
-                    <p><a href='{confirmationLink}'>Confirm My Inquiry</a></p>
-                    <p><a href='{cancellationLink}'>Cancel My Inquiry</a></p>
-                    <p>We appreciate your interest in our services. Please feel free to reply to this email if you have any questions or concerns.</p>
-                    <p>Best regards,<br>Your Team</p>
-                ";
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                        <div style='background-color: #f7f7f7; padding: 20px; border: 1px solid #ddd; border-radius: 8px;'>
+                            <h2 style='color: #0056b3; text-align: center;'>Inquiry Confirmation</h2>
+                            <p>Dear <strong>{inquiry.StudentName}</strong>,</p>
+                            <p>Thank you for reaching out to us! Your inquiry has been successfully recorded. We are excited to assist you and will get back to you shortly.</p>
+                            <p>If you’re ready to take the next step, you can enroll by clicking the button below:</p>
+                            <div style='text-align: center; margin: 20px 0;'>
+                                <a href='{confirmationLink}' 
+                                style='display: inline-block; padding: 12px 24px; background-color: #0056b3; color: #fff; text-decoration: none; font-size: 16px; border-radius: 5px;'>
+                                    Enroll Now
+                                </a>
+                            </div>
+                            <p>If you have any questions or need assistance, feel free to reply to this email or contact us directly.</p>
+                            <p>Best regards,<br>
+                            <strong>De Roman Montessori School</strong><br>
+                            <em>Your gateway to excellence in education</em></p>
+                        </div>
+                        <footer style='text-align: center; margin-top: 20px; font-size: 12px; color: #666;'>
+                            <p>De Roman Montessori School | [Your Address] | [Contact Info]</p>
+                        </footer>
+                    </div>";
 
                 try
                 {
@@ -190,8 +227,7 @@ namespace InquiryManagementApp.Controllers
                 _context.RecentActivities.Add(recent);
                 await _context.SaveChangesAsync();
 
-
-                TempData["SuccessMessage"] = "Successfully Inquired!";
+                TempData["SuccessMessage"] = "Inquire successful, please check your email for more details";
                 return RedirectToAction("Index", "Home");
             }
             TempData["ErrorMessage"] = "Error when Inquiring.";

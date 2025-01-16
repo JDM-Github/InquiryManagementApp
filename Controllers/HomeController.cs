@@ -50,12 +50,30 @@ public class HomeController : Controller
             return RedirectToAction("Index");
         }
 
-        var paymentView = new StudentPaymentView
+        var student = await _context.Students
+                .Where(s => s.EnrollmentId == enrollees.EnrollmentId)
+                .Select(s => new StudentViewModel
+                {
+                    EnrollmentId = s.EnrollmentId,
+                    StudentID = s.StudentID ?? "",
+                    FirstName = s.Firstname,
+                    MiddleName = s.Middlename ?? "",
+                    Surname = s.Surname,
+                    GradeLevel = s.GradeLevel,
+                    Birthday = s.DateOfBirth,
+                    Email = s.Email,
+                    Address = s.Address
+                })
+                .FirstOrDefaultAsync();
+
+        if (student == null)
         {
-            ApprovedId = id,
-            PaymentType = "",
-        };
-        return View(paymentView);
+            TempData["ErrorMessage"] = "Student not found.";
+            return RedirectToAction("Walkin", "Enrollment");
+        }
+        return View(student);
+
+        // return View(paymentView);
     }
 
     // public async Task<IActionResult> PayEnrollment(StudentPaymentView studentPayment)
@@ -135,9 +153,9 @@ public class HomeController : Controller
     //     return RedirectToAction("Index");
     // }
 
-    public async Task<IActionResult> PayEnrollment(StudentPaymentView studentPayment)
+    public async Task<IActionResult> PayEnrollment(int studentId)
     {
-        var enrollees = await _context.Students.FirstOrDefaultAsync(e => e.ApproveId == studentPayment.ApprovedId);
+        var enrollees = await _context.Students.FirstOrDefaultAsync(e => e.EnrollmentId == studentId);
         if (enrollees == null)
         {
             TempData["ErrorMessage"] = "Student not found.";
@@ -151,38 +169,39 @@ public class HomeController : Controller
             return RedirectToAction("Index");
         }
 
-        studentPay.PaymentType = studentPayment.PaymentType;
-        var IsEnrollmentActive = false;
-        var schedule = _context.EnrollmentSchedules.FirstOrDefault();
-        if (schedule != null)
-        {
-            IsEnrollmentActive = DateTime.Now >= schedule.StartDate && DateTime.Now <= schedule.EndDate;
-        }
+        studentPay.PaymentType = enrollees.PaymentType;
+        // var IsEnrollmentActive = false;
+        // var schedule = _context.EnrollmentSchedules.FirstOrDefault();
+        // if (schedule != null)
+        // {
+        //     IsEnrollmentActive = DateTime.Now >= schedule.StartDate && DateTime.Now <= schedule.EndDate;
+        // }
 
-        studentPay.EarlyBird = IsEnrollmentActive;
-        studentPay.SiblingDiscount = Math.Min(5, enrollees.NumberOfSibling);
-        if (studentPay.PaymentType == "Monthly")
-        {
-            studentPay.PerPayment = 1900;
-        }
-        else if (studentPay.PaymentType == "Quarterly")
-        {
-            studentPay.PerPayment = 4750;
-        }
-        else if (studentPay.PaymentType == "Initial5")
-        {
-            studentPay.PerPayment = 2800;
-        }
-        _context.Update(studentPay);
-        await _context.SaveChangesAsync();
+        // studentPay.EarlyBird = IsEnrollmentActive;
+        // studentPay.SiblingDiscount = Math.Min(5, enrollees.NumberOfSibling);
+        // if (studentPay.PaymentType == "Monthly")
+        // {
+        //     studentPay.PerPayment = 1900;
+        // }
+        // else if (studentPay.PaymentType == "Quarterly")
+        // {
+        //     studentPay.PerPayment = 4750;
+        // }
+        // else if (studentPay.PaymentType == "Initial5")
+        // {
+        //     studentPay.PerPayment = 2800;
+        // }
+        // _context.Update(studentPay);
+        // await _context.SaveChangesAsync();
 
-        var allDiscount = studentPay.SiblingDiscount + (studentPay.EarlyBird ? 1 : 0) + (studentPay.CashDiscount ? 1 : 0);
-        var firstPayment = 14000 + (studentPay.PerPayment ?? 0) - (allDiscount * 1900);
+        // var allDiscount = studentPay.SiblingDiscount + (studentPay.EarlyBird ? 1 : 0) + (studentPay.CashDiscount ? 1 : 0);
+        // var firstPayment = 14000 + (studentPay.PerPayment ?? 0) - (allDiscount * 1900);
 
-        if (studentPay.PaymentType == "Initial5")
-        {
-            firstPayment = 5000;
-        }
+        // if (studentPay.PaymentType == "Initial5")
+        // {
+        //     firstPayment = 5000;
+        // }
+        var firstPayment = enrollees.TotalToPay;
 
         var orderRequest = new OrdersCreateRequest();
         orderRequest.Prefer("return=representation");
@@ -233,7 +252,6 @@ public class HomeController : Controller
             TempData["ErrorMessage"] = "Enrollment not found.";
             return RedirectToAction("Index");
         }
-
         try
         {
             var client = new PayPalHttpClient(PayPalConfig.GetEnvironment());
@@ -252,13 +270,13 @@ public class HomeController : Controller
                 await _context.SaveChangesAsync();
 
                 var subject = "Enrollment Approved";
-                var body = $"Dear {enrollees.Firstname} {enrollees.Surname},<br>You've successfully enrolled in this school.<p>Your Username: {enrollees.Username}</p><p> Your Password: {enrollees.Username}</p>";
+                var body = $"Dear {enrollees.Firstname} {enrollees.Surname},<br>You've successfully enrolled in this school.<p>Your Username: {enrollees.Username}</p><p> Your Password: {enrollees.Password}</p>";
                 await _emailService.SendEmailAsync(enrollees.Email, subject, body);
 
                 var notification = new Notification
                 {
                     Message = $"You've successfully been enrolled.",
-                    UserId = enrollees!?.LRN,
+                    UserId = enrollees.LRN ?? "",
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };
@@ -267,19 +285,19 @@ public class HomeController : Controller
 
                 DateTime date = DateTime.Now;
                 string monthName = date.ToString("MMMM");
-
                 var Payment = new StudentPayment
                 {
                     UserId = enrollees.EnrollmentId,
-                    ReferenceNumber = "-----",
+                    ReferenceNumber = Guid.NewGuid().ToString(),
                     PaymentAmount = amount,
                     MonthPaid = monthName,
                     YearPaid = DateTime.Now.Year.ToString(),
-                    Date = null
+                    Status = "Paid",
+                    PaymentFor = "First Payment",
+                    Date = DateTime.Now
                 };
                 _context.StudentPayments.Add(Payment);
                 await _context.SaveChangesAsync();
-
                 TempData["SuccessMessage"] = "Payment successful. Congratulations, you are now enrolled!";
                 return RedirectToAction("Index");
             }
@@ -328,14 +346,14 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Document()
     {
-        var userId = HttpContext.Session.GetString("LRN");
-        if (string.IsNullOrEmpty(userId))
+        var userId = HttpContext.Session.GetInt32("EnrollmentId");
+        if (!userId.HasValue)
         {
             return RedirectToAction("Login", "Account");
         }
 
         var enrollment = _context.Students
-            .Where(e => e.LRN == userId)
+            .Where(e => e.EnrollmentId == userId)
             .FirstOrDefault();
 
         if (enrollment == null)
@@ -385,13 +403,13 @@ public class HomeController : Controller
         return View(account);
     }
 
-    public async Task<IActionResult> ViewAccount(string userId)
+    public async Task<IActionResult> ViewAccount(int userId)
     {
-        var account = await _context.Students.FirstOrDefaultAsync(c => c.LRN == userId);
+        var account = await _context.Students.FirstOrDefaultAsync(c => c.EnrollmentId == userId);
         if (account == null)
         {
             TempData["ErrorMessage"] = "User not found.";
-            return RedirectToAction("Login", "Account");
+            return RedirectToAction("Index", "Admin");
         }
         var enrollView = new EnrollmentRequirementsViewModel
         {

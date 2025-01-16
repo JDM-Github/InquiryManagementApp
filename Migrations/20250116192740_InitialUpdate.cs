@@ -50,9 +50,8 @@ namespace InquiryManagementApp.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Level = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Fee = table.Column<double>(type: "float", nullable: false),
-                    PaymentType = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    TuitionFee = table.Column<double>(type: "float", nullable: false),
+                    Miscellaneous = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -65,15 +64,24 @@ namespace InquiryManagementApp.Migrations
                 {
                     InquiryId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StudentName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    StudentName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Surname = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Firstname = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Middlename = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GuardianName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     ContactNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
                     EmailAddress = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     SourceOfInformation = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    GradeLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsApproved = table.Column<bool>(type: "bit", nullable: false),
+                    IsInquired = table.Column<bool>(type: "bit", nullable: false),
+                    IsEnrolled = table.Column<bool>(type: "bit", nullable: false),
+                    InquiredString = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     IsRejected = table.Column<bool>(type: "bit", nullable: false),
                     IsCancelled = table.Column<bool>(type: "bit", nullable: false),
@@ -190,6 +198,7 @@ namespace InquiryManagementApp.Migrations
                     Age = table.Column<int>(type: "int", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LRN = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    StudentID = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FatherLastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FatherFirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FatherOccupation = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -212,8 +221,13 @@ namespace InquiryManagementApp.Migrations
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsWalkin = table.Column<bool>(type: "bit", nullable: false),
-                    HaveSiblingInSchool = table.Column<bool>(type: "bit", nullable: false),
-                    NumberOfSibling = table.Column<int>(type: "int", nullable: false)
+                    IsEarlyBird = table.Column<bool>(type: "bit", nullable: false),
+                    IsCashPayment = table.Column<bool>(type: "bit", nullable: false),
+                    NumberOfSibling = table.Column<int>(type: "int", nullable: false),
+                    PaymentType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PayPerDate = table.Column<double>(type: "float", nullable: false),
+                    TotalToPay = table.Column<double>(type: "float", nullable: false),
+                    BalanceToPay = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -300,22 +314,8 @@ namespace InquiryManagementApp.Migrations
 
             migrationBuilder.InsertData(
                 table: "Fees",
-                columns: new[] { "Id", "Fee", "Level", "PaymentType" },
-                values: new object[,]
-                {
-                    { 1, 19000.0, "NURSERY", "Cash" },
-                    { 2, 19000.0, "KINDER", "Cash" },
-                    { 3, 19000.0, "ELEMENTARY", "Cash" },
-                    { 4, 19000.0, "JUNIOR HIGH SCHOOL", "Installment" },
-                    { 5, 19000.0, "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", "Installment" },
-                    { 6, 19000.0, "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", "Installment" },
-                    { 7, 19000.0, "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", "Installment" },
-                    { 8, 19000.0, "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", "Installment" },
-                    { 9, 19000.0, "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", "Installment" },
-                    { 10, 19000.0, "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", "Installment" },
-                    { 11, 19000.0, "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", "Installment" },
-                    { 12, 19000.0, "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", "Installment" }
-                });
+                columns: new[] { "Id", "Miscellaneous", "TuitionFee" },
+                values: new object[] { 1, 14000.0, 19000.0 });
 
             migrationBuilder.InsertData(
                 table: "Requirements",

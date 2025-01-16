@@ -78,6 +78,9 @@ namespace InquiryManagementApp.Migrations
                     b.Property<DateTime?>("ApprovedEnrolled")
                         .HasColumnType("datetime2");
 
+                    b.Property<double>("BalanceToPay")
+                        .HasColumnType("float");
+
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
@@ -121,13 +124,16 @@ namespace InquiryManagementApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("HaveSiblingInSchool")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsApproved")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsCashPayment")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEarlyBird")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsEnrolled")
@@ -171,6 +177,16 @@ namespace InquiryManagementApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double>("PayPerDate")
+                        .HasColumnType("float");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StudentID")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("SubmissionDate")
                         .HasColumnType("datetime2");
 
@@ -186,6 +202,9 @@ namespace InquiryManagementApp.Migrations
                     b.Property<string>("TemporaryUsername")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("TotalToPay")
+                        .HasColumnType("float");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -215,7 +234,7 @@ namespace InquiryManagementApp.Migrations
                     b.ToTable("EnrollmentSchedules");
                 });
 
-            modelBuilder.Entity("InquiryManagementApp.Models.FeeModel", b =>
+            modelBuilder.Entity("InquiryManagementApp.Models.Fee", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -223,16 +242,11 @@ namespace InquiryManagementApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<double>("Fee")
+                    b.Property<double>("Miscellaneous")
                         .HasColumnType("float");
 
-                    b.Property<string>("Level")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PaymentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<double>("TuitionFee")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -242,86 +256,8 @@ namespace InquiryManagementApp.Migrations
                         new
                         {
                             Id = 1,
-                            Fee = 19000.0,
-                            Level = "NURSERY",
-                            PaymentType = "Cash"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Fee = 19000.0,
-                            Level = "KINDER",
-                            PaymentType = "Cash"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Fee = 19000.0,
-                            Level = "ELEMENTARY",
-                            PaymentType = "Cash"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Fee = 19000.0,
-                            Level = "JUNIOR HIGH SCHOOL",
-                            PaymentType = "Installment"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Fee = 19000.0,
-                            Level = "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)",
-                            PaymentType = "Installment"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Fee = 19000.0,
-                            Level = "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)",
-                            PaymentType = "Installment"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Fee = 19000.0,
-                            Level = "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)",
-                            PaymentType = "Installment"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Fee = 19000.0,
-                            Level = "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)",
-                            PaymentType = "Installment"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Fee = 19000.0,
-                            Level = "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)",
-                            PaymentType = "Installment"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Fee = 19000.0,
-                            Level = "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)",
-                            PaymentType = "Installment"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            Fee = 19000.0,
-                            Level = "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)",
-                            PaymentType = "Installment"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            Fee = 19000.0,
-                            Level = "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)",
-                            PaymentType = "Installment"
+                            Miscellaneous = 14000.0,
+                            TuitionFee = 19000.0
                         });
                 });
 
@@ -351,15 +287,34 @@ namespace InquiryManagementApp.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("EmailAddress")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Firstname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GradeLevel")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("GuardianName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("InquiredString")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsApproved")
                         .HasColumnType("bit");
@@ -370,8 +325,17 @@ namespace InquiryManagementApp.Migrations
                     b.Property<bool>("IsConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsEnrolled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsInquired")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsRejected")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Middlename")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
@@ -386,8 +350,11 @@ namespace InquiryManagementApp.Migrations
 
                     b.Property<string>("StudentName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("InquiryId");
 

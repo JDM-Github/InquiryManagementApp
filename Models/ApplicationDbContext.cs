@@ -6,36 +6,38 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        var allTuition = new Dictionary<string, double>
-        {
-            { "NURSERY", 19000 },
-            { "KINDER", 19000 },
-            { "ELEMENTARY", 19000 },
-            { "JUNIOR HIGH SCHOOL", 19000 },
-            { "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", 19000 },
-            { "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", 19000 },
-            { "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", 19000 },
-            { "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", 19000 },
-            { "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", 19000 },
-            { "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", 19000 },
-            { "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", 19000 },
-            { "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", 19000 }
-        };
+        // var allTuition = new Dictionary<string, double>
+        // {
+        //     { "NURSERY", 19000 },
+        //     { "KINDER", 19000 },
+        //     { "ELEMENTARY", 19000 },
+        //     { "JUNIOR HIGH SCHOOL", 19000 },
+        //     { "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", 19000 },
+        //     { "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", 19000 },
+        //     { "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", 19000 },
+        //     { "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", 19000 },
+        //     { "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", 19000 },
+        //     { "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", 19000 },
+        //     { "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", 19000 },
+        //     { "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", 19000 }
+        // };
 
-        modelBuilder.Entity<FeeModel>().HasData(
-            new FeeModel { Id = 1, Level = "NURSERY", Fee = allTuition["NURSERY"], PaymentType = "Cash" },
-            new FeeModel { Id = 2, Level = "KINDER", Fee = allTuition["KINDER"], PaymentType = "Cash" },
-            new FeeModel { Id = 3, Level = "ELEMENTARY", Fee = allTuition["ELEMENTARY"], PaymentType = "Cash" },
-            new FeeModel { Id = 4, Level = "JUNIOR HIGH SCHOOL", Fee = allTuition["JUNIOR HIGH SCHOOL"], PaymentType = "Installment" },
-            new FeeModel { Id = 5, Level = "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 11 ABM (1ST SEM)"], PaymentType = "Installment" },
-            new FeeModel { Id = 6, Level = "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 11 ABM (2ND SEM)"], PaymentType = "Installment" },
-            new FeeModel { Id = 7, Level = "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 12 ABM (1ST SEM)"], PaymentType = "Installment" },
-            new FeeModel { Id = 8, Level = "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 12 ABM (2ND SEM)"], PaymentType = "Installment" },
-            new FeeModel { Id = 9, Level = "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)"], PaymentType = "Installment" },
-            new FeeModel { Id = 10, Level = "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)"], PaymentType = "Installment" },
-            new FeeModel { Id = 11, Level = "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)"], PaymentType = "Installment" },
-            new FeeModel { Id = 12, Level = "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)"], PaymentType = "Installment" }
-        );
+        modelBuilder.Entity<Fee>().HasData(new Fee { Id = 1 });
+
+        // modelBuilder.Entity<FeeModel>().HasData(
+        //     new FeeModel { Id = 1, Level = "NURSERY", Fee = allTuition["NURSERY"], PaymentType = "Cash" },
+        //     new FeeModel { Id = 2, Level = "KINDER", Fee = allTuition["KINDER"], PaymentType = "Cash" },
+        //     new FeeModel { Id = 3, Level = "ELEMENTARY", Fee = allTuition["ELEMENTARY"], PaymentType = "Cash" },
+        //     new FeeModel { Id = 4, Level = "JUNIOR HIGH SCHOOL", Fee = allTuition["JUNIOR HIGH SCHOOL"], PaymentType = "Installment" },
+        //     new FeeModel { Id = 5, Level = "SENIOR HIGH SCHOOL 11 ABM (1ST SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 11 ABM (1ST SEM)"], PaymentType = "Installment" },
+        //     new FeeModel { Id = 6, Level = "SENIOR HIGH SCHOOL 11 ABM (2ND SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 11 ABM (2ND SEM)"], PaymentType = "Installment" },
+        //     new FeeModel { Id = 7, Level = "SENIOR HIGH SCHOOL 12 ABM (1ST SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 12 ABM (1ST SEM)"], PaymentType = "Installment" },
+        //     new FeeModel { Id = 8, Level = "SENIOR HIGH SCHOOL 12 ABM (2ND SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 12 ABM (2ND SEM)"], PaymentType = "Installment" },
+        //     new FeeModel { Id = 9, Level = "SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 11 HUMSS (1ST SEM)"], PaymentType = "Installment" },
+        //     new FeeModel { Id = 10, Level = "SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 11 HUMSS (2ND SEM)"], PaymentType = "Installment" },
+        //     new FeeModel { Id = 11, Level = "SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 12 HUMSS (1ST SEM)"], PaymentType = "Installment" },
+        //     new FeeModel { Id = 12, Level = "SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)", Fee = allTuition["SENIOR HIGH SCHOOL 12 HUMSS (2ND SEM)"], PaymentType = "Installment" }
+        // );
 
         modelBuilder.Entity<Requirement>().HasData(
             new Requirement
@@ -363,11 +365,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     //DbSets
     public required DbSet<Inquiry> Inquiries { get; set; }
+    public required DbSet<Fee> Fees { get; set; }
     public required DbSet<Enrollment> Students { get; set; }
     public required DbSet<EnrollmentSchedule> EnrollmentSchedules { get; set; }
     public required DbSet<PaymentSchedule> PaymentSchedules { get; set; }
     public required DbSet<Notification> Notifications { get; set; }
-    public required DbSet<FeeModel> Fees { get; set; }
+    // public required DbSet<FeeModel> Fees { get; set; }
     public required DbSet<Payment> Payments { get; set; }
 
     public required DbSet<Account> Accounts { get; set; }

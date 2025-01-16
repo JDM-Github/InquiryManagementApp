@@ -31,11 +31,14 @@ public class AdminController : Controller
             schedule = new PaymentSchedule();
         }
 
-        var cancellationAnalytics = _context.Inquiries
-            .Where(i => i.IsCancelled)
-            .GroupBy(i => i.CancellationReason)
-            .Select(g => new { Reason = g.Key, Count = g.Count() })
-            .ToDictionary(g => g.Reason ?? "Unknown", g => g.Count);
+        var enrollmentStatusAnalytics = _context.Inquiries
+            .GroupBy(i => i.IsEnrolled)
+            .Select(g => new
+            {
+                Status = g.Key ? "Enrolled" : "Inquiry",
+                Count = g.Count()
+            })
+            .ToDictionary(g => g.Status, g => g.Count);
 
         var enrollmentTrends = _context.Students
             .Where(s => s.ApprovedEnrolled.HasValue)
@@ -58,12 +61,12 @@ public class AdminController : Controller
 
         var viewModel = new AdminDashboardViewModel
         {
-            TotalInquiries = _context.Inquiries.Count(),
+            TotalInquiries = _context.Inquiries.Where(e => !e.IsInquired).Count(),
             TotalEnrolled = _context.Students.Where(e => !e.IsRejected && !e.IsApproved).Count(),
-            TotalApproved = _context.Students.Where(e => e.IsApproved).Count(),
+            TotalApproved = _context.Students.Where(e => e.IsEnrolled && e.IsApproved).Count(),
             TotalRevenue = _context.Payments.Sum(e => e.PaidAmount),
             CurrentPayment = schedule,
-            CancellationAnalytics = cancellationAnalytics,
+            CancellationAnalytics = enrollmentStatusAnalytics,
             EnrollmentTrends = enrollmentTrendData,
             RecentActivities = recentActivities
         };
@@ -80,7 +83,7 @@ public class AdminController : Controller
     public async Task<IActionResult> ManageEnrolled(int page = 1, string search = "", string grade = "")
     {
         int pageSize = 10;
-        var query = _context.Students.Where(e => (e.IsEnrolled || e.IsApproved) && !e.IsDeleted).AsQueryable();
+        var query = _context.Students.Where(e => e.IsEnrolled && !e.IsDeleted).AsQueryable();
         if (!string.IsNullOrEmpty(search))
         {
             query = query.Where(f => f.Email.Contains(search) || f.Username.Contains(search));
@@ -115,7 +118,7 @@ public class AdminController : Controller
     public async Task<IActionResult> ManageEnrollees(int page = 1, string search = "", string grade = "", string status = "")
     {
         int pageSize = 10;
-        var query = _context.Students.Where(e => !e.IsRejected && !e.IsWalkin && !e.IsDeleted).AsQueryable();
+        var query = _context.Students.Where(e => !e.IsRejected && !e.IsWalkin && !e.IsDeleted && !e.IsEnrolled).AsQueryable();
 
         if (!string.IsNullOrEmpty(search))
         {
@@ -146,6 +149,12 @@ public class AdminController : Controller
         var totalPayments = enrollments.Count();
         var totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
 
+        // var enrolle = await _context.Students.FirstOrDefaultAsync();
+        // enrolle.IsApproved = false;
+        // enrolle.IsRejected = false;
+        // _context.Update(enrolle);
+        // await _context.SaveChangesAsync();
+
         var viewModel = new ManageEnrolledView
         {
             Enrolled = enrollments,
@@ -169,26 +178,20 @@ public class AdminController : Controller
 
         if (status != "")
         {
-            if (status == "Approved")
-                query = query.Where(f => f.IsApproved);
+            if (status == "Answered")
+                query = query.Where(f => f.IsInquired);
 
-            if (status == "Rejected")
-                query = query.Where(f => f.IsRejected);
-
-            if (status == "Pending")
-                query = query.Where(f => !f.IsApproved && !f.IsRejected);
+            if (status == "NAnswered")
+                query = query.Where(f => !f.IsInquired);
         }
 
         if (rstatus != "")
         {
-            if (rstatus == "Confirmed")
-                query = query.Where(f => f.IsConfirmed);
+            if (rstatus == "Inquiry")
+                query = query.Where(f => !f.IsEnrolled);
 
-            if (rstatus == "Cancelled")
-                query = query.Where(f => f.IsCancelled);
-
-            if (rstatus == "Pending")
-                query = query.Where(f => !f.IsConfirmed && !f.IsCancelled);
+            if (rstatus == "Enrolled")
+                query = query.Where(f => f.IsEnrolled);
         }
 
         var inquiries = await query
@@ -210,24 +213,24 @@ public class AdminController : Controller
         };
 
         // var inquiries = _context.Inquiries.ToList();
-        foreach (var inquiry in inquiries)
-        {
-            if (!inquiry.IsConfirmed && inquiry.CreatedAt.Date <= DateTime.Now.Date.AddMinutes(-2))
-            {
-                inquiry.IsCancelled = true;
-                inquiry.CancellationReason = "Not Interested.";
-                inquiry.CancellationNotes = "Automatically cancelled due to lack of confirmation after 5 days.";
+        // foreach (var inquiry in inquiries)
+        // {
+        //     if (!inquiry.IsConfirmed && inquiry.CreatedAt.Date <= DateTime.Now.Date.AddMinutes(-2))
+        //     {
+        //         inquiry.IsCancelled = true;
+        //         inquiry.CancellationReason = "Not Interested.";
+        //         inquiry.CancellationNotes = "Automatically cancelled due to lack of confirmation after 5 days.";
 
-                var recent = new RecentActivity
-                {
-                    Activity = $"Inquiry {inquiry.InquiryId} cancelled automatically after 5 days.",
-                    CreatedAt = DateTime.Now
-                };
-                _context.RecentActivities.Add(recent);
-            }
-        }
+        //         var recent = new RecentActivity
+        //         {
+        //             Activity = $"Inquiry {inquiry.InquiryId} cancelled automatically after 5 days.",
+        //             CreatedAt = DateTime.Now
+        //         };
+        //         _context.RecentActivities.Add(recent);
+        //     }
+        // }
 
-        await _context.SaveChangesAsync();
+        // await _context.SaveChangesAsync();
         ViewBag.ActiveTab = "ManageInquiries";
         return View(viewModel);
     }
@@ -253,7 +256,10 @@ public class AdminController : Controller
             .ToListAsync();
 
         var totalPayments = accounts.Count();
+        Console.WriteLine(totalPayments);
         var totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
+        Console.WriteLine(totalPages);
+        Console.WriteLine(page);
 
         var viewModel = new AccountView
         {
@@ -270,21 +276,38 @@ public class AdminController : Controller
     // ----------------------------------------------------------
 
 
-    public async Task<IActionResult> ManageFees()
-    {
-        var allFees = await _context.Fees.ToListAsync();
-        var feeListModel = new FeeListModel
-        {
-            Fees = allFees
-        };
-        ViewBag.ActiveTab = "ManageFees";
-        return View(feeListModel);
-    }
+    // public async Task<IActionResult> ManageFees()
+    // {
+    //     var allFees = await _context.Fees.ToListAsync();
+    //     var feeListModel = new FeeListModel
+    //     {
+    //         Fees = allFees
+    //     };
+    //     ViewBag.ActiveTab = "ManageFees";
+    //     return View(feeListModel);
+    // }
 
     public async Task<IActionResult> AllFees()
     {
-        var cashFee = new CashFeeView();
-        return View(cashFee);
+        var fee = await _context.Fees.FirstOrDefaultAsync();
+        return View(fee);
+    }
+
+    public async Task<IActionResult> UpdateTuition(Fee newFee)
+    {
+        var fee = await _context.Fees.FirstOrDefaultAsync();
+        if (fee == null)
+        {
+            TempData["ErrorMessage"] = "Fees not found.";
+            return RedirectToAction("AllFees", "Admin");
+        }
+        fee.TuitionFee = newFee.TuitionFee;
+        fee.Miscellaneous = newFee.Miscellaneous;
+        _context.Fees.Update(fee);
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Fees updated successfully.";
+        return RedirectToAction("AllFees", "Admin");
     }
 
     public async Task<IActionResult> ManageTransactions(int page = 1, string search = "", string month = "", string year = "")
@@ -338,13 +361,23 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<JsonResult> GetStudentName(string lrn)
     {
-        var student = await _context.Students.FirstOrDefaultAsync(s => s.LRN == lrn && s.IsApproved);
+        var fee = await _context.Fees.FirstOrDefaultAsync();
+        if (fee == null)
+        {
+            return Json(null);
+        }
+        var TuitionFee = fee.TuitionFee;
+        var Miscellaneous = fee.Miscellaneous;
+        var student = await _context.Students.FirstOrDefaultAsync(s => (s.StudentID == lrn || s.LRN == lrn) && s.IsApproved);
 
         if (student != null)
         {
             if (!student.IsEnrolled)
             {
                 var payment = await _context.StudentPaymentRecords.FirstOrDefaultAsync(p => p.UserId == student.EnrollmentId);
+                Console.WriteLine("----------------------------------------");
+                Console.WriteLine(payment);
+                Console.WriteLine("----------------------------------------");
 
                 var IsEnrollmentActive = false;
                 var schedule = _context.EnrollmentSchedules.FirstOrDefault();
@@ -364,6 +397,11 @@ public class AdminController : Controller
                     balance = payment!.Balance,
                     allDiscount,
                     alreadyPaid = false,
+                    TuitionFee,
+                    Miscellaneous,
+                    student.PaymentType,
+                    student.TotalToPay,
+                    student.PayPerDate
                 });
             }
             else
@@ -373,38 +411,56 @@ public class AdminController : Controller
 
                 if (spayment == null)
                 {
-                    if (payment?.Balance > 0)
+                    if (student.BalanceToPay > 0)
                     {
                         return Json(new
                         {
                             name = $"{student.Firstname} {student.Surname}",
-                            balance = payment?.Balance ?? 0,
+                            balance = student.BalanceToPay,
                             isEnrolled = true,
                             allDiscount = -1,
                             alreadyPaid = false,
                             both = false,
+
+                            TuitionFee,
+                            Miscellaneous,
+                            student.PaymentType,
+                            student.TotalToPay,
+                            student.PayPerDate
                         });
                     }
                     return Json(new
                     {
                         name = $"{student.Firstname} {student.Surname}",
                         alreadyPaid = true,
+
+                        TuitionFee,
+                        Miscellaneous,
+                        student.PaymentType,
+                        student.TotalToPay,
+                        student.PayPerDate
                     });
                 }
 
                 return Json(new
                 {
                     name = $"{student.Firstname} {student.Surname}",
-                    paymentType = payment?.PaymentType,
-                    perPayment = payment?.PerPayment,
+                    paymentType = student.PaymentType,
+                    perPayment = student.PayPerDate,
                     paymentId = spayment?.Id,
                     paymentTargetMonth = spayment?.MonthPaid,
                     paymentTargetYear = spayment?.YearPaid,
                     isEnrolled = true,
-                    balance = payment?.Balance ?? 0,
+                    balance = student.BalanceToPay,
                     allDiscount = -1,
                     alreadyPaid = false,
                     both = true,
+
+                    TuitionFee,
+                    Miscellaneous,
+                    student.PaymentType,
+                    student.TotalToPay,
+                    student.PayPerDate
                 });
             }
         }
@@ -416,10 +472,9 @@ public class AdminController : Controller
     {
         if (!string.IsNullOrEmpty(Target))
         {
-            Console.WriteLine($"Target: {Target}");
             if (Target == "First")
             {
-                var student = await _context.Students.FirstOrDefaultAsync(s => s.LRN == EnrollreesId);
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentID == EnrollreesId);
                 if (student == null)
                 {
                     TempData["ErrorMessage"] = "Student not found.";
@@ -432,43 +487,8 @@ public class AdminController : Controller
                     TempData["ErrorMessage"] = "Payment record not found.";
                     return RedirectToAction("Index");
                 }
-
                 studentPay.PaymentType = PaymentType;
-                var IsEnrollmentActive = false;
-                var schedule = _context.EnrollmentSchedules.FirstOrDefault();
-                if (schedule != null)
-                {
-                    IsEnrollmentActive = DateTime.Now >= schedule.StartDate && DateTime.Now <= schedule.EndDate;
-                }
-
-                studentPay.EarlyBird = IsEnrollmentActive;
-                studentPay.SiblingDiscount = Math.Min(5, student.NumberOfSibling);
-                if (studentPay.PaymentType == "Monthly")
-                {
-                    studentPay.PerPayment = 1900;
-                }
-                else if (studentPay.PaymentType == "Quarterly")
-                {
-                    studentPay.PerPayment = 4750;
-                }
-                else if (studentPay.PaymentType == "Cash")
-                {
-                    studentPay.PerPayment = 19000;
-                    studentPay.CashDiscount = true;
-                }
-                var allDiscount = studentPay.SiblingDiscount + (studentPay.EarlyBird ? 1 : 0) + (studentPay.CashDiscount ? 1 : 0);
-                studentPay.Balance = 14000 + ((studentPay.PerPayment ?? 0) - (allDiscount * 1900)) - UserWillPay ?? 0;
-
-                if (studentPay.PaymentType == "Initial5")
-                {
-                    studentPay.PerPayment = 2800;
-                    studentPay.Balance = 5000;
-                }
-
-                
-
-                _context.Update(studentPay);
-                await _context.SaveChangesAsync();
+                student.BalanceToPay = student.TotalToPay - (UserWillPay ?? 0);
                 var firstPayment = UserWillPay ?? 0;
 
                 student.IsEnrolled = true;
@@ -476,14 +496,14 @@ public class AdminController : Controller
                 _context.Update(student);
                 await _context.SaveChangesAsync();
 
-                var subject = "Enrollment Approved";
-                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully enrolled in this school.<p>Your Temporary Username: {student.TemporaryUsername}</p><p>Your Temporary Password: {student.TemporaryPassword}</p> ";
+                var subject = "Student Enrolled";
+                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully enrolled in this school.<p>Your Username: {student.Username}</p><p>Your Password: {student.Password}</p> ";
                 await _emailService.SendEmailAsync(student.Email, subject, body);
 
                 var notification = new Notification
                 {
                     Message = $"You've successfully been enrolled.",
-                    UserId = student.LRN,
+                    UserId = student.StudentID ?? "",
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };
@@ -512,34 +532,24 @@ public class AdminController : Controller
 
             if (Target == "Balance")
             {
-                var student = await _context.Students.FirstOrDefaultAsync(s => s.LRN == EnrollreesId);
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentID == EnrollreesId);
                 if (student == null)
                 {
                     TempData["ErrorMessage"] = "Student not found.";
                     return RedirectToAction("Index");
                 }
 
-                var studentPay = await _context.StudentPaymentRecords.FirstOrDefaultAsync(s => s.UserId == student.EnrollmentId);
-                if (studentPay == null)
-                {
-                    TempData["ErrorMessage"] = "Payment record not found.";
-                    return RedirectToAction("Index");
-                }
-
-                studentPay.Balance = studentPay.Balance - UserWillPay ?? 0;
-
-                _context.Update(studentPay);
-                await _context.SaveChangesAsync();
+                student.BalanceToPay = student.BalanceToPay - UserWillPay ?? 0;
                 var firstPayment = UserWillPay ?? 0;
 
                 var subject = "Balance Paid";
-                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully paid {firstPayment} for your balance. Your remaining balance is {studentPay.Balance}.";
+                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully paid {firstPayment} for your balance. Your remaining balance is {student.BalanceToPay}.";
                 await _emailService.SendEmailAsync(student.Email, subject, body);
 
                 var notification = new Notification
                 {
-                    Message = $"You've successfully been paid for your balance. Your remaining balance is {studentPay.Balance}",
-                    UserId = student.LRN,
+                    Message = $"You've successfully been paid for your balance. Your remaining balance is {student.BalanceToPay}",
+                    UserId = student.StudentID ?? "",
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };
@@ -569,17 +579,10 @@ public class AdminController : Controller
 
             if (Target == "Tuition")
             {
-                var student = await _context.Students.FirstOrDefaultAsync(s => s.LRN == EnrollreesId);
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentID == EnrollreesId);
                 if (student == null)
                 {
                     TempData["ErrorMessage"] = "Student not found.";
-                    return RedirectToAction("Index");
-                }
-
-                var studentPay = await _context.StudentPaymentRecords.FirstOrDefaultAsync(s => s.UserId == student.EnrollmentId);
-                if (studentPay == null)
-                {
-                    TempData["ErrorMessage"] = "Payment record not found.";
                     return RedirectToAction("Index");
                 }
 
@@ -600,7 +603,7 @@ public class AdminController : Controller
                 var notification = new Notification
                 {
                     Message = $"You've successfully paid {firstPayment} for your tuition.",
-                    UserId = student.LRN,
+                    UserId = student.StudentID ?? "",
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };
@@ -624,16 +627,48 @@ public class AdminController : Controller
 
     public IActionResult Create()
     {
-        return View();
+        return View(new Account());
+    }
+
+    private bool IsValidEmail(string email)
+    {
+        return !string.IsNullOrEmpty(email) &&
+            System.Text.RegularExpressions.Regex.IsMatch(email,
+            @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+    }
+
+    private bool IsStrongPassword(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password)) return false;
+        return System.Text.RegularExpressions.Regex.IsMatch(password,
+            @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$");
     }
 
     [HttpPost]
     public async Task<IActionResult> Create(Account account, string confirmPassword)
     {
+        if (string.IsNullOrWhiteSpace(account.Role))
+        {
+            TempData["ErrorMessage"] = "Please select a role.";
+            return View(account);
+        }
+
         if (account.Password != confirmPassword)
         {
             TempData["ErrorMessage"] = "Passwords do not match.";
             return View();
+        }
+
+        if (!IsValidEmail(account.Email))
+        {
+            TempData["ErrorMessage"] = "Invalid email format.";
+            return View(account);
+        }
+
+        if (!IsStrongPassword(account.Password))
+        {
+            TempData["ErrorMessage"] = "Password must be at least 8 characters long, contain uppercase and lowercase letters, a number, and a special character.";
+            return View(account);
         }
 
         if (ModelState.IsValid)
@@ -720,6 +755,33 @@ public class AdminController : Controller
         return RedirectToAction("Index", "Admin");
     }
 
+
+    string GenerateSecurePassword()
+    {
+        const string lowerChars = "abcdefghijklmnopqrstuvwxyz";
+        const string upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string numberChars = "0123456789";
+        const string specialChars = "!@#$%^&*()_+[]{}|;:,.<>?";
+        const string allChars = lowerChars + upperChars + numberChars + specialChars;
+
+        var random = new Random();
+
+        char lower = lowerChars[random.Next(lowerChars.Length)];
+        char upper = upperChars[random.Next(upperChars.Length)];
+        char number = numberChars[random.Next(numberChars.Length)];
+        char special = specialChars[random.Next(specialChars.Length)];
+
+        int length = random.Next(8, 13);
+        var remainingChars = Enumerable.Range(0, length - 4)
+            .Select(_ => allChars[random.Next(allChars.Length)]);
+
+        var passwordChars = new[] { lower, upper, number, special }.Concat(remainingChars)
+            .OrderBy(_ => random.Next())
+            .ToArray();
+
+        return new string(passwordChars);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Approve(int id)
     {
@@ -737,13 +799,18 @@ public class AdminController : Controller
             enrollment.ApprovedEnrolled = DateTime.Now;
             enrollment.IsApproved = true;
 
+            string studentNumber = enrollment.EnrollmentId.ToString("D4");
+            string schoolYear = DateTime.Now.Year.ToString();
+            var enrolledNo = await _context.Students.CountAsync(e => e.IsEnrolled);
+            enrollment.StudentID = $"{schoolYear}-{enrolledNo:D4}";
+            enrollment.Username = $"temp{enrollment.Firstname}{enrollment.StudentID}{enrollment.Surname}";
+            enrollment.Password = GenerateSecurePassword();
+
             var payment = new StudentPaymentRecord
             {
                 UserId = enrollment.EnrollmentId,
                 PaymentType = "",
-                // NOTE: Sibling discount will be updated, Can admin automatically know whether they are sibling? 
-                // Maybe they will check before accepting then? Whatever
-                SiblingDiscount = 0,
+                SiblingDiscount = enrollment.NumberOfSibling
             };
             _context.StudentPaymentRecords.Add(payment);
             await _context.SaveChangesAsync();
@@ -753,8 +820,6 @@ public class AdminController : Controller
             var body = $@"
                 <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
                 <p>Congratulations! Your enrollment has been approved.</p>
-                <p>Your Temporary Username: {enrollment.TemporaryUsername}</p>
-                <p>Your Temporary Password: {enrollment.TemporaryPassword}</p>
                 <p>To complete your enrollment, please make your payment by clicking on the link below:</p>
                 <p>
                     <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Complete Payment</a>
@@ -891,7 +956,7 @@ public class AdminController : Controller
         enrollment.SubmissionDate = DateTime.Now;
         enrollment.IsWalkin = true;
 
-        enrollment.SetTemporaryCredentials(studentNumber);
+        // enrollment.SetTemporaryCredentials(studentNumber);
         enrollment.ApprovedEnrolled = DateTime.Now;
         var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={approvedId}";
         var subject = "Your Enrollment Has Been Approved!";
@@ -962,7 +1027,7 @@ public class AdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SendNote(int id, string noteContent, string action)
+    public async Task<IActionResult> SendInquire(int id, string InquireContent)
     {
         var inquiry = await _context.Inquiries.FindAsync(id);
         if (inquiry == null)
@@ -970,53 +1035,48 @@ public class AdminController : Controller
             TempData["ErrorMessage"] = "Inquiry not found.";
             return RedirectToAction(nameof(Index));
         }
+        inquiry.IsInquired = true;
+        _context.Update(inquiry);
+        await _context.SaveChangesAsync();
 
-        string emailSubject = "Inquiry Update";
+        string emailSubject = "Inquiry Confirmation - De Roman Montessori School";
         string emailBody = $@"
-                <p>Dear {inquiry.StudentName},</p>
-                <p>{noteContent}</p>
-                <p>For further communication. here is our contact information:</p>
-                <ul>
-                </ul>
-                <p>Best regards,<br>Your Team</p>";
-
-        switch (action)
-        {
-            case "Verify":
-                inquiry.IsApproved = true;
-                _context.SaveChanges();
-
-                emailSubject = "Inquiry Verification";
-                emailBody = $@"
-                <p>Dear {inquiry.StudentName},</p>
-                <p>{noteContent}</p>
-                <p>We are pleased to inform you that your inquiry has been verified successfully.</p>
-                <p>Thank you for reaching out to us!</p>
-                <p>For further communication. here is our contact information:</p>
-                <ul>
-                </ul>
-                <p>Best regards,<br>Your Team</p>";
-                break;
-
-            case "Reject":
-                inquiry.IsRejected = true;
-                _context.SaveChanges();
-
-                emailSubject = "Inquiry Rejected";
-                emailBody = $@"
-                <p>Dear {inquiry.StudentName},</p>
-                <p>{noteContent}</p>
-                <p>We regret to inform you that your inquiry has been rejected.</p>
-                <p>If you have any questions, please feel free to contact us.</p>
-                <p>For further communication. here is our contact information:</p>
-                <ul>
-                </ul>
-                <p>Best regards,<br>Your Team</p>";
-                break;
-
-            default:
-                break;
-        }
+            <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                    <thead style='background-color: #0056b3; color: #fff;'>
+                        <tr>
+                            <th style='padding: 15px; text-align: center;'>
+                                <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-bottom: 10px;'>
+                                <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style='padding: 20px;'>
+                                <p style='font-size: 16px; color: #0056b3;'>Dear {inquiry.StudentName},</p>
+                                <p style='font-size: 14px;'>{InquireContent}</p>
+                                <p style='font-size: 14px;'>For further communication, here is our contact information:</p>
+                                <ul style='font-size: 14px; color: #333;'>
+                                    <li><strong>Phone:</strong> +123-456-7890</li>
+                                    <li><strong>Email:</strong> <a href='mailto:contact@dromanmontessori.edu' style='color: #0056b3;'>contact@dromanmontessori.edu</a></li>
+                                    <li><strong>Website:</strong> <a href='https://www.dromanmontessori.edu' style='color: #0056b3;'>www.dromanmontessori.edu</a></li>
+                                </ul>
+                                <p style='font-size: 14px;'>Thank you for choosing De Roman Montessori School. We look forward to assisting you!</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                        <tr>
+                            <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                <p style='margin: 0;'>De Roman Montessori School, 123 Academic Street, Education City</p>
+                                <p style='margin: 0;'>Contact us: +123-456-7890 | <a href='mailto:contact@dromanmontessori.edu' style='color: #0056b3;'>contact@dromanmontessori.edu</a></p>
+                                <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>";
 
         try
         {
@@ -1080,7 +1140,7 @@ public class AdminController : Controller
     }
 
 
-    
+
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -1125,6 +1185,24 @@ public class AdminController : Controller
     [HttpPost]
     public async Task<IActionResult> EditAccount(int AccountId, string Username, string Email, string Role)
     {
+        if (string.IsNullOrWhiteSpace(Username) || Username.Length < 5)
+        {
+            TempData["ErrorMessage"] = "Username must be at least 5 characters long.";
+            return RedirectToAction("ManageAccounts");
+        }
+
+        if (!IsValidEmail(Email))
+        {
+            TempData["ErrorMessage"] = "Invalid email format.";
+            return RedirectToAction("ManageAccounts");
+        }
+
+        if (string.IsNullOrWhiteSpace(Role))
+        {
+            TempData["ErrorMessage"] = "Role is required.";
+            return RedirectToAction("ManageAccounts");
+        }
+
         var existingAccount = await _context.Accounts.FindAsync(AccountId);
         if (existingAccount == null)
         {
@@ -1135,6 +1213,7 @@ public class AdminController : Controller
         existingAccount.Username = Username;
         existingAccount.Email = Email;
         existingAccount.Role = Role;
+
         try
         {
             _context.Accounts.Update(existingAccount);
@@ -1145,6 +1224,7 @@ public class AdminController : Controller
         {
             TempData["ErrorMessage"] = $"Error updating account: {ex.Message}";
         }
+
         return RedirectToAction("ManageAccounts");
     }
 
