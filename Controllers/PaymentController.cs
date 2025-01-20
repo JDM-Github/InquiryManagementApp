@@ -235,7 +235,7 @@ public class PaymentController : Controller
                 var notification = new Notification
                 {
                     Message = $"You've successfully been paid for your balance. Your remaining balance is {student.BalanceToPay}",
-                    UserId = student.LRN ?? "",
+                    UserId = student.EnrollmentId,
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };

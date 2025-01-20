@@ -276,7 +276,7 @@ public class HomeController : Controller
                 var notification = new Notification
                 {
                     Message = $"You've successfully been enrolled.",
-                    UserId = enrollees.LRN ?? "",
+                    UserId = enrollees.EnrollmentId,
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };
@@ -421,7 +421,7 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Notification()
     {
-        var userId = HttpContext.Session.GetString("LRN");
+        var userId = HttpContext.Session.GetInt32("EnrollmentId");
         var notifications = await _context.Notifications
             .Where(c => c.UserId == userId)
             .OrderByDescending(n => n.CreatedAt)
@@ -477,6 +477,17 @@ public class HomeController : Controller
             requirement.IsRejected = false;
             _context.RequirementModels.Update(requirement);
             await _context.SaveChangesAsync();
+
+            var notification = new Notification
+            {
+                Message = $"You've successfully been enrolled.",
+                UserId = requirement.EnrollmentId,
+                CreatedAt = DateTime.Now,
+                IsRead = false
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
             return Json(new { success = true });
         }
         return Json(new { success = false });
@@ -492,6 +503,16 @@ public class HomeController : Controller
             requirement.IsApproved = false;
             _context.RequirementModels.Update(requirement);
             await _context.SaveChangesAsync();
+
+            var notification = new Notification
+            {
+                Message = $"You've successfully been enrolled.",
+                UserId = requirement.EnrollmentId,
+                CreatedAt = DateTime.Now,
+                IsRead = false
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();  
             return Json(new { success = true });
         }
         return Json(new { success = false });

@@ -503,7 +503,7 @@ public class AdminController : Controller
                 var notification = new Notification
                 {
                     Message = $"You've successfully been enrolled.",
-                    UserId = student.StudentID ?? "",
+                    UserId = student.EnrollmentId,
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };
@@ -549,7 +549,7 @@ public class AdminController : Controller
                 var notification = new Notification
                 {
                     Message = $"You've successfully been paid for your balance. Your remaining balance is {student.BalanceToPay}",
-                    UserId = student.StudentID ?? "",
+                    UserId = student.EnrollmentId,
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };
@@ -603,7 +603,7 @@ public class AdminController : Controller
                 var notification = new Notification
                 {
                     Message = $"You've successfully paid {firstPayment} for your tuition.",
-                    UserId = student.StudentID ?? "",
+                    UserId = student.EnrollmentId,
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };
@@ -794,8 +794,6 @@ public class AdminController : Controller
 
         if (!enrollment.IsApproved)
         {
-            var approvedId = Guid.NewGuid().ToString();
-            enrollment.ApproveId = approvedId;
             enrollment.ApprovedEnrolled = DateTime.Now;
             enrollment.IsApproved = true;
 
@@ -815,7 +813,7 @@ public class AdminController : Controller
             _context.StudentPaymentRecords.Add(payment);
             await _context.SaveChangesAsync();
 
-            var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={approvedId}";
+            var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={enrollment.ApproveId}";
             var subject = "Your Enrollment Has Been Approved!";
             var body = $@"
                 <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
@@ -834,7 +832,7 @@ public class AdminController : Controller
             var notification = new Notification
             {
                 Message = $"Your enrollment has been approved.",
-                UserId = enrollment.LRN,
+                UserId = enrollment.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };
@@ -878,7 +876,7 @@ public class AdminController : Controller
             var notification = new Notification
             {
                 Message = $"Your enrollment has been rejected.",
-                UserId = enrollment.LRN,
+                UserId = enrollment.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };
@@ -978,7 +976,7 @@ public class AdminController : Controller
         var notification = new Notification
         {
             Message = $"Student {enrollment.Firstname} {enrollment.Surname} has been successfully approved.",
-            UserId = enrollment.LRN,
+            UserId = enrollment.EnrollmentId,
             CreatedAt = DateTime.Now,
             IsRead = false
         };
@@ -1038,6 +1036,7 @@ public class AdminController : Controller
         inquiry.IsInquired = true;
         _context.Update(inquiry);
         await _context.SaveChangesAsync();
+        
 
         string emailSubject = "Inquiry Confirmation - De Roman Montessori School";
         string emailBody = $@"

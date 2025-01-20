@@ -164,6 +164,11 @@ namespace InquiryManagementApp.Controllers
                 }
                 if (enrollment.TemporaryPassword == password)
                 {
+                    if (enrollment.IsEnrolled)
+                    {
+                        TempData["ErrorMessage"] = "Your account is already enrolled. Please use your new account login information.";
+                        return RedirectToAction("Login", "Account");
+                    }
                     HttpContext.Session.SetString("isAdmin", "2");
                     SetSessionVariables(enrollment);
                     TempData["SuccessMessage"] = "Login successful.";
@@ -287,7 +292,7 @@ namespace InquiryManagementApp.Controllers
             var notification = new Notification
             {
                 Message = $"Your profile has been updated.",
-                UserId = account!.LRN,
+                UserId = account.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };
@@ -339,20 +344,64 @@ namespace InquiryManagementApp.Controllers
                 }
             }
             string subject = "New Temporary Signin Information";
+            // string body = $@"
+            //         <p>Dear {account.Firstname} {account.Surname},</p>
+            //         <p>Your new account login information</p>
+            //         <p>Username: {account.TemporaryUsername}</p>
+            //         <p>Password: {account.TemporaryPassword}</p>
+            //         <p>We appreciate your interest in our services. Please feel free to reply to this email if you have any questions or concerns.</p>
+            //         <p>Best regards,<br>Your Team</p>
+            //     ";
             string body = $@"
-                    <p>Dear {account.Firstname} {account.Surname},</p>
-                    <p>Your new account login information</p>
-                    <p>Username: {account.TemporaryUsername}</p>
-                    <p>Password: {account.TemporaryPassword}</p>
-                    <p>We appreciate your interest in our services. Please feel free to reply to this email if you have any questions or concerns.</p>
-                    <p>Best regards,<br>Your Team</p>
-                ";
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                        <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                            <thead style='background-color: #0056b3; color: #fff;'>
+                                <tr>
+                                    <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                        <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                        <div>
+                                            <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                            <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{account.Firstname} {account.Surname}</strong>,</p>
+                                        <p style='font-size: 14px;'>
+                                            <p>Your new account login information</p>
+                                            <p>Username: {account.TemporaryUsername}</p>
+                                            <p>Password: {account.TemporaryPassword}</p>
+                                        </p>
+                                        <p style='font-size: 14px;'>If you have any questions or need assistance, feel free to reply to this email or contact us directly:</p>
+                                        <ul style='font-size: 14px; color: #333;'>
+                                            <li><strong>Phone:</strong> +123-456-7890</li>
+                                            <li><strong>Email:</strong> <a href='mailto:contact@dromanmontessori.edu' style='color: #0056b3;'>contact@dromanmontessori.edu</a></li>
+                                            <li><strong>Website:</strong> <a href='https://www.dromanmontessori.edu' style='color: #0056b3;'>www.dromanmontessori.edu</a></li>
+                                        </ul>
+                                        <p style='font-size: 14px;'>Thank you for choosing De Roman Montessori School. We look forward to assisting you!</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                                <tr>
+                                    <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                        <p style='margin: 0;'>De Roman Montessori School, 123 Academic Street, Education City</p>
+                                        <p style='margin: 0;'>Contact us: +123-456-7890 | <a href='mailto:contact@dromanmontessori.edu' style='color: #0056b3;'>contact@dromanmontessori.edu</a></p>
+                                        <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>";
             await _emailService.SendEmailAsync(account.Email, subject, body);
 
             var notification = new Notification
             {
                 Message = $"Your temporary signin information has been updated.",
-                UserId = account!.LRN,
+                UserId = account.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };
@@ -416,7 +465,7 @@ namespace InquiryManagementApp.Controllers
             var notification = new Notification
             {
                 Message = $"Your signin information has been updated.",
-                UserId = account!.LRN,
+                UserId = account.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };
@@ -462,7 +511,7 @@ namespace InquiryManagementApp.Controllers
             var notification = new Notification
             {
                 Message = $"Your profile has been updated.",
-                UserId = account.LRN ?? "",
+                UserId = account.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };

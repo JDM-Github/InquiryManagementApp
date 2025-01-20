@@ -161,8 +161,8 @@ namespace InquiryManagementApp.Controllers
                 }
 
                 if (await _context.Inquiries.FirstOrDefaultAsync(a => a.EmailAddress == inquiry.EmailAddress) != null
-                 || await _context.Students .FirstOrDefaultAsync(a => a.Email        == inquiry.EmailAddress) != null
-                 || await _context.Accounts .FirstOrDefaultAsync(a => a.Email        == inquiry.EmailAddress) != null)
+                 || await _context.Students.FirstOrDefaultAsync(a => a.Email == inquiry.EmailAddress) != null
+                 || await _context.Accounts.FirstOrDefaultAsync(a => a.Email == inquiry.EmailAddress) != null)
                 {
                     TempData["ErrorMessage"] = "Email is already being used.";
                     return View(inquiry);
@@ -179,34 +179,86 @@ namespace InquiryManagementApp.Controllers
                     return View(inquiry);
                 }
 
-                inquiry.StudentName = inquiry.Firstname + " " + (inquiry.Middlename?.First() + "." ?? "") + " "+ inquiry.Surname;
+                inquiry.StudentName = inquiry.Firstname + " " + (inquiry.Middlename?.First() + "." ?? "") + " " + inquiry.Surname;
                 inquiry.DateCreated = DateTime.Now;
                 _context.Add(inquiry);
                 await _context.SaveChangesAsync();
 
                 string subject = "Inquiry Confirmation";
                 string confirmationLink = Url.Action("Create", "Enrollment", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
+                // string body = $@"
+                //     <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                //         <div style='background-color: #f7f7f7; padding: 20px; border: 1px solid #ddd; border-radius: 8px;'>
+                //             <h2 style='color: #0056b3; text-align: center;'>Inquiry Confirmation</h2>
+                //             <p>Dear <strong>{inquiry.StudentName}</strong>,</p>
+                //             <p>Thank you for reaching out to us! Your inquiry has been successfully recorded. We are excited to assist you and will get back to you shortly.</p>
+                //             <p>If you’re ready to take the next step, you can enroll by clicking the button below:</p>
+                //             <div style='text-align: center; margin: 20px 0;'>
+                //                 <a href='{confirmationLink}' 
+                //                 style='display: inline-block; padding: 12px 24px; background-color: #0056b3; color: #fff; text-decoration: none; font-size: 16px; border-radius: 5px;'>
+                //                     Enroll Now
+                //                 </a>
+                //             </div>
+                //             <p>If you have any questions or need assistance, feel free to reply to this email or contact us directly.</p>
+                //             <p>Best regards,<br>
+                //             <strong>De Roman Montessori School</strong><br>
+                //             <em>Your gateway to excellence in education</em></p>
+                //         </div>
+                //         <footer style='text-align: center; margin-top: 20px; font-size: 12px; color: #666;'>
+                //             <p>De Roman Montessori School | [Your Address] | [Contact Info]</p>
+                //         </footer>
+                //     </div>";
+
                 string body = $@"
-                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
-                        <div style='background-color: #f7f7f7; padding: 20px; border: 1px solid #ddd; border-radius: 8px;'>
-                            <h2 style='color: #0056b3; text-align: center;'>Inquiry Confirmation</h2>
-                            <p>Dear <strong>{inquiry.StudentName}</strong>,</p>
-                            <p>Thank you for reaching out to us! Your inquiry has been successfully recorded. We are excited to assist you and will get back to you shortly.</p>
-                            <p>If you’re ready to take the next step, you can enroll by clicking the button below:</p>
-                            <div style='text-align: center; margin: 20px 0;'>
-                                <a href='{confirmationLink}' 
-                                style='display: inline-block; padding: 12px 24px; background-color: #0056b3; color: #fff; text-decoration: none; font-size: 16px; border-radius: 5px;'>
-                                    Enroll Now
-                                </a>
-                            </div>
-                            <p>If you have any questions or need assistance, feel free to reply to this email or contact us directly.</p>
-                            <p>Best regards,<br>
-                            <strong>De Roman Montessori School</strong><br>
-                            <em>Your gateway to excellence in education</em></p>
-                        </div>
-                        <footer style='text-align: center; margin-top: 20px; font-size: 12px; color: #666;'>
-                            <p>De Roman Montessori School | [Your Address] | [Contact Info]</p>
-                        </footer>
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                        <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                            <thead style='background-color: #0056b3; color: #fff;'>
+                                <tr>
+                                    <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                        <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                        <div>
+                                            <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                            <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{inquiry.StudentName}</strong>,</p>
+                                        <p style='font-size: 14px;'>
+                                            Thank you for reaching out to us! Your inquiry has been successfully recorded. We are excited to assist you and will get back to you shortly.
+                                        </p>
+                                        <p style='font-size: 14px;'>
+                                            If you’re ready to take the next step, you can enroll by clicking the button below:
+                                        </p>
+                                        <div style='text-align: center; margin: 20px 0;'>
+                                            <a href='{confirmationLink}' 
+                                                style='display: inline-block; padding: 12px 24px; background-color: #0056b3; color: #fff; text-decoration: none; font-size: 16px; border-radius: 5px;'>
+                                                Enroll Now
+                                            </a>
+                                        </div>
+                                        <p style='font-size: 14px;'>If you have any questions or need assistance, feel free to reply to this email or contact us directly:</p>
+                                        <ul style='font-size: 14px; color: #333;'>
+                                            <li><strong>Phone:</strong> +123-456-7890</li>
+                                            <li><strong>Email:</strong> <a href='mailto:contact@dromanmontessori.edu' style='color: #0056b3;'>contact@dromanmontessori.edu</a></li>
+                                            <li><strong>Website:</strong> <a href='https://www.dromanmontessori.edu' style='color: #0056b3;'>www.dromanmontessori.edu</a></li>
+                                        </ul>
+                                        <p style='font-size: 14px;'>Thank you for choosing De Roman Montessori School. We look forward to assisting you!</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                                <tr>
+                                    <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                        <p style='margin: 0;'>De Roman Montessori School, 123 Academic Street, Education City</p>
+                                        <p style='margin: 0;'>Contact us: +123-456-7890 | <a href='mailto:contact@dromanmontessori.edu' style='color: #0056b3;'>contact@dromanmontessori.edu</a></p>
+                                        <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>";
 
                 try

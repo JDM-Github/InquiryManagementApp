@@ -272,7 +272,7 @@ namespace InquiryManagementApp.Controllers
             var notification = new Notification
             {
                 Message = $"Your enrollment has been approved.",
-                UserId = enrollment.LRN,
+                UserId = enrollment.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };
@@ -453,8 +453,10 @@ namespace InquiryManagementApp.Controllers
                 enrollment.PayPerDate = (fee.TuitionFee + fee.Miscellaneous - 5000) / 10;
                 enrollment.TotalToPay = fee.TuitionFee + fee.Miscellaneous;
             }
-            // var enrolledNo = await _context.Students.CountAsync(e => e.IsEnrolled);
-            // enrollment.StudentID = $"{schoolYear}-{enrolledNo}";
+            var enrolledNo = await _context.Students.CountAsync(e => e.IsEnrolled);
+            enrollment.StudentID = $"{schoolYear}-{enrolledNo}";
+            var approvedId = Guid.NewGuid().ToString();
+            enrollment.ApproveId = approvedId;
             // enrollment.Username = $"temp{enrollment.Firstname}{enrollment.StudentID}{enrollment.Surname}";
             // enrollment.Password = GenerateSecurePassword();
 
@@ -470,6 +472,21 @@ namespace InquiryManagementApp.Controllers
                     <p>Thank you for enrolling in our system. Please complete all necessary information for admin to accept your enrollment</p>
                     <p>Best regards,<br>Enrollment Team</p>
                 ";
+
+            var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={approvedId}";
+            var subject2 = "Your Enrollment Has Been Created!";
+            var body2 = $@"
+                <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
+                <p>Congratulations! Your enrollment has been created.</p>
+                <p>To complete your enrollment, please make your payment by clicking on the link below:</p>
+                <p>
+                    <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Complete Payment</a>
+                </p>
+                <p>If you prefer, you may also visit us in person to make the payment.</p>
+                <p>Thank you for choosing our institution. We look forward to having you with us!</p>
+                <p>Best regards,</p>
+                <p><strong>Your Enrollment Team</strong></p>";
+            await _emailService.SendEmailAsync(enrollment.Email, subject2, body2);
 
             _context.Add(enrollment);
             await _context.SaveChangesAsync();
