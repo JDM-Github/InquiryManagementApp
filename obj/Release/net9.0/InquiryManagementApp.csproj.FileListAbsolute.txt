@@ -227,3 +227,4 @@ C:\JDM\InquiryManagementApp\obj\Release\net9.0\refint\InquiryManagementApp.dll
 C:\JDM\InquiryManagementApp\obj\Release\net9.0\InquiryManagementApp.pdb
 C:\JDM\InquiryManagementApp\obj\Release\net9.0\InquiryManagementApp.genruntimeconfig.cache
 C:\JDM\InquiryManagementApp\obj\Release\net9.0\ref\InquiryManagementApp.dll
+C:\JDM\InquiryManagementApp\obj\Release\net9.0\staticwebassets.upToDateCheck.txt

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InquiryManagementApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250120000614_InitialUpdate")]
+    [Migration("20250120130357_InitialUpdate")]
     partial class InitialUpdate
     {
         /// <inheritdoc />
