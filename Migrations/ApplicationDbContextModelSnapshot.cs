@@ -322,6 +322,9 @@ namespace InquiryManagementApp.Migrations
                     b.Property<bool>("IsCancelled")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsClickedOnEmail")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsConfirmed")
                         .HasColumnType("bit");
 

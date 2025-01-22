@@ -82,6 +82,7 @@ namespace InquiryManagementApp.Migrations
                     IsInquired = table.Column<bool>(type: "bit", nullable: false),
                     IsEnrolled = table.Column<bool>(type: "bit", nullable: false),
                     InquiredString = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsClickedOnEmail = table.Column<bool>(type: "bit", nullable: false),
                     IsConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     IsRejected = table.Column<bool>(type: "bit", nullable: false),
                     IsCancelled = table.Column<bool>(type: "bit", nullable: false),

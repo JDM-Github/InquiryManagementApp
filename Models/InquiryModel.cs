@@ -62,6 +62,7 @@ namespace InquiryManagementApp.Models
         public bool IsInquired { get; set; } = false;
         public bool IsEnrolled { get; set; } = false;
         public string InquiredString { get; set; } = "";
+        public bool IsClickedOnEmail { get; set; } = false;
 
         public bool IsConfirmed { get; set; } = false;
         public bool IsRejected { get; set; } = false;

@@ -33,8 +33,26 @@ namespace InquiryManagementApp.Controllers
             return View();
         }
 
+        public async Task<IActionResult> CreateClick(int id)
+        {
+            var inquiry = await _context.Inquiries.FirstOrDefaultAsync(i => i.InquiryId == id);
+            if (inquiry != null)
+            {
+                inquiry.IsClickedOnEmail = true;
+                _context.Inquiries.Update(inquiry);
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction("Create", "Enrollment", new { id });
+        }
+
         public async Task<IActionResult> Create(int? id = null)
         {
+            if (!_enrollmentScheduleService.IsEnrollmentOpen())
+            {
+                TempData["ErrorMessage"] = "Enrollment is not open.";
+                return RedirectToAction("Index", "Home");
+            }
+
             var fee = await _context.Fees.FirstOrDefaultAsync();
             if (fee == null)
             {
@@ -99,23 +117,6 @@ namespace InquiryManagementApp.Controllers
             }
             ViewBag.TuitionFee = fee.TuitionFee;
             ViewBag.Miscellaneous = fee.Miscellaneous;
-
-            // if (id != null)
-            // {
-            //     var inquiry = await _context.Inquiries.FirstOrDefaultAsync(i => i.InquiryId == id);
-            //     if (inquiry != null)
-            //     {
-            //         var enrollment = new Enrollment();
-            //         enrollment.Firstname = inquiry.Firstname;
-            //         enrollment.Middlename = inquiry.Middlename;
-            //         enrollment.Surname = inquiry.Surname;
-            //         enrollment.GradeLevel = inquiry.GradeLevel;
-            //         enrollment.Gender = inquiry.Gender;
-            //         enrollment.DateOfBirth = inquiry.DateOfBirth;
-            //         enrollment.Email = inquiry.EmailAddress;
-            //         return View(enrollment);
-            //     }
-            // }
             return View(new Enrollment());
         }
 
@@ -220,17 +221,6 @@ namespace InquiryManagementApp.Controllers
             }
             enrollment.TemporaryUsername = $"temp{enrollment.Firstname}{enrollmentNo}{schoolYear}{enrollment.Surname}";
             enrollment.TemporaryPassword = GenerateSecurePassword();
-
-            string subject = "Enrollment Confirmation";
-            string body = $@"
-                    <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
-                    <p>Your enrollment has been successfully created. Below are your temporary credentials:</p>
-                    <p><strong>Temporary Username:</strong> {enrollment.TemporaryUsername}</p>
-                    <p><strong>Temporary Password:</strong> {enrollment.TemporaryPassword}</p>
-                    <p>Thank you for enrolling in our system. Please complete all necessary information for admin to accept your enrollment</p>
-                    <p>Best regards,<br>Enrollment Team</p>
-                ";
-
             _context.Add(enrollment);
             await _context.SaveChangesAsync();
 
@@ -255,18 +245,49 @@ namespace InquiryManagementApp.Controllers
             await _context.SaveChangesAsync();
 
             var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={approvedId}";
-            subject = "Your Enrollment Has Been Approved!";
-            body = $@"
-                <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
-                <p>Congratulations! Your enrollment has been approved.</p>
-                <p>To complete your enrollment, please make your payment by clicking on the link below:</p>
-                <p>
-                    <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Proceed To Payment</a>
-                </p>
-                <p>If you prefer, you may also visit us in person to make the payment.</p>
-                <p>Thank you for choosing our institution. We look forward to having you with us!</p>
-                <p>Best regards,</p>
-                <p><strong>Your Enrollment Team</strong></p>";
+            string subject = "Your Enrollment Has Been Approved!";
+            string body = $@"
+                <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-bottom: 10px;'>
+                                    <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style='padding: 20px;'>
+                                    <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{enrollment.Firstname} {enrollment.Surname}</strong>,</p>
+                                    <p style='font-size: 14px;'>Congratulations! Your enrollment has been approved.</p>
+                                    <p style='font-size: 14px;'>Here are your account details:</p>
+                                        <p><strong>Temporary Username:</strong> {enrollment.TemporaryUsername}</p>
+                                        <p><strong>Temporay Password:</strong> {enrollment.TemporaryPassword}</p>
+                                        <br>
+                                        <p style='font-size: 14px;'>To get the permanent account details. Complete your payment first.</p>
+                                    <p style='font-size: 14px;'>To complete your enrollment, please make your payment by clicking on the link below:</p>
+                                    <p style='font-size: 14px;'>
+                                        <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Proceed To Payment</a>
+                                    </p>
+                                    <p style='font-size: 14px;'>If you prefer, you may also visit us in person to make the payment.</p>
+                                    <p style='font-size: 14px;'>Thank you for choosing De Roman Montessori School. We look forward to having you with us!</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, 123 Academic Street, Education City</p>
+                                    <p style='margin: 0;'>Contact us: +123-456-7890 | <a href='mailto:contact@dromanmontessori.edu' style='color: #0056b3;'>contact@dromanmontessori.edu</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>";
+
             await _emailService.SendEmailAsync(enrollment.Email, subject, body);
 
             var notification = new Notification
@@ -282,13 +303,11 @@ namespace InquiryManagementApp.Controllers
 
             var recent = new RecentActivity
             {
-                Activity = $"Enrollment {enrollment.Firstname} {enrollment.Surname} approved",
+                Activity = $"Enrollment for {enrollment.Firstname} {enrollment.Surname} has been approved.",
                 CreatedAt = DateTime.Now
             };
             _context.RecentActivities.Add(recent);
             await _context.SaveChangesAsync();
-
-
 
             var requirementModels = requiredFiles.Select(r => new RequirementModel
             {
@@ -302,15 +321,6 @@ namespace InquiryManagementApp.Controllers
 
             _context.RequirementModels.AddRange(requirementModels);
             await _context.SaveChangesAsync();
-            try
-            {
-                await _emailService.SendEmailAsync(enrollment.Email, subject, body);
-                Console.WriteLine("Email sent successfully!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error sending email: " + ex.Message);
-            }
 
             HttpContext.Session.SetString("isAdmin", "0");
             TempData["SuccessMessage"] = "Enrollment created successfully.";
@@ -386,6 +396,12 @@ namespace InquiryManagementApp.Controllers
                 return View(enrollment);
             }
 
+            if (!inquired.IsClickedOnEmail)
+            {
+                TempData["ErrorMessage"] = "Please enroll using the email sent to you.";
+                return View(enrollment);
+            }
+
             if (await _context.Accounts.FirstOrDefaultAsync(s => s.Email == enrollment.Email) != null
             || await _context.Students.FirstOrDefaultAsync(s => s.Email == enrollment.Email) != null)
             {
@@ -453,40 +469,61 @@ namespace InquiryManagementApp.Controllers
                 enrollment.PayPerDate = (fee.TuitionFee + fee.Miscellaneous - 5000) / 10;
                 enrollment.TotalToPay = fee.TuitionFee + fee.Miscellaneous;
             }
-            var enrolledNo = await _context.Students.CountAsync(e => e.IsEnrolled);
+            var enrolledNo = await _context.Students.CountAsync();
             enrollment.StudentID = $"{schoolYear}-{enrolledNo}";
             var approvedId = Guid.NewGuid().ToString();
             enrollment.ApproveId = approvedId;
-            // enrollment.Username = $"temp{enrollment.Firstname}{enrollment.StudentID}{enrollment.Surname}";
-            // enrollment.Password = GenerateSecurePassword();
 
             enrollment.TemporaryUsername = $"temp{enrollment.Firstname}{enrollmentNo}{schoolYear}{enrollment.Surname}";
             enrollment.TemporaryPassword = GenerateSecurePassword();
 
-            string subject = "Enrollment Confirmation";
-            string body = $@"
-                    <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
-                    <p>Your enrollment has been successfully created. Below are your temporary credentials:</p>
-                    <p><strong>Temporary Username:</strong> {enrollment.TemporaryUsername}</p>
-                    <p><strong>Temporary Password:</strong> {enrollment.TemporaryPassword}</p>
-                    <p>Thank you for enrolling in our system. Please complete all necessary information for admin to accept your enrollment</p>
-                    <p>Best regards,<br>Enrollment Team</p>
-                ";
 
             var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={approvedId}";
-            var subject2 = "Your Enrollment Has Been Created!";
-            var body2 = $@"
-                <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
-                <p>Congratulations! Your enrollment has been created.</p>
-                <p>To complete your enrollment, please make your payment by clicking on the link below:</p>
-                <p>
-                    <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Complete Payment</a>
-                </p>
-                <p>If you prefer, you may also visit us in person to make the payment.</p>
-                <p>Thank you for choosing our institution. We look forward to having you with us!</p>
-                <p>Best regards,</p>
-                <p><strong>Your Enrollment Team</strong></p>";
-            await _emailService.SendEmailAsync(enrollment.Email, subject2, body2);
+            var subject = "Your Enrollment Has Been Created!";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-bottom: 10px;'>
+                                    <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style='padding: 20px;'>
+                                    <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{enrollment.Firstname} {enrollment.Surname}</strong>,</p>
+                                    <p style='font-size: 14px;'>Congratulations! Your enrollment has been successfully created.</p>
+                                    <p style='font-size: 14px;'>Here are your account details:</p>
+                                        <p><strong>Temporary Username:</strong> {enrollment.TemporaryUsername}</p>
+                                        <p><strong>Temporay Password:</strong> {enrollment.TemporaryPassword}</p>
+                                        <br>
+                                        <p style='font-size: 14px;'>To get the permanent account details. We will need to approve your enrollment first.</p>
+                                    <p style='font-size: 14px;'>To complete your enrollment, please make your payment by clicking on the link below:</p>
+                                    <p style='font-size: 14px;'>
+                                        <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Complete Payment</a>
+                                    </p>
+                                    <p style='font-size: 14px;'>If you prefer, you may also visit us in person to make the payment.</p>
+                                    <p style='font-size: 14px;'>Thank you for choosing De Roman Montessori School. We look forward to having you with us!</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, 123 Academic Street, Education City</p>
+                                    <p style='margin: 0;'>Contact us: +123-456-7890 | <a href='mailto:contact@dromanmontessori.edu' style='color: #0056b3;'>contact@dromanmontessori.edu</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>";
+
+            await _emailService.SendEmailAsync(enrollment.Email, subject, body);
+
 
             _context.Add(enrollment);
             await _context.SaveChangesAsync();
@@ -503,120 +540,15 @@ namespace InquiryManagementApp.Controllers
 
             _context.RequirementModels.AddRange(requirementModels);
             await _context.SaveChangesAsync();
-            try
-            {
-                await _emailService.SendEmailAsync(enrollment.Email, subject, body);
-                Console.WriteLine("Email sent successfully!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error sending email: " + ex.Message);
-            }
-
             HttpContext.Session.SetString("isAdmin", "0");
             TempData["SuccessMessage"] = "Enrollment created successfully.";
             return RedirectToAction("Index", "Home");
         }
 
-
-        //     [HttpPost]
-        //     [ValidateAntiForgeryToken]
-        //     public async Task<IActionResult> Create(
-        // [Bind("Surname, Firstname, Middlename, Gender, GradeLevel, DateOfBirth, Age, Address, LRN, FatherLastName, FatherFirstName, FatherOccupation, FatherMaidenName, MotherLastName, MotherFirstName, MotherOccupation, MotherMaidenName")]
-        // Enrollment enrollment)
-        //     {
-        //         try
-        //         {
-        //             // Debug log to check if ModelState is valid
-        //             Console.WriteLine("ModelState is valid: " + ModelState.IsValid);
-
-        //             if (ModelState.IsValid)
-        //             {
-        //                 // Debug log before processing files
-        //                 Console.WriteLine("Processing files...");
-
-        //                 // foreach (var file in uploadedFiles)
-        //                 // {
-        //                 //     if (file != null && file.Length > 0)
-        //                 //     {
-        //                 //         // Debug log for each file
-        //                 //         Console.WriteLine($"Uploading file: {file.FileName}, Length: {file.Length}");
-
-        //                 //         try
-        //                 //         {
-        //                 //             var fileUrl = await _fileUploadService.UploadFileToCloudinaryAsync(file);
-
-        //                 //             // Debug log for uploaded file URL
-        //                 //             Console.WriteLine($"File uploaded to: {fileUrl}");
-
-        //                 //             enrollment.UploadedFiles.Add(fileUrl);
-        //                 //         }
-        //                 //         catch (Exception ex)
-        //                 //         {
-        //                 //             // Debug log for any error during file upload
-        //                 //             Console.WriteLine($"Error uploading file {file.FileName}: {ex.Message}");
-        //                 //         }
-        //                 //     }
-        //                 // }
-
-        //                 // Debug log before saving to the database
-        //                 Console.WriteLine("Adding enrollment to database...");
-
-        //                 _context.Add(enrollment);
-        //                 await _context.SaveChangesAsync();
-
-        //                 // Debug log after saving
-        //                 Console.WriteLine("Enrollment saved to database.");
-
-        //                 HttpContext.Session.SetString("ToastMessage", "Enrollment created successfully!" + enrollment.TemporaryUsername + enrollment.TemporaryPassword);
-        //                 HttpContext.Session.SetString("isAdmin", "0");
-
-        //                 return RedirectToAction("Index", "Home");
-        //             }
-
-        //             // Debug log if ModelState is not valid
-        //             Console.WriteLine("ModelState is not valid.");
-
-        //             return View(enrollment);
-        //         }
-        //         catch (Exception ex)
-        //         {
-        //             // Debug log for any unhandled errors
-        //             Console.WriteLine($"Error in Create method: {ex.Message}");
-        //             return View(enrollment);
-        //         }
-        //     }
-
-
-
-
         [HttpPost]
         public IActionResult Approve(int id)
         {
             return RedirectToAction(nameof(Index));
-            // var enrollment = _context.Students.FirstOrDefault(e => e.EnrollmentId == id);
-
-            // if (enrollment == null)
-            // {
-            //     return NotFound();
-            // }
-
-            // if (!enrollment.IsApproved)
-            // {
-            //     enrollment.IsApproved = true;
-            //     var account = new Account
-            //     {
-            //         Username = enrollment.Username,
-            //         Password = enrollment.Password,
-            //         IsStudent = true,
-            //         EnrollmentId = enrollment.EnrollmentId
-            //     };
-
-            //     _context.Accounts.Add(account);
-            //     _context.SaveChanges();
-            // }
-
-            // return RedirectToAction(nameof(Index));
         }
     }
 }

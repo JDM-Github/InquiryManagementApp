@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InquiryManagementApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250120130357_InitialUpdate")]
+    [Migration("20250122103924_InitialUpdate")]
     partial class InitialUpdate
     {
         /// <inheritdoc />
@@ -323,6 +323,9 @@ namespace InquiryManagementApp.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsCancelled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsClickedOnEmail")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsConfirmed")

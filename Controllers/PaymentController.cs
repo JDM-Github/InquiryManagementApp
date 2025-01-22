@@ -229,12 +229,52 @@ public class PaymentController : Controller
                 await _context.SaveChangesAsync();
 
                 var subject = "Balance Paid";
-                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully paid {amount} for your balance. Your remaining balance is {student.BalanceToPay}.";
+                var body = $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                        <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                            <thead style='background-color: #0056b3; color: #fff;'>
+                                <tr>
+                                    <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                        <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                        <div>
+                                            <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                            <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{student.Firstname} {student.Surname}</strong>,</p>
+                                        <p style='font-size: 14px;'>We are happy to inform you that you have successfully paid {amount} for your balance.</p>
+                                        <p style='font-size: 14px;'>Your remaining balance is: <strong>{student.BalanceToPay}</strong></p>
+                                        <p style='font-size: 14px;'>If you need further assistance, please don't hesitate to reach out to us:</p>
+                                        <ul style='font-size: 14px; color: #333;'>
+                                            <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                            <li><strong>Phone:</strong> 09274044188</li>
+                                        </ul>
+                                        <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                                <tr>
+                                    <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                        <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                        <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                        <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>";
                 await _emailService.SendEmailAsync(student.Email, subject, body);
+
 
                 var notification = new Notification
                 {
-                    Message = $"You've successfully been paid for your balance. Your remaining balance is {student.BalanceToPay}",
+                    Message = $"You've successfully paid for your balance. Your remaining balance is {student.BalanceToPay}",
                     UserId = student.EnrollmentId,
                     CreatedAt = DateTime.Now,
                     IsRead = false
@@ -280,48 +320,6 @@ public class PaymentController : Controller
         TempData["ErrorMessage"] = "Payment failed. Please try again later.";
         return RedirectToAction("Index");
     }
-
-    // public async Task<string> GetAccessToken()
-    // {
-    //     try
-    //     {
-    //         var url = "https://api.sandbox.paypal.com/v1/oauth2/token";
-    //         var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(
-    //             $"{_configuration["PaypalAccount:ClientId"]}:{_configuration["PaypalAccount:Secret"]}"));
-
-    //         using (var client = new HttpClient())
-    //         {
-    //             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
-    //             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")); 
-
-    //             var content = new FormUrlEncodedContent(new[]
-    //             {
-    //             new KeyValuePair<string, string>("grant_type", "client_credentials")
-    //         });
-
-    //             var response = await client.PostAsync(url, content);
-
-    //             if (!response.IsSuccessStatusCode)
-    //             {
-    //                 var errorContent = await response.Content.ReadAsStringAsync();
-    //                 Console.WriteLine($"Error fetching access token: {errorContent}");
-    //                 throw new Exception($"Failed to fetch access token. Status Code: {response.StatusCode}");
-    //             }
-
-    //             var responseContent = await response.Content.ReadAsStringAsync();
-    //             var data = JsonConvert.DeserializeObject<dynamic>(responseContent);
-
-    //             Console.WriteLine($"Access Token: {data.access_token}");
-    //             return data.access_token;
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"Error in GetAccessToken: {ex.Message}");
-    //         throw; 
-    //     }
-    // }
-
 
     public async Task<IActionResult> Pay(int paymentId)
     {
@@ -412,12 +410,51 @@ public class PaymentController : Controller
                 _context.Update(payment);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Payment successful. Your payment for this month has been paid SUCCESSFULLY";
+                TempData["SuccessMessage"] = "Payment successful. Your payment for this month has been paid successfully";
 
                 var student = await _context.Students.FirstOrDefaultAsync(s => s.EnrollmentId == payment.UserId);
                 var subject = "Payment Successful";
-                var body = $"Dear {student!.Firstname} {student.Surname},<br>Your payment has been successfully processed.";
+                var body = $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                        <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                            <thead style='background-color: #0056b3; color: #fff;'>
+                                <tr>
+                                    <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                        <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                        <div>
+                                            <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                            <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{student!.Firstname} {student.Surname}</strong>,</p>
+                                        <p style='font-size: 14px;'>We are happy to inform you that your payment has been successfully processed. Your payment for this month has been paid successfully.</p>
+                                        <p style='font-size: 14px;'>If you need further assistance or have any questions, feel free to reach out:</p>
+                                        <ul style='font-size: 14px; color: #333;'>
+                                            <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                            <li><strong>Phone:</strong> 09274044188</li>
+                                        </ul>
+                                        <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                                <tr>
+                                    <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                        <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                        <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                        <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>";
                 await _emailService.SendEmailAsync(student.Email, subject, body);
+
 
                 return RedirectToAction("PaymentHistory");
             }
@@ -443,188 +480,6 @@ public class PaymentController : Controller
     }
 
 
-
-    // public async Task<IActionResult> Pay()
-    // {
-    //     var userId = HttpContext.Session.GetInt32("EnrollmentId");
-    //     var user = await _context.Students.FirstOrDefaultAsync(e => e.EnrollmentId == userId);
-    //     if (user == null)
-    //     {
-    //         TempData["ErrorMessage"] = "User not found.";
-    //         return RedirectToAction("PaymentHistory");
-    //     }
-
-    //     var paymentSchedule = PaymentSchedule.CurrentPaymentSchedule;
-    //     var currentPaymentId = paymentSchedule!.CurrentPaymentId;
-
-    //     var existingPayment = _context.Payments
-    //         .FirstOrDefault(p => p.EnrollreesId == userId && p.PaymentId.ToString() == currentPaymentId
-    //             && p.Status == "Paid" || p.Status == "Pending");
-
-    //     if (existingPayment != null)
-    //     {
-    //         TempData["ErrorMessage"] = "You have already made the payment for this schedule.";
-    //         return RedirectToAction("PaymentHistory");
-    //     }
-
-    //     var referenceNumber = Guid.NewGuid().ToString();
-    //     var successUrl = $"{Request.Scheme}://{Request.Host}/Payment/PaymentSuccess?reference={referenceNumber}";
-    //     var cancelUrl = $"{Request.Scheme}://{Request.Host}/Payment/PaymentCancelled?reference={referenceNumber}";
-
-    //     var fee = await _context.Fees.FirstOrDefaultAsync(f => f.Level == user!.GradeLevel);
-    //     var adjustedLineItems = new List<object>
-    //     {
-    //         new
-    //         {
-    //             currency = "PHP",
-    //             images = new string[] { "https://cdn-icons-png.flaticon.com/512/5166/5166991.png" },
-    //             amount = (int)(fee!.Fee * 100),
-    //             name = "Payment Fee",
-    //             quantity = 1,
-    //             description = "Payment fee for tuition"
-    //         }
-    //     };
-    //     var lineItems = adjustedLineItems.ToArray();
-    //     var payload = new
-    //     {
-    //         data = new
-    //         {
-    //             attributes = new
-    //             {
-    //                 billing = new
-    //                 {
-    //                     address = new
-    //                     {
-    //                         line1 = user!.Address,
-    //                         country = "PH"
-    //                     },
-    //                     name = user.Firstname + " " + user.Middlename + " " + user.Surname,
-    //                     email = user.Email,
-    //                     phone = ""
-    //                 },
-    //                 send_email_receipt = true,
-    //                 show_description = true,
-    //                 show_line_items = true,
-    //                 payment_method_types = new string[] { "qrph", "billease", "card", "dob", "dob_ubp", "brankas_bdo", "gcash", "brankas_landbank", "brankas_metrobank", "grab_pay", "paymaya" },
-    //                 line_items = lineItems,
-    //                 description = "Payment for school tuition",
-    //                 reference_number = referenceNumber,
-    //                 statement_descriptor = "Inquiry Management",
-    //                 success_url = successUrl,
-    //                 cancel_url = cancelUrl,
-    //             }
-    //         }
-    //     };
-
-    //     var jsonPayload = JsonConvert.SerializeObject(payload);
-    //     var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-    //     try
-    //     {
-    //         _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(_configuration["PayMongo:SecretKey"])));
-    //         var response = await _httpClient.PostAsync("https://api-m.sandbox.paypal.com/v2/checkout/orders", content);
-    //         if (response.IsSuccessStatusCode)
-    //         {
-    //             var responseContent = await response.Content.ReadAsStringAsync();
-
-    //             var jsonDeserialized = JsonConvert.DeserializeObject<dynamic>(responseContent);
-    //             var paymentLink = jsonDeserialized?.data?.attributes?.checkout_url;
-
-    //             var payment = new Payment
-    //             {
-    //                 Date = DateTime.Now,
-    //                 PaymentId = currentPaymentId!,
-    //                 PaidAmount = fee.Fee,
-    //                 ReferenceNumber = referenceNumber,
-    //                 PaymentMethod = "Paymongo",
-    //                 PaymentLink = paymentLink!.ToString(),
-    //                 Status = "Pending",
-    //                 EnrollreesId = user.EnrollmentId,
-    //                 TransactionId = jsonDeserialized!.data!.id,
-    //                 ExpirationTime = DateTime.UtcNow.AddMinutes(15)
-    //             };
-
-    //             _context.Payments.Add(payment);
-    //             _context.SaveChanges();
-    //             return Redirect(paymentLink.ToString());
-    //         }
-    //         else
-    //         {
-    //             TempData["ErrorMessage"] = "Failed to create payment link.";
-    //             return RedirectToAction("PaymentHistory");
-    //         }
-    //     }
-    //     catch (Exception)
-    //     {
-    //         TempData["ErrorMessage"] = "An error occurred while processing your payment.";
-    //         return RedirectToAction("PaymentHistory");
-    //     }
-    // }
-
-    // public async Task<IActionResult> PaymentSuccess(string reference)
-    // {
-    //     var transaction = await _context.Payments
-    //         .FirstOrDefaultAsync(t => t.ReferenceNumber == reference);
-
-    //     if (transaction == null)
-    //     {
-    //         TempData["ErrorMessage"] = "Payment not found.";
-    //         return RedirectToAction("PaymentHistory");
-    //     }
-
-    //     transaction.Status = "Paid";
-    //     transaction.PaymentMethod = "Paymongo";
-
-    //     var user = await _context.Students.FirstOrDefaultAsync(c => c.EnrollmentId == transaction.EnrollreesId);
-
-    //     _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(_configuration["PayMongo:SecretKey"])));
-    //     var response = await _httpClient.GetAsync(
-    //         "https://api.paymongo.com/v1/checkout_sessions/" + transaction.TransactionId.ToString());
-
-    //     if (response.IsSuccessStatusCode)
-    //     {
-    //         var responseContent = await response.Content.ReadAsStringAsync();
-    //         var jsonDeserialized = JsonConvert.DeserializeObject<dynamic>(responseContent);
-    //         transaction.PaymentMethod = ((string)jsonDeserialized!.data!.attributes!.payment_method_used).ToUpper();
-    //     }
-
-    //     await _context.SaveChangesAsync();
-    //     var notification = new Notification
-    //     {
-    //         Message = $"You successfully paid the tuition in this semester. You paid {transaction.PaidAmount}.",
-    //         UserId = user!.LRN,
-    //         CreatedAt = DateTime.Now,
-    //         IsRead = false
-    //     };
-    //     var recent = new RecentActivity
-    //     {
-    //         Activity = $"User {user.Firstname} {user.Surname} paid {transaction.PaidAmount}",
-    //         CreatedAt = DateTime.Now
-    //     };
-    //     _context.RecentActivities.Add(recent);
-    //     _context.Notifications.Add(notification);
-    //     await _context.SaveChangesAsync();
-
-    //     TempData["SuccessMessage"] = "Payment successful!";
-    //     return RedirectToAction("PaymentHistory");
-    // }
-
-    // public async Task<IActionResult> PaymentCancelled(string reference)
-    // {
-    //     var transaction = await _context.Payments
-    //         .FirstOrDefaultAsync(t => t.ReferenceNumber == reference);
-
-    //     if (transaction == null || transaction.Status == "Expired")
-    //     {
-    //         TempData["ErrorMessage"] = "This transaction has expired.";
-    //         return RedirectToAction("PaymentHistory");
-    //     }
-    //     transaction.Status = "Cancelled";
-    //     await _context.SaveChangesAsync();
-    //     TempData["ErrorMessage"] = "Payment was cancelled. Please try again.";
-    //     return RedirectToAction("PaymentHistory");
-    // }
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SubmitWalkInPayment(string EnrollreesId, bool IsEarlyBird)
@@ -637,17 +492,6 @@ public class PaymentController : Controller
             TempData["ErrorMessage"] = "Student not found.";
             return RedirectToAction("ManageTransactions", "Admin");
         }
-
-        // var existingPayment = await _context.Payments
-        //     .FirstOrDefaultAsync(p => p.EnrollreesId == student!.EnrollmentId
-        //         && p.Status == "Paid" || p.Status == "Pending");
-
-        // if (existingPayment != null)
-        // {
-        //     TempData["ErrorMessage"] = "User have already paid.";
-        //     return RedirectToAction("ManageTransactions", "Admin");
-        // }
-
         double baseAmount = 31100;
         if (IsEarlyBird)
         {
@@ -673,44 +517,7 @@ public class PaymentController : Controller
         TempData["SuccessMessage"] = "Walk-in payment added successfully!";
         return RedirectToAction("ManageTransactions", "Admin");
 
-        // TempData["ErrorMessage"] = "Failed to process the payment.";
-        // return RedirectToAction("ManageTransactions", "Admin");
     }
-
-
-
-    // public IActionResult SetPaymentDate()
-    // {
-    //     return View();
-    // }
-
-
-    // [HttpPost]
-    // [ValidateAntiForgeryToken]
-    // public async Task<IActionResult> SetPaymentDate([Bind("StartDate,EndDate")] PaymentSchedule paymentSchedule)
-    // {
-    //     if (ModelState.IsValid)
-    //     {
-    //         var generateId = Guid.NewGuid().ToString();
-    //         if (PaymentSchedule.InstanceExists)
-    //         {
-    //             var schedule = _context.PaymentSchedules.FirstOrDefault();
-    //             schedule!.StartDate = paymentSchedule.StartDate;
-    //             schedule.EndDate = paymentSchedule.EndDate;
-    //             schedule.PaymentIds.Add(generateId);
-    //             schedule.CurrentPaymentId = generateId;
-    //             return RedirectToAction(nameof(Index));
-    //         } else {
-    //             PaymentSchedule.CreateInstance();
-    //             paymentSchedule.PaymentIds.Add(generateId);
-    //             paymentSchedule.CurrentPaymentId = generateId;
-    //             _context.PaymentSchedules.Add(paymentSchedule);
-    //             await _context.SaveChangesAsync();
-    //             return RedirectToAction(nameof(Index));
-    //         }
-    //     }
-    //     return View();
-    // }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -807,39 +614,4 @@ public class PaymentController : Controller
         TempData["SuccessMessage"] = "Payment schedule closed successfully.";
         return RedirectToAction("ManageTransactions", "Admin");
     }
-
-
-    // [HttpPost]
-    // public IActionResult ProcessPayment(int amount)
-    // {
-    //     var userId = HttpContext.Session.GetString("LRN");
-    //     var enrollment = _context.Students
-    //         .Include(e => e.PaymentHistories)
-    //         .FirstOrDefault(e => e.LRN == userId);
-
-    //     if (enrollment == null)
-    //     {
-    //         return NotFound("Enrollment record not found.");
-    //     }
-
-    //     if (amount <= 0 || enrollment.FeePaid + amount > 5000)
-    //     {
-    //         TempData["ErrorMessage"] = "Invalid payment amount.";
-    //         return RedirectToAction("Payment", "Home");
-    //     }
-
-    //     enrollment.FeePaid += amount;
-    //     var payment = new Payment
-    //     {
-    //         Date = DateTime.Now,
-    //         Amount = amount,
-    //         EnrollmentId = enrollment.EnrollmentId
-    //     };
-    //     _context.Payments.Add(payment);
-    //     _context.SaveChanges();
-
-    //     TempData["SuccessMessage"] = $"Payment of ₱{amount} successfully processed.";
-    //     return RedirectToAction("Payment", "Home");
-    // }
-
 }

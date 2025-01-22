@@ -61,7 +61,7 @@ public class AdminController : Controller
 
         var viewModel = new AdminDashboardViewModel
         {
-            TotalInquiries = _context.Inquiries.Where(e => !e.IsInquired).Count(),
+            TotalInquiries = _context.Inquiries.Count(),
             TotalEnrolled = _context.Students.Where(e => !e.IsRejected && !e.IsApproved).Count(),
             TotalApproved = _context.Students.Where(e => e.IsEnrolled && e.IsApproved).Count(),
             TotalRevenue = _context.Payments.Sum(e => e.PaidAmount),
@@ -149,12 +149,6 @@ public class AdminController : Controller
         var totalPayments = enrollments.Count();
         var totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
 
-        // var enrolle = await _context.Students.FirstOrDefaultAsync();
-        // enrolle.IsApproved = false;
-        // enrolle.IsRejected = false;
-        // _context.Update(enrolle);
-        // await _context.SaveChangesAsync();
-
         var viewModel = new ManageEnrolledView
         {
             Enrolled = enrollments,
@@ -212,25 +206,6 @@ public class AdminController : Controller
             RStatusFilter = rstatus
         };
 
-        // var inquiries = _context.Inquiries.ToList();
-        // foreach (var inquiry in inquiries)
-        // {
-        //     if (!inquiry.IsConfirmed && inquiry.CreatedAt.Date <= DateTime.Now.Date.AddMinutes(-2))
-        //     {
-        //         inquiry.IsCancelled = true;
-        //         inquiry.CancellationReason = "Not Interested.";
-        //         inquiry.CancellationNotes = "Automatically cancelled due to lack of confirmation after 5 days.";
-
-        //         var recent = new RecentActivity
-        //         {
-        //             Activity = $"Inquiry {inquiry.InquiryId} cancelled automatically after 5 days.",
-        //             CreatedAt = DateTime.Now
-        //         };
-        //         _context.RecentActivities.Add(recent);
-        //     }
-        // }
-
-        // await _context.SaveChangesAsync();
         ViewBag.ActiveTab = "ManageInquiries";
         return View(viewModel);
     }
@@ -273,19 +248,6 @@ public class AdminController : Controller
         ViewBag.ActiveTab = "ManageAccounts";
         return View(viewModel);
     }
-    // ----------------------------------------------------------
-
-
-    // public async Task<IActionResult> ManageFees()
-    // {
-    //     var allFees = await _context.Fees.ToListAsync();
-    //     var feeListModel = new FeeListModel
-    //     {
-    //         Fees = allFees
-    //     };
-    //     ViewBag.ActiveTab = "ManageFees";
-    //     return View(feeListModel);
-    // }
 
     public async Task<IActionResult> AllFees()
     {
@@ -492,14 +454,61 @@ public class AdminController : Controller
                 var firstPayment = UserWillPay ?? 0;
 
                 student.IsEnrolled = true;
+                student.ApprovedEnrolled = DateTime.Now;
+                student.IsApproved = true;
+
+                student.Username = $"temp{student.Firstname}{student.StudentID}{student.Surname}";
+                student.Password = GenerateSecurePassword();
+
                 student.EnrolledDate = DateTime.Now;
                 _context.Update(student);
                 await _context.SaveChangesAsync();
 
-                var subject = "Student Enrolled";
-                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully enrolled in this school.<p>Your Username: {student.Username}</p><p>Your Password: {student.Password}</p> ";
-                await _emailService.SendEmailAsync(student.Email, subject, body);
+                var subject = "Enrollment Payment Success";
+                var body = $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear {student.Firstname} {student.Surname},</p>
+                                        <p style='font-size: 14px;'>We are pleased to inform you that your payment of {firstPayment} has been successfully processed.</p>
+                                        <p style='font-size: 14px;'>Here are your account details:</p>
+                                        <p><strong>Username:</strong> {student.Username}</p>
+                                        <p><strong>Password:</strong> {student.Password}</p>
+                                        <p style='font-size: 14px;'>Should you have any questions or require further assistance, do not hesitate to contact us:</p>
+                                    <ul style='font-size: 14px; color: #333;'>
+                                        <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                        <li><strong>Phone:</strong> 09274044188</li>
+                                    </ul>
+                                    <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                    <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        </table>
+                    </div>";
 
+                await _emailService.SendEmailAsync(student.Email, subject, body);
                 var notification = new Notification
                 {
                     Message = $"You've successfully been enrolled.",
@@ -508,6 +517,14 @@ public class AdminController : Controller
                     IsRead = false
                 };
                 _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+
+                var recent = new RecentActivity
+                {
+                    Activity = $"Enrollment payment success for {student.Firstname} {student.Surname}. Amount: {firstPayment}",
+                    CreatedAt = DateTime.Now
+                };
+                _context.RecentActivities.Add(recent);
                 await _context.SaveChangesAsync();
 
                 DateTime date = DateTime.Now;
@@ -543,18 +560,58 @@ public class AdminController : Controller
                 var firstPayment = UserWillPay ?? 0;
 
                 var subject = "Balance Paid";
-                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully paid {firstPayment} for your balance. Your remaining balance is {student.BalanceToPay}.";
+                var body = $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{student.Firstname} {student.Surname}</strong>,</p>
+                                        <p style='font-size: 14px;'>You've successfully paid <strong>{firstPayment}</strong> for your balance. Your remaining balance is <strong>{student.BalanceToPay}</strong>.</p>
+                                        <p style='font-size: 14px;'>Should you have any questions or require further assistance, do not hesitate to contact us:</p>
+                                    <ul style='font-size: 14px; color: #333;'>
+                                        <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                        <li><strong>Phone:</strong> 09274044188</li>
+                                    </ul>
+                                    <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                    <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        </table>
+                    </div>";
+
                 await _emailService.SendEmailAsync(student.Email, subject, body);
 
                 var notification = new Notification
                 {
-                    Message = $"You've successfully been paid for your balance. Your remaining balance is {student.BalanceToPay}",
+                    Message = $"You've successfully paid {firstPayment} for your balance. Your remaining balance is {student.BalanceToPay}.",
                     UserId = student.EnrollmentId,
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };
                 _context.Notifications.Add(notification);
                 await _context.SaveChangesAsync();
+
 
                 DateTime date = DateTime.Now;
                 string monthName = date.ToString("MMMM");
@@ -597,7 +654,46 @@ public class AdminController : Controller
                 var firstPayment = UserWillPay ?? 0;
 
                 var subject = "Payment For Tuition";
-                var body = $"Dear {student.Firstname} {student.Surname},<br>You've successfully paid {firstPayment} for your tuition.";
+                var body = $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{student.Firstname} {student.Surname}</strong>,</p>
+                                        <p style='font-size: 14px;'>You've successfully paid <strong>{firstPayment}</strong> for your tuition.</p>
+                                        <p style='font-size: 14px;'>Should you have any questions or require further assistance, do not hesitate to contact us:</p>
+                                    <ul style='font-size: 14px; color: #333;'>
+                                        <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                        <li><strong>Phone:</strong> 09274044188</li>
+                                    </ul>
+                                    <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                    <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        </table>
+                    </div>";
+
                 await _emailService.SendEmailAsync(student.Email, subject, body);
 
                 var notification = new Notification
@@ -609,6 +705,7 @@ public class AdminController : Controller
                 };
                 _context.Notifications.Add(notification);
                 await _context.SaveChangesAsync();
+
 
                 payment.Status = "Paid";
                 payment.Date = DateTime.Now;
@@ -641,7 +738,7 @@ public class AdminController : Controller
     {
         if (string.IsNullOrWhiteSpace(password)) return false;
         return System.Text.RegularExpressions.Regex.IsMatch(password,
-            @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$");
+            @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#_])[A-Za-z\d@$!%*?&_#]{8,}$");
     }
 
     [HttpPost]
@@ -720,6 +817,62 @@ public class AdminController : Controller
             _context.RecentActivities.Add(recent2);
             await _context.SaveChangesAsync();
 
+
+            var inquiries = await _context.Inquiries.ToListAsync();
+            foreach (var inquiry in inquiries)
+            {
+                if (inquiry.IsEnrolled)
+                    continue;
+
+                string subject = "Exciting News: Enrollment is Now Open!";
+                string confirmationLink = Url.Action("CreateClick", "Enrollment", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
+                string body = $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{inquiry.StudentName}</strong>,</p>
+                                        <p style='font-size: 14px;'>We are thrilled to announce that enrollment for the upcoming academic year is officially open! Click the link below to secure your spot:</p>
+                                        <p style='text-align: center; margin: 20px 0;'>
+                                            <a href='{confirmationLink}' style='display: inline-block; background-color: #0056b3; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;'>Complete Your Enrollment</a>
+                                        </p>
+                                        <p style='font-size: 14px;'>Should you have any questions or require further assistance, do not hesitate to contact us:</p>
+                                    <ul style='font-size: 14px; color: #333;'>
+                                        <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                        <li><strong>Phone:</strong> 09274044188</li>
+                                    </ul>
+                                    <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                    <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        </table>
+                    </div>";
+
+                await _emailService.SendEmailAsync(inquiry.EmailAddress, subject, body);
+
+            }
+
             TempData["SuccessMessage"] = "Enrollment schedule updated successfully.";
             return RedirectToAction("Index", "Admin");
         }
@@ -751,6 +904,57 @@ public class AdminController : Controller
         {
             _context.EnrollmentSchedules.Remove(existingSchedule);
             await _context.SaveChangesAsync();
+
+            var inquiries = await _context.Inquiries.ToListAsync();
+            foreach (var inquiry in inquiries)
+            {
+                if (inquiry.IsEnrolled)
+                    continue;
+
+                string subject = "Enrollment Now Officially Closed";
+                string confirmationLink = Url.Action("CreateClick", "Enrollment", new { id = inquiry.InquiryId }, Request.Scheme) ?? "";
+                string body = $@"
+                <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #e74c3c; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style='padding: 20px;'>
+                                    <p style='font-size: 16px; color: #e74c3c;'>Dear <strong>{inquiry.StudentName}</strong>,</p>
+                                    <p style='font-size: 14px;'>We regret to inform you that enrollment for the upcoming academic year is now officially closed. Unfortunately, we are unable to accept new enrollments at this time. We thank you for your interest in De Roman Montessori School.</p>
+                                    <p style='font-size: 14px;'>If you have any questions or need further assistance, please feel free to reach out to us:</p>
+                                    <ul style='font-size: 14px; color: #333;'>
+                                        <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #e74c3c;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                        <li><strong>Phone:</strong> 09274044188</li>
+                                    </ul>
+                                    <p style='font-size: 14px;'>Thank you again for considering our school. We wish you all the best in your educational journey.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #e74c3c;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                    <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #e74c3c;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>";
+
+                await _emailService.SendEmailAsync(inquiry.EmailAddress, subject, body);
+            }
         }
         return RedirectToAction("Index", "Admin");
     }
@@ -797,10 +1001,6 @@ public class AdminController : Controller
             enrollment.ApprovedEnrolled = DateTime.Now;
             enrollment.IsApproved = true;
 
-            string studentNumber = enrollment.EnrollmentId.ToString("D4");
-            string schoolYear = DateTime.Now.Year.ToString();
-            var enrolledNo = await _context.Students.CountAsync(e => e.IsEnrolled);
-            enrollment.StudentID = $"{schoolYear}-{enrolledNo:D4}";
             enrollment.Username = $"temp{enrollment.Firstname}{enrollment.StudentID}{enrollment.Surname}";
             enrollment.Password = GenerateSecurePassword();
 
@@ -813,40 +1013,126 @@ public class AdminController : Controller
             _context.StudentPaymentRecords.Add(payment);
             await _context.SaveChangesAsync();
 
-            var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={enrollment.ApproveId}";
-            var subject = "Your Enrollment Has Been Approved!";
-            var body = $@"
-                <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
-                <p>Congratulations! Your enrollment has been approved.</p>
-                <p>To complete your enrollment, please make your payment by clicking on the link below:</p>
-                <p>
-                    <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Complete Payment</a>
-                </p>
-                <p>If you prefer, you may also visit us in person to make the payment.</p>
-                <p>Thank you for choosing our institution. We look forward to having you with us!</p>
-                <p>Best regards,</p>
-                <p><strong>Your Enrollment Team</strong></p>";
-            await _emailService.SendEmailAsync(enrollment.Email, subject, body);
+            if (enrollment.IsEnrolled) {
+                var subject2 = "Enrollment Payment Success";
+                var body2 = $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear {enrollment.Firstname} {enrollment.Surname},</p>
+                                        <p style='font-size: 14px;'>Congratulations! Your enrollment has been successfully approved.</p>
+                                    <p style='font-size: 14px;'>To complete your enrollment, kindly proceed with the payment by clicking the button below:</p>
+                                        <p style='font-size: 14px;'>Here are your permanent account details:</p>
+                                        <p><strong>Username:</strong> {enrollment.Username}</p>
+                                        <p><strong>Password:</strong> {enrollment.Password}</p>
+                                        <p style='font-size: 14px;'>Should you have any questions or require further assistance, do not hesitate to contact us:</p>
+                                    <ul style='font-size: 14px; color: #333;'>
+                                        <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                        <li><strong>Phone:</strong> 09274044188</li>
+                                    </ul>
+                                    <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                    <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        </table>
+                    </div>";
+                await _emailService.SendEmailAsync(enrollment.Email, subject2, body2);
 
+            }
+            var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={enrollment.ApproveId}";
+            var subject = "Congratulations! Your Enrollment Has Been Approved";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style='padding: 20px;'>
+                                    <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{enrollment.Firstname} {enrollment.Surname}</strong>,</p>
+                                    <p style='font-size: 14px;'>Congratulations! Your enrollment has been successfully approved.</p>
+
+                                    <p style='font-size: 14px;'>Here are your permanent account details:</p>
+                                        <p><strong>Username:</strong> {enrollment.TemporaryUsername}</p>
+                                        <p><strong>Password:</strong> {enrollment.TemporaryPassword}</p>
+                                    <p style='font-size: 14px;'>To get the permanent account details. You need to complete your enrollment first.</p>
+                                    <p style='font-size: 14px;'>To complete your enrollment, kindly proceed with the payment by clicking the button below:</p>
+                                    <p>
+                                        <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Proceed To Payment</a>
+                                    </p>
+                                    <p style='font-size: 14px;'>Alternatively, you may visit us in person to make the payment.</p>
+                                    <p style='font-size: 14px;'>Thank you for choosing our institution. We are excited to have you join us!</p>
+                                    <p style='font-size: 14px;'>If you need further assistance, please don't hesitate to reach out to us:</p>
+                                    <ul style='font-size: 14px; color: #333;'>
+                                        <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                        <li><strong>Phone:</strong> 09274044188</li>
+                                    </ul>
+                                    <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                    <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>";
+            await _emailService.SendEmailAsync(enrollment.Email, subject, body);
 
             var notification = new Notification
             {
-                Message = $"Your enrollment has been approved.",
+                Message = "Your enrollment has been successfully approved.",
                 UserId = enrollment.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };
-
             _context.Notifications.Add(notification);
             await _context.SaveChangesAsync();
 
             var recent = new RecentActivity
             {
-                Activity = $"Enrollment {enrollment.Firstname} {enrollment.Surname} approved",
+                Activity = $"Enrollment approved for {enrollment.Firstname} {enrollment.Surname}",
                 CreatedAt = DateTime.Now
             };
             _context.RecentActivities.Add(recent);
             await _context.SaveChangesAsync();
+
 
             return RedirectToAction("ManageEnrollees", "Admin");
         }
@@ -869,13 +1155,51 @@ public class AdminController : Controller
             enrollment.IsRejected = true;
             _context.SaveChanges();
 
-            var subject = "Enrollment Rejected";
-            var body = $"Dear {enrollment.Firstname} {enrollment.Surname},<br>Your enrollment has been rejected. Please contact the administration for further details.";
+            var subject = "Enrollment Status: Rejected";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style='padding: 20px;'>
+                                    <p style='font-size: 16px; color: #b30000;'>Dear <strong>{enrollment.Firstname} {enrollment.Surname}</strong>,</p>
+                                    <p style='font-size: 14px;'>We regret to inform you that your enrollment has been rejected.</p>
+                                    <p style='font-size: 14px;'>If you need further assistance, please don't hesitate to reach out to us:</p>
+                                    <ul style='font-size: 14px; color: #333;'>
+                                        <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                        <li><strong>Phone:</strong> 09274044188</li>
+                                    </ul>
+                                    <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                    <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>";
             await _emailService.SendEmailAsync(enrollment.Email, subject, body);
 
             var notification = new Notification
             {
-                Message = $"Your enrollment has been rejected.",
+                Message = "Your enrollment has been rejected. Please contact the administration for further details.",
                 UserId = enrollment.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
@@ -885,11 +1209,12 @@ public class AdminController : Controller
 
             var recent = new RecentActivity
             {
-                Activity = $"Enrollment {enrollment.Firstname} {enrollment.Surname} rejected",
+                Activity = $"Enrollment rejected for {enrollment.Firstname} {enrollment.Surname}",
                 CreatedAt = DateTime.Now
             };
             _context.RecentActivities.Add(recent);
             await _context.SaveChangesAsync();
+
 
             TempData["SuccessMessage"] = "Enrollment rejected successfully.";
             return RedirectToAction("ManageEnrolled", "Admin");
@@ -908,14 +1233,55 @@ public class AdminController : Controller
             return RedirectToAction("ManageEnrollees", "Admin");
         }
 
-        var subject = "Enrollment Deleted";
-        var body = $"Dear {enrollment.Firstname} {enrollment.Surname},<br>Your enrollment has been deleted. Please contact the administration for further details.";
+        var subject = "Enrollment Status: Deleted";
+        var body = $@"
+            <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                    <tbody>
+                        <tr>
+                            <td style='padding: 20px;'>
+                                <p style='font-size: 16px; color: #b30000;'>Dear <strong>{enrollment.Firstname} {enrollment.Surname}</strong>,</p>
+                                <p style='font-size: 14px;'>We regret to inform you that your enrollment has been deleted.</p>
+                                <p style='font-size: 14px;'>For further details or clarification, please contact our administration team:</p>
+                                <ul style='font-size: 14px; color: #333;'>
+                                    <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #b30000;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                    <li><strong>Phone:</strong> 09274044188</li>
+                                </ul>
+                                <p style='font-size: 14px;'>We apologize for any inconvenience caused and are here to assist you with any concerns.</p>
+                                <p style='font-size: 14px;'>Best regards,</p>
+                                <p style='font-size: 14px;'><strong>Your Enrollment Team</strong></p>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot style='background-color: #fbe052; color: #b30000;'>
+                        <tr>
+                            <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #b30000;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>";
         await _emailService.SendEmailAsync(enrollment.Email, subject, body);
 
         enrollment.IsDeleted = true;
-        enrollment.Email = "";
+        enrollment.Email = string.Empty;
         _context.Update(enrollment);
         await _context.SaveChangesAsync();
+
 
         TempData["SuccessMessage"] = "Enrollment deleted successfully.";
         return RedirectToAction("ManageEnrollees", "Admin");
@@ -936,6 +1302,7 @@ public class AdminController : Controller
             return View(enrollment);
         }
 
+        string schoolYear = DateTime.Now.Year.ToString();
         string studentNumber = enrollment.EnrollmentId.ToString("D4");
         if (enrollment.LRN == null)
         {
@@ -945,12 +1312,21 @@ public class AdminController : Controller
                 return View(enrollment);
             }
             string schoolId = "001994";
-            string schoolYear = DateTime.Now.Year.ToString();
             enrollment.LRN = $"{schoolId}{schoolYear}{studentNumber}";
         }
+
+        var enrolledNo = await _context.Students.CountAsync();
+        enrollment.StudentID = $"{schoolYear}-{enrolledNo}";
+
         var approvedId = Guid.NewGuid().ToString();
         enrollment.ApproveId = approvedId;
         enrollment.IsApproved = true;
+        enrollment.ApprovedEnrolled = DateTime.Now;
+
+        enrollment.Username = $"temp{enrollment.Firstname}{enrollment.StudentID}{enrollment.Surname}";
+        enrollment.Password = GenerateSecurePassword();
+
+
         enrollment.SubmissionDate = DateTime.Now;
         enrollment.IsWalkin = true;
 
@@ -959,18 +1335,48 @@ public class AdminController : Controller
         var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={approvedId}";
         var subject = "Your Enrollment Has Been Approved!";
         var body = $@"
-                <p>Dear {enrollment.Firstname} {enrollment.Surname},</p>
-                <p>Congratulations! Your enrollment has been approved.</p>
-                <p>To complete your enrollment, please make your payment by clicking on the link below:</p>
-                <p>Your Temporary Username: {enrollment.TemporaryUsername}</p>
-                <p>Your Temporary Password: {enrollment.TemporaryPassword}</p>
-                <p>
-                    <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Complete Payment</a>
-                </p>
-                <p>If you prefer, you may also visit us in person to make the payment.</p>
-                <p>Thank you for choosing our institution. We look forward to having you with us!</p>
-                <p>Best regards,</p>
-                <p><strong>Your Enrollment Team</strong></p>";
+            <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                    <tbody>
+                        <tr>
+                            <td style='padding: 20px;'>
+                                <p style='font-size: 16px;'>Dear <strong>{enrollment.Firstname} {enrollment.Surname}</strong>,</p>
+                                <p style='font-size: 14px;'>Congratulations! Your enrollment has been approved.</p>
+                                <p style='font-size: 14px;'>To complete your enrollment, please make your payment by clicking the link below:</p>
+                                <p style='font-size: 14px;'>Your Temporary Username: <strong>{enrollment.TemporaryUsername}</strong></p>
+                                <p style='font-size: 14px;'>Your Temporary Password: <strong>{enrollment.TemporaryPassword}</strong></p>
+                                <p style='text-align: center; margin: 20px 0;'>
+                                    <a href='{paymentLink}' style='color: #ffffff; background-color: #007bff; padding: 10px 15px; text-decoration: none; border-radius: 5px;'>Complete Payment</a>
+                                </p>
+                                <p style='font-size: 14px;'>If you prefer, you may also visit us in person to complete your payment.</p>
+                                <p style='font-size: 14px;'>Thank you for choosing De Roman Montessori School. We are excited to have you join our community!</p>
+                                <p style='font-size: 14px;'>Best regards,</p>
+                                <p style='font-size: 14px;'><strong>Your Enrollment Team</strong></p>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                        <tr>
+                            <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>";
         await _emailService.SendEmailAsync(enrollment.Email, subject, body);
 
         var notification = new Notification
@@ -1036,32 +1442,35 @@ public class AdminController : Controller
         inquiry.IsInquired = true;
         _context.Update(inquiry);
         await _context.SaveChangesAsync();
-        
+
 
         string emailSubject = "Inquiry Confirmation - De Roman Montessori School";
         string emailBody = $@"
             <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
-                <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
-                    <thead style='background-color: #0056b3; color: #fff;'>
-                        <tr>
-                            <th style='padding: 15px; text-align: center;'>
-                                <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-bottom: 10px;'>
-                                <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
-                            </th>
-                        </tr>
-                    </thead>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
                     <tbody>
                         <tr>
                             <td style='padding: 20px;'>
-                                <p style='font-size: 16px; color: #0056b3;'>Dear {inquiry.StudentName},</p>
+                                <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{inquiry.StudentName}</strong>,</p>
                                 <p style='font-size: 14px;'>{InquireContent}</p>
-                                <p style='font-size: 14px;'>For further communication, here is our contact information:</p>
+                                <p style='font-size: 14px;'>For further assistance, feel free to reach out to us using the contact details below:</p>
                                 <ul style='font-size: 14px; color: #333;'>
                                     <li><strong>Phone:</strong> +123-456-7890</li>
                                     <li><strong>Email:</strong> <a href='mailto:contact@dromanmontessori.edu' style='color: #0056b3;'>contact@dromanmontessori.edu</a></li>
                                     <li><strong>Website:</strong> <a href='https://www.dromanmontessori.edu' style='color: #0056b3;'>www.dromanmontessori.edu</a></li>
                                 </ul>
-                                <p style='font-size: 14px;'>Thank you for choosing De Roman Montessori School. We look forward to assisting you!</p>
+                                <p style='font-size: 14px;'>Thank you for your interest in De Roman Montessori School. We look forward to assisting you with any questions or concerns!</p>
                             </td>
                         </tr>
                     </tbody>
@@ -1077,16 +1486,8 @@ public class AdminController : Controller
                 </table>
             </div>";
 
-        try
-        {
-            await _emailService.SendEmailAsync(inquiry.EmailAddress, emailSubject, emailBody);
-            TempData["SuccessMessage"] = "Note sent successfully.";
-        }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = "Failed to send the note. Please try again.";
-            Console.WriteLine(ex.Message);
-        }
+        await _emailService.SendEmailAsync(inquiry.EmailAddress, emailSubject, emailBody);
+        TempData["SuccessMessage"] = "Inquiry sent successfully.";
 
         return RedirectToAction("ManageInquiries", "Admin");
     }
@@ -1109,29 +1510,56 @@ public class AdminController : Controller
         await _context.SaveChangesAsync();
 
         string subject = "Inquiry Rejected";
-        // string body = $@"
-        //     <p>Dear {inquiry.StudentName},</p>
-        //     <p>Your inquiry has been approved.</p>
-        //     <p>You can proceed to the enrollment process by visiting the following link:</p>
-        //     <p><a href='{enrollmentUrl}'>{enrollmentUrl}</a></p>
-        //     <p>Thank you for your interest!</p>
-        //     <p>Best regards,<br>Your Team</p>";
         string body = $@"
-            <p>Dear {inquiry.StudentName},</p>
-            <p>We regret to inform you that your inquiry has been rejected.</p>
-            <p>If you have any questions, please feel free to contact us.</p>
-            <p>For further communication. here is our contact information:</p>
-            <ul>
-            </ul>
-            <p>Best regards,<br>Your Team</p>";
+            <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                    <tbody>
+                        <tr>
+                            <td style='padding: 20px;'>
+                                <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{inquiry.StudentName}</strong>,</p>
+                                <p style='font-size: 14px;'>We regret to inform you that your inquiry has been rejected.</p>
+                                <p style='font-size: 14px;'>If you have any questions or would like to discuss this further, please do not hesitate to contact us.</p>
+                                <p style='font-size: 14px;'>For any further communication, here is our contact information:</p>
+                                <ul style='font-size: 14px; color: #333;'>
+                                    <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                    <li><strong>Phone:</strong> 09274044188</li>
+                                </ul>
+                                <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                        <tr>
+                            <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>";
 
+        await _emailService.SendEmailAsync(inquiry.EmailAddress, subject, body);
         var recent = new RecentActivity
         {
-            Activity = $"Inquiry {inquiry.StudentName} rejected",
+            Activity = $"Inquiry from {inquiry.StudentName} has been rejected.",
             CreatedAt = DateTime.Now
         };
         _context.RecentActivities.Add(recent);
         await _context.SaveChangesAsync();
+
 
         await _emailService.SendEmailAsync(inquiry.EmailAddress, subject, body);
         TempData["SuccessMessage"] = "Inquiry rejected.";

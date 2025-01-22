@@ -62,7 +62,9 @@ public class HomeController : Controller
                     GradeLevel = s.GradeLevel,
                     Birthday = s.DateOfBirth,
                     Email = s.Email,
-                    Address = s.Address
+                    Address = s.Address,
+                    TotalToPay = s.TotalToPay,
+                    PaymentType = s.PaymentType
                 })
                 .FirstOrDefaultAsync();
 
@@ -73,87 +75,9 @@ public class HomeController : Controller
         }
         return View(student);
 
-        // return View(paymentView);
     }
 
-    // public async Task<IActionResult> PayEnrollment(StudentPaymentView studentPayment)
-    // {
-    //     var enrollees = await _context.Students.FirstOrDefaultAsync(e => e.ApproveId == studentPayment.ApprovedId);
-    //     if (enrollees == null)
-    //     {
-    //         TempData["ErrorMessage"] = "Student not found.";
-    //         return RedirectToAction("Index");
-    //     }
-
-
-    //     var studentPay = await _context.StudentPaymentRecords.FirstOrDefaultAsync(s => s.UserId == enrollees.EnrollmentId);
-    //     if (studentPay == null)
-    //     {
-    //         TempData["ErrorMessage"] = "Payment record not found.";
-    //         return RedirectToAction("Index");
-    //     }
-
-    //     studentPay.PaymentType = studentPayment.PaymentType;
-    //     var IsEnrollmentActive = false;
-    //     var schedule = _context.EnrollmentSchedules.FirstOrDefault();
-    //     if (schedule != null)
-    //     {
-    //         IsEnrollmentActive = DateTime.Now >= schedule.StartDate && DateTime.Now <= schedule.EndDate;
-    //     }
-
-    //     studentPay.EarlyBird = IsEnrollmentActive;
-    //     studentPay.SiblingDiscount = Math.Min(5, enrollees.NumberOfSibling);
-    //     if (studentPay.PaymentType == "Monthly")
-    //     {
-    //         studentPay.PerPayment = 1900;
-    //     }
-    //     else if (studentPay.PaymentType == "Quarterly")
-    //     {
-    //         studentPay.PerPayment = 4750;
-    //     }
-
-    //     var allDiscount = studentPay.SiblingDiscount + (studentPay.EarlyBird ? 1 : 0) + (studentPay.CashDiscount ? 1 : 0);
-    //     var firstPayment = 14000 + (studentPay.PerPayment ?? 0) - (allDiscount * 1900);
-
-    //     // First payment link, like paypal etc
-    //     var payment = new StudentPayment {
-    //         UserId = enrollees.EnrollmentId,
-    //         ReferenceNumber = Guid.NewGuid().ToString(),
-    //         PaymentAmount = firstPayment,
-    //         MonthPaid = "First",
-    //         Date = DateTime.Now
-    //     };
-
-    //     // PAYMENT SUCCESS
-    //     // ----------------------------------------------
-    //     enrollees.IsEnrolled = true;
-    //     enrollees.EnrolledDate = DateTime.Now;
-    //     _context.Update(enrollees);
-    //     await _context.SaveChangesAsync();
-
-    //     var subject = "Enrollment Approved";
-    //     var body = $"Dear {enrollees.Firstname} {enrollees.Surname},<br>You've successfully enrolled in this school.";
-    //     await _emailService.SendEmailAsync(enrollees.Email, subject, body);
-
-    //     var notification = new Notification
-    //     {
-    //         Message = $"You've successfully been enrolled.",
-    //         UserId = enrollees.LRN,
-    //         CreatedAt = DateTime.Now,
-    //         IsRead = false
-    //     };
-    //     _context.Notifications.Add(notification);
-    //     await _context.SaveChangesAsync();
-
-    //     // --------------------------------------------------
-    //     TempData["SuccessMessage"] = "Payment successful. Congratualation you successfully enrolled in this school.";
-
-
-
-    //     return RedirectToAction("Index");
-    // }
-
-    public async Task<IActionResult> PayEnrollment(int studentId)
+    public async Task<IActionResult> PayEnrollment(int studentId, double? amount)
     {
         var enrollees = await _context.Students.FirstOrDefaultAsync(e => e.EnrollmentId == studentId);
         if (enrollees == null)
@@ -170,38 +94,11 @@ public class HomeController : Controller
         }
 
         studentPay.PaymentType = enrollees.PaymentType;
-        // var IsEnrollmentActive = false;
-        // var schedule = _context.EnrollmentSchedules.FirstOrDefault();
-        // if (schedule != null)
-        // {
-        //     IsEnrollmentActive = DateTime.Now >= schedule.StartDate && DateTime.Now <= schedule.EndDate;
-        // }
-
-        // studentPay.EarlyBird = IsEnrollmentActive;
-        // studentPay.SiblingDiscount = Math.Min(5, enrollees.NumberOfSibling);
-        // if (studentPay.PaymentType == "Monthly")
-        // {
-        //     studentPay.PerPayment = 1900;
-        // }
-        // else if (studentPay.PaymentType == "Quarterly")
-        // {
-        //     studentPay.PerPayment = 4750;
-        // }
-        // else if (studentPay.PaymentType == "Initial5")
-        // {
-        //     studentPay.PerPayment = 2800;
-        // }
-        // _context.Update(studentPay);
-        // await _context.SaveChangesAsync();
-
-        // var allDiscount = studentPay.SiblingDiscount + (studentPay.EarlyBird ? 1 : 0) + (studentPay.CashDiscount ? 1 : 0);
-        // var firstPayment = 14000 + (studentPay.PerPayment ?? 0) - (allDiscount * 1900);
-
-        // if (studentPay.PaymentType == "Initial5")
-        // {
-        //     firstPayment = 5000;
-        // }
-        var firstPayment = enrollees.TotalToPay;
+        var firstPayment = amount ?? enrollees.TotalToPay;
+        if (firstPayment > enrollees.TotalToPay)
+        {
+            firstPayment = enrollees.TotalToPay;
+        }
 
         var orderRequest = new OrdersCreateRequest();
         orderRequest.Prefer("return=representation");
@@ -239,7 +136,6 @@ public class HomeController : Controller
                 return Redirect(approveUrl);
             }
         }
-
         TempData["ErrorMessage"] = "Failed to create payment. Please try again.";
         return RedirectToAction("Index");
     }
@@ -264,15 +160,109 @@ public class HomeController : Controller
 
             if (result.Status == "COMPLETED")
             {
+                enrollees.BalanceToPay = enrollees.TotalToPay - amount;
                 enrollees.IsEnrolled = true;
                 enrollees.EnrolledDate = DateTime.Now;
                 _context.Update(enrollees);
                 await _context.SaveChangesAsync();
 
-                var subject = "Enrollment Approved";
-                var body = $"Dear {enrollees.Firstname} {enrollees.Surname},<br>You've successfully enrolled in this school.<p>Your Username: {enrollees.Username}</p><p> Your Password: {enrollees.Password}</p>";
-                await _emailService.SendEmailAsync(enrollees.Email, subject, body);
+                if (enrollees.IsApproved) {
+                    var subject = "Enrollment Payment Success";
+                    var body = $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear {enrollees.Firstname} {enrollees.Surname},</p>
+                                        <p style='font-size: 14px;'>We are pleased to inform you that your payment of {amount} has been successfully processed.</p>
+                                        <p style='font-size: 14px;'>Here are your account details:</p>
+                                        <p><strong>Username:</strong> {enrollees.Username}</p>
+                                        <p><strong>Password:</strong> {enrollees.Password}</p>
+                                        <p style='font-size: 14px;'>Should you have any questions or require further assistance, do not hesitate to contact us:</p>
+                                    <ul style='font-size: 14px; color: #333;'>
+                                        <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                        <li><strong>Phone:</strong> 09274044188</li>
+                                    </ul>
+                                    <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                    <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        </table>
+                    </div>";
 
+                    await _emailService.SendEmailAsync(enrollees.Email, subject, body);
+                } else {
+                    var subject = "Enrollment Payment Success";
+                    var body = $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f9ff; padding: 20px;'>
+                    <table style='width: 100%; max-width: 600px; margin: auto; background-color: #fff; border: 1px solid #d9e6f2; border-radius: 8px;'>
+                        <thead style='background-color: #0056b3; color: #fff;'>
+                            <tr>
+                                <th style='padding: 15px; text-align: left; display: flex; align-items: center;'>
+                                    <img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9a84kDZORy-tOxHr1uSsYZM4hubrh6AThQ&s' alt='School Logo' style='height: 50px; margin-right: 15px;'>
+                                    <div>
+                                        <h2 style='margin: 0; font-size: 24px;'>DE ROMAN MONTESSORI SCHOOL</h2>
+                                        <p style='margin: 0; font-size: 14px;'>Your gateway to excellence in education</p>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 20px;'>
+                                        <p style='font-size: 16px; color: #0056b3;'>Dear {enrollees.Firstname} {enrollees.Surname},</p>
+                                        <p style='font-size: 14px;'>We are pleased to inform you that your payment of {amount} has been successfully processed.</p>
+                                        <p style='font-size: 14px;'>Here are your account details:</p>
+                                        <p><strong>Temporary Username:</strong> {enrollees.TemporaryUsername}</p>
+                                        <p><strong>Temporay Password:</strong> {enrollees.TemporaryPassword}</p>
+                                        <br>
+                                        <p style='font-size: 14px;'>To get the permanent account details. We will need to approve your enrollment first.</p>
+                                        <p style='font-size: 14px;'>Should you have any questions or require further assistance, do not hesitate to contact us:</p>
+                                    <ul style='font-size: 14px; color: #333;'>
+                                        <li><strong>Email:</strong> <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></li>
+                                        <li><strong>Phone:</strong> 09274044188</li>
+                                    </ul>
+                                    <p style='font-size: 14px;'>Thank you for choosing our services. We are here to support you every step of the way.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style='background-color: #fbe052; color: #0056b3;'>
+                            <tr>
+                                <td style='padding: 10px; text-align: center; font-size: 12px;'>
+                                    <p style='margin: 0;'>De Roman Montessori School, Tanza, Philippines</p>
+                                    <p style='margin: 0;'>Contact us: 09274044188 | <a href='mailto:depedcavite.deromanmontessori@gmail.com' style='color: #0056b3;'>depedcavite.deromanmontessori@gmail.com</a></p>
+                                    <p style='margin: 0;'>&copy; {DateTime.Now.Year} De Roman Montessori School. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        </table>
+                    </div>";
+
+                    await _emailService.SendEmailAsync(enrollees.Email, subject, body);
+                }
+
+                
                 var notification = new Notification
                 {
                     Message = $"You've successfully been enrolled.",
@@ -282,6 +272,15 @@ public class HomeController : Controller
                 };
                 _context.Notifications.Add(notification);
                 await _context.SaveChangesAsync();
+
+                var recent = new RecentActivity
+                {
+                    Activity = $"Enrollment payment success for {enrollees.Firstname} {enrollees.Surname}. Amount: {amount}",
+                    CreatedAt = DateTime.Now
+                };
+                _context.RecentActivities.Add(recent);
+                await _context.SaveChangesAsync();
+
 
                 DateTime date = DateTime.Now;
                 string monthName = date.ToString("MMMM");
@@ -312,8 +311,6 @@ public class HomeController : Controller
             TempData["ErrorMessage"] = $"Error capturing payment: {ex.Message}";
             return RedirectToAction("CartFinished");
         }
-
-        
     }
 
     // Payment failed handler
@@ -416,6 +413,7 @@ public class HomeController : Controller
             Enrollment = account,
             Requirements = await _context.RequirementModels.Where(c => c.EnrollmentId == account.EnrollmentId).ToListAsync()
         };
+        ViewBag.UserId = userId;
         return View(enrollView);
     }
 
@@ -480,7 +478,7 @@ public class HomeController : Controller
 
             var notification = new Notification
             {
-                Message = $"You've successfully been enrolled.",
+                Message = $"Requirement {requirement.RequirementName} has been approved.",
                 UserId = requirement.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
@@ -506,13 +504,14 @@ public class HomeController : Controller
 
             var notification = new Notification
             {
-                Message = $"You've successfully been enrolled.",
+                Message = $"Requirement has been rejected. {requirement.RequirementName}",
                 UserId = requirement.EnrollmentId,
                 CreatedAt = DateTime.Now,
                 IsRead = false
             };
             _context.Notifications.Add(notification);
-            await _context.SaveChangesAsync();  
+            await _context.SaveChangesAsync();
+
             return Json(new { success = true });
         }
         return Json(new { success = false });
@@ -558,8 +557,4 @@ public class HomeController : Controller
         TempData["SuccessMessage"] = "File deleted successfully.";
         return RedirectToAction("Document");
     }
-
-
-
-
 }

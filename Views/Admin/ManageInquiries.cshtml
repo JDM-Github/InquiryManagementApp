@@ -84,7 +84,7 @@
                                 <td>@inquiry.ContactNumber</td>
                                 <td>@inquiry.EmailAddress</td>
                                 <td>
-                                    @if (inquiry.IsEnrolled)
+                                    @if (inquiry.IsClickedOnEmail && inquiry.IsEnrolled)
                                     {
                                         <span>Enrolled</span>
                                     }
