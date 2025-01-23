@@ -54,6 +54,11 @@ public class AdminController : Controller
         var yearRange = Enumerable.Range(currentYear - 5, 11).ToList();
         var enrollmentTrendData = yearRange.ToDictionary(year => year, year => enrollmentTrends.FirstOrDefault(e => e.Year == year)?.Count ?? 0);
 
+        var inquiries = await _context.Inquiries
+            .OrderByDescending(i => i.CreatedAt)
+            .Take(10) 
+            .ToListAsync();
+
         var recentActivities = await _context.RecentActivities
             .OrderByDescending(r => r.CreatedAt)
             .Take(5)
@@ -68,7 +73,8 @@ public class AdminController : Controller
             CurrentPayment = schedule,
             CancellationAnalytics = enrollmentStatusAnalytics,
             EnrollmentTrends = enrollmentTrendData,
-            RecentActivities = recentActivities
+            RecentActivities = recentActivities,
+            Inquiries = inquiries
         };
         ViewBag.ActiveTab = "Index";
         return View(viewModel);

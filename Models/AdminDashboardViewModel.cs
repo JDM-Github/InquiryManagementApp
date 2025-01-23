@@ -12,6 +12,7 @@ namespace InquiryManagementApp.Models
         public Dictionary<string, int> CancellationAnalytics { get; set; } = new Dictionary<string, int>();
         public Dictionary<int, int> EnrollmentTrends { get; set; } = new Dictionary<int, int>();
         public List<RecentActivity> RecentActivities { get; set; } = new List<RecentActivity>();
+        public List<Inquiry> Inquiries { get; set; } = new List<Inquiry>();
     }
 }
 

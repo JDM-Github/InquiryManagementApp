@@ -22,7 +22,7 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <p class="card-text small">Inquiries we have received this month</p>
+                            <p class="card-text small">Inquiries received this month</p>
                             <h2 class="fw-bold">@Model.TotalInquiries</h2>
                         </div>
                     </div>
@@ -37,7 +37,7 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <p class="card-text small">Total number of students enrolles</p>
+                            <p class="card-text small">Total number of enrolled students</p>
                             <h2 class="fw-bold">@Model.TotalEnrolled</h2>
                         </div>
                     </div>
@@ -51,9 +51,9 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <p class="card-text small">Number of enrolled students</p>
+                            <p class="card-text small">Number of students currently enrolled</p>
                             <h2 class="fw-bold">@Model.TotalApproved</h2>
-                        </div>
+                        </div>  
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -74,6 +74,50 @@
                 </div>
 
             </div>
+
+            <div class="row mt-3">
+    <div class="col-md-12">
+        <div class="card shadow-lg border-0">
+            <div class="card-header fw-bold" style="background-color: #FFD700; color:#0D206A">
+                Inquiry Board
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    @* <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student Name</th>
+                            <th>Inquiry Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead> *@
+                    <tbody>
+                        @foreach (var inquiry in Model.Inquiries)
+                        {
+                            <tr>
+                                <td>@inquiry.InquiryId</td>
+                                <td>@inquiry.StudentName</td>
+                                <td>@inquiry.CreatedAt.ToString("MM/dd/yyyy")</td>
+                                <td>
+                                    @if (inquiry.IsEnrolled)
+                                    {
+                                        <span class="badge bg-success">Enrolled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">Pending</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
             <div class="row mt-3">
                 <div class="col-md-6">
                     <div class="card shadow-lg border-0">
