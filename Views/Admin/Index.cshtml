@@ -65,8 +65,7 @@
                             </h5>
                         </div>
 
-                        <div class="card-body"
-                            style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="card-body">
                             <p class="card-text small">Total revenue generated from enrollments</p>
                             <h2 class="fw-bold">₱@Model.TotalRevenue.ToString("N2")</h2>
                         </div>
@@ -83,14 +82,6 @@
             </div>
             <div class="card-body">
                 <table class="table table-striped">
-                    @* <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Student Name</th>
-                            <th>Inquiry Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead> *@
                     <tbody>
                         @foreach (var inquiry in Model.Inquiries)
                         {
@@ -99,9 +90,9 @@
                                 <td>@inquiry.StudentName</td>
                                 <td>@inquiry.CreatedAt.ToString("MM/dd/yyyy")</td>
                                 <td>
-                                    @if (inquiry.IsEnrolled)
+                                    @if (inquiry.IsInquired)
                                     {
-                                        <span class="badge bg-success">Enrolled</span>
+                                        <span class="badge bg-success">Inquired</span>
                                     }
                                     else
                                     {

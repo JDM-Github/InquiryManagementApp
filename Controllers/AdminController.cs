@@ -66,10 +66,10 @@ public class AdminController : Controller
 
         var viewModel = new AdminDashboardViewModel
         {
-            TotalInquiries = _context.Inquiries.Count(),
+            TotalInquiries = _context.Inquiries.Count(e => !e.IsInquired),
             TotalEnrolled = _context.Students.Where(e => !e.IsRejected && !e.IsApproved).Count(),
             TotalApproved = _context.Students.Where(e => e.IsEnrolled && e.IsApproved).Count(),
-            TotalRevenue = _context.Payments.Sum(e => e.PaidAmount),
+            TotalRevenue = _context.StudentPayments.Sum(e => e.PaymentAmount),
             CurrentPayment = schedule,
             CancellationAnalytics = enrollmentStatusAnalytics,
             EnrollmentTrends = enrollmentTrendData,
@@ -336,7 +336,7 @@ public class AdminController : Controller
         }
         var TuitionFee = fee.TuitionFee;
         var Miscellaneous = fee.Miscellaneous;
-        var student = await _context.Students.FirstOrDefaultAsync(s => (s.StudentID == lrn || s.LRN == lrn) && s.IsApproved);
+        var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentID == lrn || s.LRN == lrn);
 
         if (student != null)
         {
@@ -1089,9 +1089,9 @@ public class AdminController : Controller
                                     <p style='font-size: 16px; color: #0056b3;'>Dear <strong>{enrollment.Firstname} {enrollment.Surname}</strong>,</p>
                                     <p style='font-size: 14px;'>Congratulations! Your enrollment has been successfully approved.</p>
 
-                                    <p style='font-size: 14px;'>Here are your permanent account details:</p>
-                                        <p><strong>Username:</strong> {enrollment.TemporaryUsername}</p>
-                                        <p><strong>Password:</strong> {enrollment.TemporaryPassword}</p>
+                                    <p style='font-size: 14px;'>Here are your temporary account details:</p>
+                                        <p><strong>Temporary Username:</strong> {enrollment.TemporaryUsername}</p>
+                                        <p><strong>Temporary Password:</strong> {enrollment.TemporaryPassword}</p>
                                     <p style='font-size: 14px;'>To get the permanent account details. You need to complete your enrollment first.</p>
                                     <p style='font-size: 14px;'>To complete your enrollment, kindly proceed with the payment by clicking the button below:</p>
                                     <p>

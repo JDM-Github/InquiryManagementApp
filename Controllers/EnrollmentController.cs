@@ -173,6 +173,12 @@ namespace InquiryManagementApp.Controllers
                 return View(enrollment);
             }
 
+            var inquired = await _context.Inquiries.FirstOrDefaultAsync(s => s.EmailAddress == enrollment.Email);
+            if (inquired != null) {
+                inquired.IsEnrolled = true;
+                _context.Inquiries.Update(inquired);
+                await _context.SaveChangesAsync();
+            }
 
             var requiredFiles = await _context.Requirements
                 .Where(r => r.GradeLevel == enrollment.GradeLevel)
@@ -402,6 +408,10 @@ namespace InquiryManagementApp.Controllers
                 return View(enrollment);
             }
 
+            inquired.IsEnrolled = true;
+            _context.Inquiries.Update(inquired);
+            await _context.SaveChangesAsync();
+
             if (await _context.Accounts.FirstOrDefaultAsync(s => s.Email == enrollment.Email) != null
             || await _context.Students.FirstOrDefaultAsync(s => s.Email == enrollment.Email) != null)
             {
@@ -470,13 +480,21 @@ namespace InquiryManagementApp.Controllers
                 enrollment.TotalToPay = fee.TuitionFee + fee.Miscellaneous;
             }
             var enrolledNo = await _context.Students.CountAsync();
-            enrollment.StudentID = $"{schoolYear}-{enrolledNo}";
+            enrollment.StudentID = $"{schoolYear}-{enrolledNo:4}";
             var approvedId = Guid.NewGuid().ToString();
             enrollment.ApproveId = approvedId;
 
             enrollment.TemporaryUsername = $"temp{enrollment.Firstname}{enrollmentNo}{schoolYear}{enrollment.Surname}";
             enrollment.TemporaryPassword = GenerateSecurePassword();
 
+            // var payment = new StudentPaymentRecord
+            // {
+            //     UserId = enrollment.EnrollmentId,
+            //     PaymentType = "",
+            //     SiblingDiscount = enrollment.NumberOfSibling
+            // };
+            // _context.StudentPaymentRecords.Add(payment);
+            // await _context.SaveChangesAsync();
 
             var paymentLink = $"{Request.Scheme}://{Request.Host}/Home/ApprovedEnrolled?id={approvedId}";
             var subject = "Your Enrollment Has Been Created!";

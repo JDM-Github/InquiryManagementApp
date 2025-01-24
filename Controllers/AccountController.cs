@@ -29,29 +29,6 @@ namespace InquiryManagementApp.Controllers
             return View();
         }
 
-        // public IActionResult Detail(int id)
-        // {
-        //     var account = _context.Accounts.Find(id);
-        //     if (account == null)
-        //     {
-        //         return NotFound();
-        //     }
-
-        //     return View(account);
-        // }
-
-        // public IActionResult Edit(int id)
-        // {
-        //     var account = _context.Accounts.Find(id);
-        //     if (account == null)
-        //     {
-        //         return NotFound();
-        //     }
-
-        //     return View(account);
-        // }
-
-
         public IActionResult EnrolleesDetail(int id)
         {
             var account = _context.Students.Find(id);
@@ -98,19 +75,6 @@ namespace InquiryManagementApp.Controllers
             _context.SaveChanges();
             return RedirectToAction("ManageAccounts", "Admin");
         }
-
-
-        // [HttpPost]
-        // public IActionResult Admin(string username, string password)
-        // {
-        //     if (username == "admin" && password == "admin")
-        //     {
-        //         return RedirectToAction("Index", "Admin");
-        //     }
-
-        //     ViewBag.ErrorMessage = "Invalid username or password.";
-        //     return RedirectToAction("Index", "Admin");
-        // }
 
         [HttpPost]
         public async Task<IActionResult> Admin(string username, string password)
